@@ -16,7 +16,7 @@
 .plc b{font-size:15px;font-weight:600;display:block}.plc small{font-size:12px;color:var(--mute)}
 .plc a{margin-left:auto;font-size:13px;color:var(--ink);text-decoration:underline;white-space:nowrap}
 .gmk{width:48px;height:48px;border-radius:24px;border:3px solid #fff;background-size:cover;background-position:center;box-shadow:0 4px 14px rgba(0,0,0,.35);position:relative;cursor:pointer}
-.gmk b{position:absolute;right:-6px;top:-6px;min-width:20px;height:20px;border-radius:10px;background:#0D0D0D;color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px}
+.gmk b{position:absolute;right:-6px;top:-6px;min-width:20px;height:20px;border-radius:10px;background:var(--blue);color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px}
 .gme{width:18px;height:18px;border-radius:9px;background:#2F7BFF;border:3px solid #fff;box-shadow:0 0 0 8px rgba(47,123,255,.22)}
 .mcard{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);border-radius:24px;padding:12px;background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(26px) saturate(1.8);backdrop-filter:blur(26px) saturate(1.8);border:1px solid rgba(255,255,255,.7);box-shadow:0 12px 40px rgba(0,0,0,.22);color:#0D0D0D;max-height:46%;overflow-y:auto;transform:translateY(130%);transition:transform .4s cubic-bezier(.2,.9,.25,1)}
 :root[data-theme="dark"] .mcard{background:rgba(40,40,40,.72);border-color:rgba(255,255,255,.18);color:#fff}
@@ -24,7 +24,7 @@
 .mcard .plc small{color:inherit;opacity:.7}
 .mcard .acts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 .mcard .acts button,.mcard .acts a{height:36px;padding:0 14px;border-radius:18px;background:rgba(0,0,0,.08);font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px;color:inherit;text-decoration:none}
-.mcard .acts .d{background:#0D0D0D;color:#fff}
+.mcard .acts .d{background:var(--blue);color:#fff}
 .mloc{position:absolute;right:12px;top:12px;z-index:2}
 .mloc{width:44px;height:44px;border-radius:22px;background:var(--card);box-shadow:0 4px 14px rgba(0,0,0,.25);display:grid;place-items:center;color:var(--ink)}
 
@@ -40,4 +40,4 @@
 .svcard .plc small{color:inherit;opacity:.7}
 .svcard .acts{display:flex;gap:8px;flex-wrap:wrap}
 .svcard .acts button{height:36px;padding:0 14px;border-radius:18px;background:rgba(0,0,0,.08);font-size:14px;font-weight:500;color:inherit}
-.svcard .acts .d{background:#0D0D0D;color:#fff}
+.svcard .acts .d{background:var(--blue);color:#fff}
