@@ -50,6 +50,8 @@ Limits: the avatar is generated from the name, not from the real person; pose an
 
 The pin icon shows photos kept with a location as markers; tap one to open the day, see the person there, or get directions. The locate button shows what you kept within 200 m. Photos taken with the in-app camera save their location; library photos do not. Without a key, Places falls back to a list with "Open in Maps" links.
 
+**Street view.** When a place has a photo with someone tagged in it, its card gets a **Street view** button. It opens the real street at the photo's coordinates (Street View panorama), with a 3D avatar of each tagged person standing in it in their saved pose. The avatars are anchored to a lat/lng, so they stay on the ground as you look around or step along the street. "Stand here" re-places the group in front of you; the pose buttons change everyone's pose. It needs the Maps JavaScript API (Street View is part of it) and a place with Street View coverage within 80 m. Alignment of the 3D layer with the panorama uses Street View's heading, pitch and zoom; it is approximate.
+
 ## App Check (optional)
 
 [Firebase App Check](https://firebase.google.com/docs/app-check) makes Maps Platform reject traffic that doesn't come from this app. Google currently enforces it for **Places API (New)** only; Keep loads maps and markers, not Places, so enforcement would not block anything yet. It is wired in for when Places is added.
