@@ -70,6 +70,10 @@ The pin icon shows photos kept with a location as markers; tap one to open the d
 
 Local or CI debugging: open the site with `?appcheck-debug` (the SDK prints a debug token to the console) or `?appcheck-debug=<token>` for one you registered in the Firebase console. If Firebase can't be reached, the map still loads without a token. reCAPTCHA Enterprise is free up to 10,000 assessments a month.
 
+## Deleting
+
+Press and hold a memory to delete it: a photo in the viewer (swipe to it, then hold), a single photo or a note in a day. A small menu offers a red **Delete** button and a cancel icon. There is no list of delete buttons in the day sheet any more.
+
 ## Data and limits
 
 - Memories are stored per browser/device. Clearing site data deletes them, so back up. The app asks the browser for persistent storage.

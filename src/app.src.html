@@ -290,6 +290,13 @@ svg{display:block}
 .ptr .arc{stroke:var(--blue);stroke-linecap:round;stroke-dasharray:69.1;stroke-dashoffset:calc(69.1 * (1 - var(--pullp)))}
 .ptr.spin svg{animation:ptrspin .8s linear infinite}.ptr.spin .arc{stroke-dashoffset:48}
 @keyframes ptrspin{to{transform:rotate(360deg)}}
+[data-mid]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+[data-mid].lp{transform:scale(.96);transition:transform .22s cubic-bezier(.2,.9,.25,1);position:relative;z-index:1}
+.lpm{position:absolute;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 96px);background:rgba(0,0,0,.28);animation:lpfade .2s}
+.lpc{display:flex;gap:8px;padding:8px;border-radius:30px;background:var(--card);border:1px solid var(--bd);box-shadow:var(--shadow);animation:lppop .3s cubic-bezier(.34,1.56,.64,1)}
+.lpc button{height:48px;border-radius:24px;display:flex;align-items:center;gap:8px;padding:0 20px;font-size:16px;font-weight:600;background:var(--fill)}
+.lpc .dl{background:#FF3B30;color:#fff}.lpc .cn{width:48px;padding:0;justify-content:center}
+@keyframes lpfade{from{opacity:0}}@keyframes lppop{from{opacity:0;transform:translateY(12px) scale(.9)}}
 .toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translate(-50%,-12px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;font-weight:500;z-index:70;opacity:0;pointer-events:none;transition:.3s;white-space:nowrap}.toast.on{opacity:1;transform:translate(-50%,0)}
 /* simulated iPhone keyboard (only on desktop; phones use the real one) */
 .kbd{position:absolute;left:0;right:0;bottom:0;height:300px;background:var(--kbbg);z-index:60;display:none;flex-direction:column;padding:8px 3px 6px;gap:11px;user-select:none}
@@ -379,6 +386,7 @@ const st=(p,w)=>`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" str
 const ic={
  plus:st('<path d="M12 5v14M5 12h14"/>',2),
  x:st('<path d="M6 6l12 12M18 6L6 18"/>',1.8),
+ trash:st('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/>',1.7),
  mic:st('<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>'),
  grid:st('<rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/>'),
  cal:st('<rect x="4" y="5" width="16" height="15" rx="3.5"/><path d="M4 10h16M9 3v4M15 3v4"/>'),
@@ -552,7 +560,7 @@ function openLb(ids){lbList=ids.map(i=>lbReg[i]).filter(Boolean);lbI=0;if(!lbLis
 /* every photo of the day sits in one strip; drag it sideways and it settles on the next or previous photo */
 function drawLb(){
   const n=lbList.length;
-  $('#lb').innerHTML=`<button class="ib lbx" id="lbx" aria-label="Close">${ic.x}</button><div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs"><img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false"><div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}`;
+  $('#lb').innerHTML=`<button class="ib lbx" id="lbx" aria-label="Close">${ic.x}</button><div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs" data-mid="${m.id}"><img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false"><div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}`;
   $('#lbx').onclick=closeLb;
   const tr=$('#lbtr');lbPos(tr,0,false);
   tr.onpointerdown=e=>{if(e.button>0)return;lbDrag={x:e.clientX,y:e.clientY,t:performance.now(),dx:0,on:false,id:e.pointerId}};
@@ -567,7 +575,7 @@ function drawLb(){
   const up=e=>{
     const d=lbDrag;if(!d||d.id!==e.pointerId)return;lbDrag=null;
     const w=tr.clientWidth,v=d.dx/Math.max(1,performance.now()-d.t);
-    if(!d.on){if(n<2&&Math.abs(e.clientX-d.x)<6)closeLb();return}
+    if(!d.on){if(n<2&&Math.abs(e.clientX-d.x)<6&&!$('#lpm'))closeLb();return}
     if((d.dx<-w*.2||v<-.5)&&lbI<n-1)lbI++;else if((d.dx>w*.2||v>.5)&&lbI>0)lbI--;
     lbPos(tr,0,true);
     document.querySelectorAll('.lbdots i').forEach((x,i)=>x.classList.toggle('on',i===lbI));
@@ -611,12 +619,10 @@ function openDay(k){
   L.forEach(x=>{
     if(x.type==='photo'||x.type==='video'){
       if(done)return;done=true;const caps=ph.map(p=>p.text).filter(Boolean);
-      h+=`<div class="ev">${stackHTML(ph)}<div class="tm">${tstr(ph[0].ts)}${ph.length>1?' to '+tstr(ph[ph.length-1].ts):''} <em>· ${[ph.filter(p=>p.type==='photo').length&&ph.filter(p=>p.type==='photo').length+' photo'+(ph.filter(p=>p.type==='photo').length>1?'s':''),ph.filter(p=>p.type==='video').length&&ph.filter(p=>p.type==='video').length+' video'+(ph.filter(p=>p.type==='video').length>1?'s':'')].filter(Boolean).join(' · ')}</em></div>${caps[0]?`<div class="tx">${esc(caps[0])}</div>`:''}</div>`;
-    }else h+=`<div class="ev">${item(x)}</div>`;
+      h+=`<div class="ev"${ph.length===1&&user.includes(ph[0])?` data-mid="${ph[0].id}"`:''}>${stackHTML(ph)}<div class="tm">${tstr(ph[0].ts)}${ph.length>1?' to '+tstr(ph[ph.length-1].ts):''} <em>· ${[ph.filter(p=>p.type==='photo').length&&ph.filter(p=>p.type==='photo').length+' photo'+(ph.filter(p=>p.type==='photo').length>1?'s':''),ph.filter(p=>p.type==='video').length&&ph.filter(p=>p.type==='video').length+' video'+(ph.filter(p=>p.type==='video').length>1?'s':'')].filter(Boolean).join(' · ')}</em></div>${caps[0]?`<div class="tx">${esc(caps[0])}</div>`:''}</div>`;
+    }else h+=`<div class="ev"${user.includes(x)?` data-mid="${x.id}"`:''}>${item(x)}</div>`;
   });
   ph.filter(p=>p.who&&src(p)).forEach(p=>{h+=`<div class="ev"><button class="pill d arbtn" data-ar="${p.id}">${ic.cube} See ${esc(firstName(p.who))} there</button></div>`});
-  const mine=L.filter(x=>user.includes(x));
-  if(mine.length)h+=`<div class="lbl" style="margin-top:22px">Manage</div><div class="grp" style="padding:0 14px;margin-top:8px">${mine.map(x=>`<div class="row"><span style="font-size:14px;color:var(--mute);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:10px">${TL[x.type]} · ${esc((x.text||x.name||'').slice(0,40))||tstr(x.ts)}</span><button class="chip fb flat" data-del="${x.id}" style="height:30px;font-size:13px;padding:0 12px;flex:none">Delete</button></div>`).join('')}</div>`;
   if(!L.length)h=`<div class="empty">Nothing kept on this day.</div>`;
   openSheet(`<div class="dh"><h1>${longDay(dt)}</h1><p>${dt.getFullYear()} · ${L.length?L.length+' moment'+(L.length>1?'s':''):'quiet day'}</p></div><div class="pb" style="padding-top:16px">${h}</div>`,{full:true});
 }
@@ -962,11 +968,6 @@ function fit(){
 addEventListener('resize',fit);fit();
 __AR_JS__
 __MAPS_JS__
-document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-del]');if(!b)return;
-  if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Tap again';setTimeout(()=>{b.textContent='Delete';delete b.dataset.arm},2500);return}
-  const id=+b.dataset.del;user=user.filter(o=>o.id!==id);saved.delete(id);idb.del(id).catch(()=>{});refresh();openDay(curDay);toast('Deleted');
-});
 let yearMode=false;
 function refresh(){index();renderCal();renderYear();renderRv()}
 $('#cal').addEventListener('click',e=>{const c=e.target.closest('[data-d]');if(c)openDay(c.dataset.d)});
@@ -1122,6 +1123,47 @@ async function onbRun(files){
   $('#onbOk').onclick=()=>{onbClose();const c=$('#cal');const t=$('#m-'+z.getFullYear()+'-'+(z.getMonth()+1));if(t&&c)c.scrollTop=t.offsetTop-4};
   $('#onbMore').onclick=()=>onbPick(true);
 }
+/* ---------- long press a memory: delete ---------- */
+/* Hold a photo (in the viewer), a lone photo or a note in a day, and a small menu offers Delete. Only things you kept can be deleted. */
+(function(){
+  let t=null,sx=0,sy=0,el=null,fired=false;
+  const cancel=()=>{clearTimeout(t);t=null};
+  const close=()=>{const m=$('#lpm');if(m)m.remove();document.querySelectorAll('.lp').forEach(x=>x.classList.remove('lp'))};
+  function remove(id){
+    const o=user.find(x=>x.id===id);if(!o)return;
+    user=user.filter(x=>x.id!==id);saved.delete(id);idb.del(id).catch(()=>{});delete lbReg[id];
+    if($('#lb').classList.contains('on')){
+      lbList=lbList.filter(x=>x.id!==id);
+      if(!lbList.length)closeLb();else{lbI=Math.min(lbI,lbList.length-1);drawLb()}
+    }
+    refresh();if($('#sh').classList.contains('on')&&curDay)openDay(curDay);
+    toast('Deleted');
+  }
+  function menu(node){
+    const id=+node.dataset.mid;
+    if(!user.some(x=>x.id===id)){toast('Sample memories cannot be deleted');return}
+    close();node.classList.add('lp');
+    if(navigator.vibrate)try{navigator.vibrate(12)}catch(e){}
+    const m=document.createElement('div');m.className='lpm';m.id='lpm';
+    m.innerHTML=`<div class="lpc"><button class="dl" id="lpDel">${ic.trash.replace('width="22" height="22"','width="20" height="20"')} Delete</button><button class="cn" id="lpNo" aria-label="Cancel">${ic.x}</button></div>`;
+    $('#app').appendChild(m);
+    m.onclick=e=>{if(e.target===m)close()};
+    $('#lpNo').onclick=close;
+    $('#lpDel').onclick=()=>{close();remove(id)};
+  }
+  document.addEventListener('pointerdown',e=>{
+    fired=false; /* a new touch always starts clean, so a stale flag can never swallow a real tap */
+    if(e.button>0||e.target.closest('#lpm'))return;
+    const n=e.target.closest('[data-mid]');if(!n)return;
+    el=n;sx=e.clientX;sy=e.clientY;fired=false;cancel();
+    t=setTimeout(()=>{t=null;fired=true;menu(el)},480);
+  });
+  document.addEventListener('pointermove',e=>{if(t&&(Math.abs(e.clientX-sx)>8||Math.abs(e.clientY-sy)>8))cancel()});
+  ['pointerup','pointercancel'].forEach(k=>document.addEventListener(k,cancel));
+  /* the finger lifting after a long press must not also open the photo or close the viewer */
+  document.addEventListener('click',e=>{if(fired){fired=false;e.stopPropagation();e.preventDefault()}},true);
+  document.addEventListener('contextmenu',e=>{const n=e.target.closest('[data-mid]');if(n){e.preventDefault();cancel();fired=true;menu(n)}});
+})();
 /* ---------- pull to refresh ---------- */
 /* Drag down from the top of the calendar (or from the header): the page follows with rubber-band resistance, a ring fills,
    past the threshold it spins while Keep looks for a new version, then the page springs back. A new version is applied; otherwise the calendar just refreshes. */
