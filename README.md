@@ -13,6 +13,10 @@ A single static web app, installable on a phone (PWA). Everything you keep is st
 2. **Install on your phone**: open the site in Safari (Share → Add to Home Screen) or Chrome (Install app). Allow camera, location and motion when asked.
 3. **Back up** from Profile → Back up now and then; Restore loads it on a new phone.
 
+## First launch
+
+The first time Keep opens with nothing in it, it asks you to bring in a month of memories: **Choose photos** opens the phone's own photo picker (a web app cannot read the library silently). Each photo is filed on the day it was taken (EXIF date, falling back to the file's date) and keeps its location if the photo carries one, so it shows up on the map. Up to 300 photos per go; photos already kept are skipped. Profile → Import photos runs the same flow again. On iPhone, location is only included if you allow it in the picker's Options.
+
 ## Environment
 
 All configuration is read at build time from environment variables or a local `.env` (see `.env.example`). Nothing secret is committed.

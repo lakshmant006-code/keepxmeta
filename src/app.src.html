@@ -259,6 +259,17 @@ svg{display:block}
 .yh{display:flex;justify-content:space-between;align-items:baseline;padding:18px 4px 6px}.yh h2{font-size:16px;font-weight:600}.yh p{font-size:12px;color:var(--faint)}
 .inst{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 64px);z-index:40;display:flex;align-items:center;gap:10px;padding:10px 8px 10px 10px;border-radius:20px;background:var(--card);border:1px solid var(--bd);box-shadow:var(--shadow)}
 .inst img{width:40px;height:40px;border-radius:10px;flex:none}.inst div{flex:1;min-width:0}.inst b{display:block;font-size:15px;font-weight:600}.inst small{font-size:12px;color:var(--mute)}
+.onb{position:absolute;inset:0;z-index:60;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 28px calc(env(safe-area-inset-bottom,0px) + 24px);overflow-y:auto}
+.onbin{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.onbic{width:76px;height:76px;border-radius:24px;background:var(--blue);color:#fff;display:grid;place-items:center;margin-bottom:22px;box-shadow:0 12px 30px rgba(8,102,255,.35)}.onbic.ok{background:#1FA85B;box-shadow:0 12px 30px rgba(31,168,91,.35)}
+.onbin h1{font-size:28px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
+.onbp{font-size:16px;line-height:1.45;color:var(--mute);margin-bottom:18px}.onbp b{color:var(--ink)}
+.onbl{list-style:none;padding:0;margin:0 0 26px;text-align:left;width:100%;display:flex;flex-direction:column;gap:10px;font-size:15px}
+.onbl li{padding-left:28px;position:relative}.onbl li::before{content:"";position:absolute;left:4px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--blue)}
+.onbgo{width:100%;justify-content:center;cursor:pointer;height:52px;font-size:17px;border-radius:26px}
+.onbsk{margin-top:12px;height:44px;padding:0 20px;font-size:15px;font-weight:500;color:var(--mute)}
+.onbn{margin-top:14px;font-size:12.5px;color:var(--faint);line-height:1.4}.onbn b{color:var(--mute)}
+.onbbar{width:100%;height:8px;border-radius:4px;background:var(--fill2);overflow:hidden;margin:6px 0 4px}.onbbar i{display:block;height:100%;width:0;background:var(--blue);border-radius:4px;transition:width .2s}
 .toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translate(-50%,-12px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;font-weight:500;z-index:70;opacity:0;pointer-events:none;transition:.3s;white-space:nowrap}.toast.on{opacity:1;transform:translate(-50%,0)}
 /* simulated iPhone keyboard (only on desktop; phones use the real one) */
 .kbd{position:absolute;left:0;right:0;bottom:0;height:300px;background:var(--kbbg);z-index:60;display:none;flex-direction:column;padding:8px 3px 6px;gap:11px;user-select:none}
@@ -821,6 +832,7 @@ function openProfile(){
     <div class="row"><span>Appearance</span><div class="seg" data-k="theme">${['light','dark'].map(x=>`<button data-v="${x}" class="${th===x?'on':''}">${x[0].toUpperCase()+x.slice(1)}</button>`).join('')}</div></div>
     <div class="row"><span>Revisits</span><div class="seg" data-k="rev">${[['off','Off'],['monthly','Monthly'],['weekly','Weekly']].map(x=>`<button data-v="${x[0]}" class="${revOn===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>
     ${CFG.demo?`<div class="row"><span>Preview empty state</span><div class="seg" data-k="empty">${[['0','Off'],['1','On']].map(x=>`<button data-v="${x[0]}" class="${(emptyMode?'1':'0')===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>`:''}
+    <div class="row"><span>Import photos</span><button class="chip fb flat" id="impOpen" style="height:32px;font-size:14px;padding:0 12px">Choose</button></div>
     ${isStandalone()?'':`<div class="row"><span>Install app</span><button class="chip fb flat" id="instOpen" style="height:32px;font-size:14px;padding:0 12px">Install</button></div>`}
     <div class="row"><span>Google Maps</span><button class="chip fb flat" id="gmOpen" style="height:32px;font-size:14px;padding:0 12px">${gmKey()?'On':'Add key'}</button></div>
     <div class="row"><span>Back up</span><button class="chip fb flat" id="bak" style="height:32px;font-size:14px;padding:0 12px">Download</button></div>
@@ -833,6 +845,7 @@ function openProfile(){
     if(k==='empty'){emptyMode=v==='1';refresh()}
     sg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});
   $('#gmOpen').onclick=()=>{closeSheet();openMap()};
+  $('#impOpen').onclick=()=>{closeSheet();onbOpen(true)};
   if($('#instOpen'))$('#instOpen').onclick=()=>{closeSheet();installApp()};
   $('#bak').onclick=backup;$('#rst').onchange=restore;
 }
@@ -921,10 +934,101 @@ $('#chatX').onclick=closeChat;
 $('#cb').addEventListener('click',e=>{const s=e.target.closest('[data-s]');if(s){ask(s.dataset.s);return}const d=e.target.closest('[data-d]');if(d){blurAll();openDay(d.dataset.d)}});
 document.addEventListener('click',e=>{const t=e.target.closest('[data-lb]');if(t){e.stopPropagation();openLb(t.dataset.lb.split(','))}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#lb').classList.contains('on'))closeLb();else if($('#ov').classList.contains('on'))closeAdd();else if($('#sh').classList.contains('on'))closeSheet();else closeChat()}});
-refresh();setYear(false);loadUser();
+refresh();setYear(false);loadUser().then(()=>onbMaybe());
 /* a new day while the app sat open */
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!CFG.demo){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate());if(+t!==+TODAY){TODAY=t;refresh()}}});
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!CFG.demo)navigator.serviceWorker.register('sw.js').catch(()=>{});
+/* ---------- onboarding: bring in a month of photos from the phone's library ---------- */
+/* A web app cannot read the photo library on its own, so the person picks photos in the phone's own picker.
+   Each photo is filed on the day it was taken (EXIF date, else the file's date) and keeps its location when the photo has one. */
+const ONB='kept.onboarded',ONB_MAX=300;
+const onbDone=()=>{try{return localStorage.getItem(ONB)==='1'}catch(e){return false}};
+const onbFlag=()=>{try{localStorage.setItem(ONB,'1')}catch(e){}};
+/* read DateTimeOriginal and GPS from a JPEG's EXIF block (first 128 KB is enough) */
+async function exifOf(file){
+  try{
+    const b=new DataView(await file.slice(0,131072).arrayBuffer());
+    if(b.getUint16(0)!==0xFFD8)return{};
+    let o=2;
+    while(o+4<b.byteLength){
+      const mk=b.getUint16(o),len=b.getUint16(o+2);
+      if(mk===0xFFE1&&b.getUint32(o+4)===0x45786966){
+        const t=o+10,le=b.getUint16(t)===0x4949,u16=x=>b.getUint16(t+x,le),u32=x=>b.getUint32(t+x,le);
+        const str=(off,n)=>{let r='';for(let i=0;i<n-1;i++)r+=String.fromCharCode(b.getUint8(t+off+i));return r};
+        const ifd=off=>{const n=u16(off),r={};for(let i=0;i<n;i++){const e=off+2+i*12,tag=u16(e),ty=u16(e+2),c=u32(e+4);r[tag]={ty,c,v:e+8,o:(ty===3&&c===1)?u16(e+8):u32(e+8)}}return r};
+        const i0=ifd(u32(4)),out={};
+        const ex=i0[0x8769]&&ifd(i0[0x8769].o);
+        const dt=ex&&(ex[0x9003]||ex[0x9004]);
+        if(dt){const m=/(\d{4}):(\d\d):(\d\d) (\d\d):(\d\d):(\d\d)/.exec(str(dt.o,dt.c));if(m)out.ts=new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5],+m[6]).getTime()}
+        const gp=i0[0x8825]&&ifd(i0[0x8825].o);
+        if(gp&&gp[2]&&gp[4]){
+          const rat=(e)=>{let r=0,d=1;for(let k=0;k<3;k++){const a=u32(e.o+k*8),c=u32(e.o+k*8+4);r+=(c?a/c:0)/d;d*=60}return r};
+          const ref=x=>gp[x]?String.fromCharCode(b.getUint8(t+gp[x].v)):'';
+          let la=rat(gp[2]),ln=rat(gp[4]);if(ref(1)==='S')la=-la;if(ref(3)==='W')ln=-ln;
+          if(isFinite(la)&&isFinite(ln)&&(la||ln))out.geo=[+la.toFixed(5),+ln.toFixed(5)];
+        }
+        return out;
+      }
+      if((mk&0xFF00)!==0xFF00||len<2)break;
+      o+=2+len;
+    }
+  }catch(e){}
+  return{};
+}
+function onbMaybe(){if(!CFG.demo&&!emptyMode&&!onbDone()&&!user.length)onbOpen(false)}
+function onbOpen(again){
+  if($('#onb'))return;
+  const d=document.createElement('div');d.className='onb';d.id='onb';
+  d.innerHTML=`<div class="onbin" id="onbIn"></div>`;$('#app').appendChild(d);
+  onbPick(again);
+}
+function onbClose(){const d=$('#onb');if(d)d.remove();onbFlag();refresh()}
+function onbPick(again){
+  const L=new Date(TODAY.getFullYear(),TODAY.getMonth()-1,TODAY.getDate());
+  $('#onbIn').innerHTML=`<div class="onbic">${ic.img.replace('width="22" height="22"','width="34" height="34"')}</div>
+   <h1>${again?'Add photos':'Welcome to Keep'}</h1>
+   <p class="onbp">Start with one month of memories. Pick the photos you took from <b>${MS[L.getMonth()]} ${L.getDate()}</b> to today, from your phone's photos app.</p>
+   <ul class="onbl"><li>Each photo lands on the day it was taken.</li><li>Photos that carry a location show up on the map.</li><li>Everything stays on this phone.</li></ul>
+   <label class="pill d onbgo">Choose photos<input type="file" id="onbIn2" accept="image/*" multiple hidden></label>
+   <button class="onbsk" id="onbSkip">${again?'Cancel':'Skip for now'}</button>
+   <small class="onbn">Tip: in the picker, tap <b>Select</b>, then choose a whole month at once. Up to ${ONB_MAX} at a time.</small>`;
+  $('#onbSkip').onclick=onbClose;
+  $('#onbIn2').onchange=e=>{const f=[...e.target.files].filter(x=>/^image\//.test(x.type)||/\.(jpe?g|png|heic|heif|webp)$/i.test(x.name));e.target.value='';if(f.length)onbRun(f)};
+}
+async function onbRun(files){
+  const over=files.length>ONB_MAX;files=files.slice(0,ONB_MAX);
+  const have=new Set(user.map(o=>o.fid).filter(Boolean)),base=Date.now(),got=[];let skip=0,i=0;
+  $('#onbIn').innerHTML=`<div class="onbic">${ic.img.replace('width="22" height="22"','width="34" height="34"')}</div><h1>Keeping your photos</h1><p class="onbp" id="onbT">0 of ${files.length}</p><div class="onbbar"><i id="onbB"></i></div><small class="onbn">Keep this screen open</small>`;
+  for(const f of files){
+    i++;
+    const fid=f.name+'|'+f.size+'|'+f.lastModified;
+    if(have.has(fid)){skip++}
+    else try{
+      const ex=await exifOf(f),dataUrl=await shrinkImage(f,1280);
+      const o={id:base+i,ts:Math.min(ex.ts||f.lastModified||base,base),type:'photo',ar:lastAr,src:dataUrl,text:'',fid};
+      if(ex.geo)o.geo=ex.geo;
+      user.push(o);got.push(o);have.add(fid);
+      if(got.length%10===0)persistUser();
+    }catch(e){skip++}
+    const t=$('#onbT'),bar=$('#onbB');if(t)t.textContent=i+' of '+files.length;if(bar)bar.style.width=Math.round(i/files.length*100)+'%';
+    if(i%4===0)await new Promise(r=>setTimeout(r,0));
+  }
+  persistUser();
+  if(!got.length){
+    $('#onbIn').innerHTML=`<div class="onbic">${ic.img.replace('width="22" height="22"','width="34" height="34"')}</div><h1>Nothing new to keep</h1><p class="onbp">${skip?'Those photos were already in Keep, or could not be read.':'No photos were chosen.'}</p><button class="pill d onbgo" id="onbRe">Try again</button><button class="onbsk" id="onbSkip">Close</button>`;
+    $('#onbRe').onclick=()=>onbPick(true);$('#onbSkip').onclick=onbClose;return;
+  }
+  got.sort((a,b)=>a.ts-b.ts);
+  const a=new Date(got[0].ts),z=new Date(got[got.length-1].ts),fmt=x=>MS[x.getMonth()]+' '+x.getDate(),geo=got.filter(x=>x.geo).length;
+  const days=new Set(got.map(x=>dk(new Date(x.ts)))).size;
+  onbFlag();refresh();
+  $('#onbIn').innerHTML=`<div class="onbic ok"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+   <h1>${got.length} ${got.length===1?'photo':'photos'} kept</h1>
+   <p class="onbp">${days} ${days===1?'day':'days'}, from ${fmt(a)} to ${fmt(z)}.${geo?` ${geo} ${geo===1?'has':'have'} a location and ${geo===1?'is':'are'} on the map.`:' None carried a location, so the map stays empty for now.'}${skip?` ${skip} skipped (already kept or unreadable).`:''}${over?` Only the first ${ONB_MAX} were added; run Import photos again for the rest.`:''}</p>
+   <button class="pill d onbgo" id="onbOk">Open my calendar</button><button class="onbsk" id="onbMore">Add more photos</button>`;
+  $('#onbOk').onclick=()=>{onbClose();const c=$('#cal');const t=$('#m-'+z.getFullYear()+'-'+(z.getMonth()+1));if(t&&c)c.scrollTop=t.offsetTop-4};
+  $('#onbMore').onclick=()=>onbPick(true);
+}
 /* ---------- install as an app ---------- */
 /* Android and desktop Chrome hand us a real install prompt; iOS has none, so we show the Share-sheet steps instead. */
 function isStandalone(){return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}
