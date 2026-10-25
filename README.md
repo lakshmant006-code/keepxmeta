@@ -19,7 +19,7 @@ The first time Keep opens with nothing in it, it asks you to bring in a month of
 
 ## Updates
 
-Every deploy changes the app's version. An installed Keep checks for a new one when you open it, when it comes back to the front, and hourly while open. When one is ready it shows **Update available**; tap **Update** and the app swaps to the new version and reloads. Profile → Updates → **Check** looks on demand, and **Hard refresh** clears the cached copy and loads the app fresh. Your memories are never touched by either. Updates arrive as an in-app banner; real push notifications while the app is closed would need a push server, which Keep does not have.
+Every deploy changes the app's version. An installed Keep checks for a new one when you open it, when it comes back to the front, and hourly while open. When one is ready it shows **Update available**; tap **Update** and the app swaps to the new version and reloads. **Pull to refresh:** drag down from the top of the calendar (or from the header) and let go; the page follows with rubber-band resistance, a ring fills and spins, and Keep looks for a new version. A new one is applied right away, otherwise the calendar just refreshes. Profile → Updates → **Check** looks on demand, and **Hard refresh** clears the cached copy and loads the app fresh. Your memories are never touched by either. Updates arrive as an in-app banner; real push notifications while the app is closed would need a push server, which Keep does not have.
 
 ## Environment
 
