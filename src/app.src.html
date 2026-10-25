@@ -257,6 +257,8 @@ svg{display:block}
 .ym{text-align:left;border-radius:14px;padding:8px;width:100%}.ym h3{font-size:12px;font-weight:600;margin-bottom:6px}
 .yd{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.yd i{aspect-ratio:1;border-radius:50%;background:var(--fill2)}.yd i.h{background:var(--mute)}.yd i.m2{background:var(--blue)}
 .yh{display:flex;justify-content:space-between;align-items:baseline;padding:18px 4px 6px}.yh h2{font-size:16px;font-weight:600}.yh p{font-size:12px;color:var(--faint)}
+.inst{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 64px);z-index:40;display:flex;align-items:center;gap:10px;padding:10px 8px 10px 10px;border-radius:20px;background:var(--card);border:1px solid var(--bd);box-shadow:var(--shadow)}
+.inst img{width:40px;height:40px;border-radius:10px;flex:none}.inst div{flex:1;min-width:0}.inst b{display:block;font-size:15px;font-weight:600}.inst small{font-size:12px;color:var(--mute)}
 .toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translate(-50%,-12px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;font-weight:500;z-index:70;opacity:0;pointer-events:none;transition:.3s;white-space:nowrap}.toast.on{opacity:1;transform:translate(-50%,0)}
 /* simulated iPhone keyboard (only on desktop; phones use the real one) */
 .kbd{position:absolute;left:0;right:0;bottom:0;height:300px;background:var(--kbbg);z-index:60;display:none;flex-direction:column;padding:8px 3px 6px;gap:11px;user-select:none}
@@ -819,6 +821,7 @@ function openProfile(){
     <div class="row"><span>Appearance</span><div class="seg" data-k="theme">${['light','dark'].map(x=>`<button data-v="${x}" class="${th===x?'on':''}">${x[0].toUpperCase()+x.slice(1)}</button>`).join('')}</div></div>
     <div class="row"><span>Revisits</span><div class="seg" data-k="rev">${[['off','Off'],['monthly','Monthly'],['weekly','Weekly']].map(x=>`<button data-v="${x[0]}" class="${revOn===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>
     ${CFG.demo?`<div class="row"><span>Preview empty state</span><div class="seg" data-k="empty">${[['0','Off'],['1','On']].map(x=>`<button data-v="${x[0]}" class="${(emptyMode?'1':'0')===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>`:''}
+    ${isStandalone()?'':`<div class="row"><span>Install app</span><button class="chip fb flat" id="instOpen" style="height:32px;font-size:14px;padding:0 12px">Install</button></div>`}
     <div class="row"><span>Google Maps</span><button class="chip fb flat" id="gmOpen" style="height:32px;font-size:14px;padding:0 12px">${gmKey()?'On':'Add key'}</button></div>
     <div class="row"><span>Back up</span><button class="chip fb flat" id="bak" style="height:32px;font-size:14px;padding:0 12px">Download</button></div>
     <div class="row"><span>Restore</span><label class="chip fb flat" style="height:32px;font-size:14px;padding:0 12px;display:grid;place-items:center;cursor:pointer">Choose file<input type="file" id="rst" accept="application/json,.json" hidden></label></div>
@@ -830,6 +833,7 @@ function openProfile(){
     if(k==='empty'){emptyMode=v==='1';refresh()}
     sg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});
   $('#gmOpen').onclick=()=>{closeSheet();openMap()};
+  if($('#instOpen'))$('#instOpen').onclick=()=>{closeSheet();installApp()};
   $('#bak').onclick=backup;$('#rst').onchange=restore;
 }
 /* ---------- simulated iPhone keyboard (desktop only) ---------- */
@@ -921,6 +925,34 @@ refresh();setYear(false);loadUser();
 /* a new day while the app sat open */
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!CFG.demo){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate());if(+t!==+TODAY){TODAY=t;refresh()}}});
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!CFG.demo)navigator.serviceWorker.register('sw.js').catch(()=>{});
+/* ---------- install as an app ---------- */
+/* Android and desktop Chrome hand us a real install prompt; iOS has none, so we show the Share-sheet steps instead. */
+function isStandalone(){return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+let instEv=null;
+const INST='kept.instdismissed';
+const instSeen=()=>{try{return localStorage.getItem(INST)==='1'}catch(e){return false}};
+function instBanner(){
+  if(isStandalone()||instSeen()||$('#inst'))return;
+  const b=document.createElement('div');b.className='inst';b.id='inst';
+  b.innerHTML=`<img src="icons/icon-192.png" alt=""><div><b>Install Keep</b><small>Open it like a real app, full screen</small></div><button class="pill d" id="instGo" style="height:36px;padding:0 16px;font-size:14px">Install</button><button class="ib" id="instX" aria-label="Dismiss" style="width:32px;height:32px">${ic.x}</button>`;
+  $('#app').appendChild(b);
+  $('#instGo').onclick=()=>{instHide();installApp()};
+  $('#instX').onclick=()=>{instHide();try{localStorage.setItem(INST,'1')}catch(e){}};
+}
+function instHide(){const b=$('#inst');if(b)b.remove()}
+async function installApp(){
+  if(isStandalone()){toast('Keep is already installed');return}
+  if(instEv){const e=instEv;instEv=null;e.prompt();try{const r=await e.userChoice;if(r.outcome==='accepted')toast('Installing Keep…')}catch(_){}return}
+  const steps=isIOS
+    ?['Tap the <b>Share</b> button at the bottom (or top right) of this page','Scroll down and tap <b>Add to Home Screen</b>','Tap <b>Add</b>. Keep now opens from your home screen, full screen, with no browser bars']
+    :['Tap the <b>⋮ menu</b> in your browser','Tap <b>Install app</b> (or <b>Add to Home screen</b>)','Tap <b>Install</b>. Keep now opens from your home screen, full screen'];
+  openSheet(`<div class="dh"><h1>Install Keep</h1><p>${isIOS?'On iPhone, Apple only allows this from the Share menu':'Add it to your home screen'}</p></div><div class="pb" style="padding-top:0"><div class="grp">${steps.map((t,i)=>`<div class="row" style="align-items:flex-start;gap:12px"><b style="flex:none;width:24px;height:24px;border-radius:12px;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:13px">${i+1}</b><span style="flex:1;line-height:1.4">${t}</span></div>`).join('')}</div>
+   <p class="note">Needs the site to be opened over https. Everything you keep stays on this phone.</p></div>`);
+}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();instEv=e;instBanner()});
+addEventListener('appinstalled',()=>{instEv=null;instHide();toast('Keep installed')});
+if(!CFG.demo&&isIOS&&!isStandalone())setTimeout(instBanner,2500);
 addEventListener('pointerup',()=>{if(rec&&rec.kind==='voice')stopRec()});addEventListener('pointercancel',()=>{if(rec&&rec.kind==='voice')stopRec()});
 </script>
 <script type="text/plain" id="three-src">__THREE__</script>
