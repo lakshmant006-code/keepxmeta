@@ -1,12 +1,12 @@
 <title>Keep</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
-/* Concept: Keep is what ChatGPT's gallery would look like. Plain white and graphite, SF type, thin icons, one orange pin-point. Cards keep fading hairline edges. */
-/* Tokens come from @openai/apps-sdk-ui (grays, radii, type scale, control sizes). Only the noise, the edge shading and the glossy orange are ours. */
+/* Concept: Keep is what ChatGPT's gallery would look like. Plain white and graphite, SF type, thin icons, one Meta-blue accent. Cards keep fading hairline edges. */
+/* Tokens come from @openai/apps-sdk-ui (grays, radii, type scale, control sizes). Only the noise, the edge shading and the glossy blue are ours. */
 :root{
   --bg:#FFFFFF; --card:#FFFFFF; --ink:#0D0D0D; --mute:#5D5D5D; --faint:#8F8F8F; --ring:#AFAFAF;
   --fill:#F3F3F3; --fill2:#EDEDED; --line:rgba(0,0,0,.08); --bd:rgba(0,0,0,.16); --line2:rgba(0,0,0,.16);
-  --acc:#7B8CF0; --s1:#8FA6F5; --s2:#C4B5F7; --s3:#F4B3C8; --scrim:rgba(0,0,0,.35); --shadow:0 18px 50px rgba(0,0,0,.14); --page:#E9E9EB;
+  --blue:#0866FF; --blueh:#0A5BD8; --acc:#0866FF; --s1:#4F9BFF; --s2:#9CC4FF; --s3:#7FD6FF; --scrim:rgba(0,0,0,.35); --shadow:0 18px 50px rgba(0,0,0,.14); --page:#E9E9EB;
   --kbbg:#D2D4DA; --key:#FFFFFF; --keyfn:#ADB1BB; --keytx:#000; --edge:128,128,134;
   --noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --font:ui-sans-serif,-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Helvetica Neue',sans-serif;
@@ -15,7 +15,7 @@
 :root[data-theme="dark"]{
   --bg:#212121; --card:#2A2A2A; --ink:#FFFFFF; --mute:#AFAFAF; --faint:#8F8F8F; --ring:#5E5E5E;
   --fill:#303030; --fill2:#414141; --line:rgba(255,255,255,.10); --bd:rgba(255,255,255,.16); --line2:rgba(255,255,255,.16);
-  --acc:#9AA8FF; --scrim:rgba(0,0,0,.55); --shadow:0 18px 50px rgba(0,0,0,.5); --page:#000;
+  --blue:#0866FF; --blueh:#2D7FFF; --acc:#4599FF; --scrim:rgba(0,0,0,.55); --shadow:0 18px 50px rgba(0,0,0,.5); --page:#000;
   --kbbg:#1C1C1E; --key:#5A5A5E; --keyfn:#3A3A3D; --keytx:#fff; --edge:150,150,158; color-scheme:dark}
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
@@ -58,7 +58,7 @@ svg{display:block}
 .cv{position:absolute;inset:var(--in,5px);border-radius:50%;overflow:hidden;display:grid;place-items:center;background-color:var(--fill);background-size:cover;background-position:center;color:var(--mute)}
 .cv b{font-size:12px;font-weight:600;color:var(--ink)}.cv .q{font:600 20px/1 Georgia,serif;color:var(--ink);padding-top:7px}
 .cv .ln{display:flex;flex-direction:column;gap:3px;width:48%}.cv .ln i{display:block;height:2px;border-radius:1px;background:var(--mute)}.cv .ln i:nth-child(2){width:70%}
-.cv .bars{display:flex;align-items:center;gap:2px}.cv .bars i{width:2px;border-radius:1px;background:var(--ink)}
+.cv .bars{display:flex;align-items:center;gap:2px}.cv .bars i{width:2px;border-radius:1px;background:var(--blue)}
 .cv.vd::after{content:"";position:absolute;width:0;height:0;border-left:8px solid #fff;border-top:5px solid transparent;border-bottom:5px solid transparent;filter:drop-shadow(0 0 2px #0008)}
 .hint{position:absolute;left:40px;right:40px;top:42%;text-align:center;color:var(--mute);font-size:14px;line-height:1.45;display:none;pointer-events:none;background:var(--bg);padding:20px 16px;border-radius:20px;z-index:3}
 .hint b{display:block;color:var(--ink);font-size:16px;font-weight:600;margin-bottom:6px}
@@ -66,14 +66,14 @@ svg{display:block}
 /* floating dock, Zumi arrangement: Add on top, search below. No background, nothing 3D. */
 .dock{position:absolute;left:0;right:0;bottom:0;z-index:5;display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 20px calc(env(safe-area-inset-bottom,0px) + 22px);pointer-events:none}
 .dock>*{pointer-events:auto}
-.addp{height:46px;padding:0 20px 0 16px;border-radius:23px;background:var(--ink);color:var(--bg);font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px}
-.addp svg{color:var(--bg)}
+.addp{height:46px;padding:0 20px 0 16px;border-radius:23px;background:var(--blue);color:#fff;font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px}
+.addp svg{color:#fff}
 .addp:active{opacity:.85}
 .bar{width:100%;height:58px;border-radius:29px;background:var(--fill);border:1px solid var(--bd);display:flex;align-items:center;gap:10px;padding:0 8px 0 22px}
 .bar input{flex:1;min-width:0;height:100%;background:none;border:0;outline:0;font-size:17px}
 .bar input::placeholder{color:var(--mute)}
 .bar .b{width:42px;height:42px;border-radius:21px;display:grid;place-items:center;color:var(--mute);flex:none}
-.bar .send{background:var(--ink);color:var(--bg)}
+.bar .send{background:var(--blue);color:#fff}
 .chat .cb{padding-bottom:110px}
 /* seasonal mesh wash: four layers cross-fade with scroll so months blend into each other, and it dissolves to white */
 .topg{position:absolute;left:0;right:0;top:0;height:50%;z-index:0;pointer-events:none;-webkit-mask-image:linear-gradient(to bottom,#000 28%,transparent 100%);mask-image:linear-gradient(to bottom,#000 28%,transparent 100%)}
@@ -96,7 +96,7 @@ svg{display:block}
 /* voice orb: a slowly rotating season mesh lit like a sphere */
 .orb3d{position:relative;width:112px;height:112px;border-radius:50%;overflow:hidden;isolation:isolate;color:#fff;display:grid;place-items:center;box-shadow:0 12px 20px -10px rgba(30,30,70,.30);transition:transform .25s}
 .orb3d{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer}
-.lw.js i{animation:none!important;transition:height .09s linear;background:var(--ink)}
+.lw.js i{animation:none!important;transition:height .09s linear;background:var(--blue)}
 .mb.on.hold{transform:scale(1.1)}
 .lw{opacity:0;transition:opacity .25s}.lw.live{opacity:1}
 .orb3d .mesh{position:absolute;inset:-38%;z-index:-3;background:radial-gradient(38% 38% at 30% 30%,var(--s1),transparent 70%),radial-gradient(40% 40% at 72% 68%,var(--s3),transparent 70%),radial-gradient(46% 46% at 58% 22%,var(--s2),transparent 72%),var(--s2);filter:saturate(1.5) brightness(.85);animation:rot 18s linear infinite}
@@ -154,25 +154,25 @@ svg{display:block}
 .shut{flex:none;display:grid;place-items:center;padding:12px 0 2px}
 .shutter{width:64px;height:64px;border-radius:50%;border:3px solid var(--ink);display:grid;place-items:center;transition:transform .2s}
 .shutter:active{transform:scale(.94)}
-.shutter i{width:50px;height:50px;border-radius:50%;background:var(--ink);transition:all .25s cubic-bezier(.2,.8,.2,1)}
-.shutter.v{border-color:var(--acc)}.shutter.v i{background:var(--acc)}
+.shutter i{width:50px;height:50px;border-radius:50%;background:var(--blue);transition:all .25s cubic-bezier(.2,.8,.2,1)}
+.shutter.v{border-color:#FF4A3D}.shutter.v i{background:#FF4A3D}
 .shutter.v.rec i{width:26px;height:26px;border-radius:7px}
 .cap-in{width:100%;border:0;outline:0;background:none;resize:none;font-size:16px;line-height:24px;padding:8px 4px 0;text-align:center}
 .cap-in::placeholder{color:var(--faint)}
 .vc{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;min-height:0}
-.bigrec{width:104px;height:104px;border-radius:52px;background:var(--ink);color:var(--bg);display:grid;place-items:center;transition:all .25s}
-.bigrec.live{background:var(--acc);color:#fff}
+.bigrec{width:104px;height:104px;border-radius:52px;background:var(--blue);color:#fff;display:grid;place-items:center;transition:all .25s}
+.bigrec.live{background:#FF4A3D;color:#fff}
 .lw{display:flex;align-items:center;gap:4px;height:44px}.lw i{width:4px;height:8px;border-radius:2px;background:var(--faint);transition:height .2s}
-.lw.live i{background:var(--ink);animation:bar .8s ease-in-out infinite alternate}
+.lw.live i{background:var(--blue);animation:bar .8s ease-in-out infinite alternate}
 @keyframes bar{from{height:6px}to{height:38px}}
 .lw i:nth-child(2n){animation-delay:.15s}.lw i:nth-child(3n){animation-delay:.3s}.lw i:nth-child(5n){animation-delay:.45s}
 .vc .tm2{font-size:14px;color:var(--mute);font-variant-numeric:tabular-nums}
 .vc textarea{max-width:320px}
 .modes{flex:none;display:flex;justify-content:center;gap:14px;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
 .mb{width:48px;height:48px;border-radius:24px;background:var(--fill);color:var(--ink);display:grid;place-items:center;transition:background .25s,color .25s,transform .25s}
-.mb.on{background:var(--ink);color:var(--bg)}.mb:active{transform:scale(.94)}
+.mb.on{background:var(--blue);color:#fff}.mb:active{transform:scale(.94)}
 .mseg{display:flex;gap:8px;flex-wrap:wrap;padding:6px 4px 10px}
-.mseg button{height:32px;padding:0 14px;border-radius:16px;font-size:14px;font-weight:500;background:var(--fill);transition:.2s}.mseg button.on{background:var(--ink);color:var(--bg)}
+.mseg button{height:32px;padding:0 14px;border-radius:16px;font-size:14px;font-weight:500;background:var(--fill);transition:.2s}.mseg button.on{background:var(--blue);color:#fff}
 .pane .in-wrap{flex:1;min-height:0;overflow-y:auto;padding:0 4px;scrollbar-width:none}
 /* chat overlay */
 .chat{position:absolute;left:0;right:0;top:0;bottom:var(--kbh);z-index:15;background:var(--bg);display:none;flex-direction:column}
@@ -193,8 +193,8 @@ svg{display:block}
 .tx{font-size:16px;line-height:1.45}
 .imgb{height:160px;border-radius:14px;background-size:cover;background-position:center;margin-top:8px}
 .vp{display:flex;align-items:center;gap:12px;height:48px;border-radius:24px;padding:0 18px 0 7px;width:max-content;max-width:100%}
-.vp .pl{width:34px;height:34px;border-radius:17px;background:var(--ink);color:var(--bg);display:grid;place-items:center;flex:none}
-.wv{display:flex;align-items:center;gap:2px;height:22px}.wv i{width:2px;border-radius:1px;background:var(--ink);opacity:.8}
+.vp .pl{width:34px;height:34px;border-radius:17px;background:var(--blue);color:#fff;display:grid;place-items:center;flex:none}
+.wv{display:flex;align-items:center;gap:2px;height:22px}.wv i{width:2px;border-radius:1px;background:var(--blue);opacity:.8}
 .vp small{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
 .tr{font-size:14px;color:var(--mute);margin-top:8px;line-height:1.45}
 .pcard,.fcard,.plcard{display:flex;gap:12px;align-items:center;border-radius:16px;padding:12px 14px}
@@ -224,12 +224,12 @@ svg{display:block}
 .card q{font-size:24px;font-weight:600;line-height:1.25;letter-spacing:-.015em;quotes:"“" "”"}
 .cnt{text-align:center;font-size:12px;color:var(--mute);margin-top:8px}
 .btns{display:flex;gap:10px;justify-content:center;margin-top:16px}
-.pill{height:46px;padding:0 22px;border-radius:23px;font-weight:500;font-size:16px;display:flex;align-items:center;gap:8px}.pill.d{background:var(--ink);color:var(--bg)}.pill.g{background:var(--fill)}
+.pill{height:46px;padding:0 22px;border-radius:23px;font-weight:500;font-size:16px;display:flex;align-items:center;gap:8px}.pill.d{background:var(--blue);color:#fff}.pill.g{background:var(--fill)}
 /* add overlay */
 .ov{position:absolute;left:0;right:0;top:0;bottom:var(--kbh);z-index:25;background:var(--bg);display:none;flex-direction:column}
 .ov.on{display:flex}
 .ot{flex:none;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px 6px;height:calc(env(safe-area-inset-top,0px) + 58px)}
-.keepb{height:36px;padding:0 16px;border-radius:18px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:600}.keepb:disabled{background:var(--fill2);color:var(--faint)}
+.keepb{height:36px;padding:0 16px;border-radius:18px;background:var(--blue);color:#fff;font-size:14px;font-weight:600}.keepb:disabled{background:var(--fill2);color:var(--faint)}
 .obody{flex:1;min-height:0;overflow-y:auto;padding:8px 20px 12px;scrollbar-width:none}.obody::-webkit-scrollbar{display:none}
 .big-in{width:100%;border:0;outline:0;background:none;resize:none;font-size:20px;line-height:1.4;padding:6px 0;display:block}
 .big-in::placeholder{color:var(--faint)}
@@ -240,11 +240,11 @@ svg{display:block}
 .pv .rm{position:absolute;right:10px;top:10px;width:30px;height:30px;border-radius:15px;background:rgba(0,0,0,.55);color:#fff;display:grid;place-items:center}
 .pick{height:96px;border-radius:16px;border:1.5px dashed var(--line2);display:grid;place-items:center;color:var(--mute);font-size:14px;margin:10px 0}
 .rbox{display:flex;align-items:center;gap:14px;border-radius:18px;padding:12px 14px;margin:10px 0}
-.rbtn{width:48px;height:48px;border-radius:24px;background:var(--ink);color:var(--bg);display:grid;place-items:center;flex:none}.rbtn.live{background:var(--acc);color:#fff;animation:pulse 1.2s infinite}
-@keyframes pulse{50%{box-shadow:0 0 0 10px color-mix(in srgb,var(--acc) 20%,transparent)}}
+.rbtn{width:48px;height:48px;border-radius:24px;background:var(--blue);color:#fff;display:grid;place-items:center;flex:none}.rbtn.live{background:#FF4A3D;color:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(255,74,61,.2)}}
 .acc{flex:none;display:flex;gap:8px;overflow-x:auto;padding:8px 14px calc(env(safe-area-inset-bottom,0px) + 10px);scrollbar-width:none;border-top:1px solid var(--line)}.acc::-webkit-scrollbar{display:none}
 .mchip{height:38px;padding:0 14px;border-radius:19px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:7px;flex:none;background:var(--fill)}
-.mchip.on{background:var(--ink);color:var(--bg)}
+.mchip.on{background:var(--blue);color:#fff}
 /* profile */
 .grp{border-radius:16px;background:var(--fill);margin-top:14px;padding:0 16px}
 .row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line);font-size:16px;min-height:50px}.row:last-child{border-bottom:0}
@@ -255,8 +255,34 @@ svg{display:block}
 .yr.on{display:block}.cal.off,.dowbar.off{display:none}
 .yg{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 12px;padding:8px 0 24px}
 .ym{text-align:left;border-radius:14px;padding:8px;width:100%}.ym h3{font-size:12px;font-weight:600;margin-bottom:6px}
-.yd{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.yd i{aspect-ratio:1;border-radius:50%;background:var(--fill2)}.yd i.h{background:var(--mute)}.yd i.m2{background:var(--ink)}
+.yd{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.yd i{aspect-ratio:1;border-radius:50%;background:var(--fill2)}.yd i.h{background:var(--mute)}.yd i.m2{background:var(--blue)}
 .yh{display:flex;justify-content:space-between;align-items:baseline;padding:18px 4px 6px}.yh h2{font-size:16px;font-weight:600}.yh p{font-size:12px;color:var(--faint)}
+.inst{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 64px);z-index:40;display:flex;align-items:center;gap:10px;padding:10px 8px 10px 10px;border-radius:20px;background:var(--card);border:1px solid var(--bd);box-shadow:var(--shadow)}
+.inst img{width:40px;height:40px;border-radius:10px;flex:none}.inst div{flex:1;min-width:0}.inst b{display:block;font-size:15px;font-weight:600}.inst small{font-size:12px;color:var(--mute)}
+.onb{position:absolute;inset:0;z-index:60;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 28px calc(env(safe-area-inset-bottom,0px) + 24px);overflow-y:auto}
+.onbin{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.onbic{width:76px;height:76px;border-radius:24px;background:var(--blue);color:#fff;display:grid;place-items:center;margin-bottom:22px;box-shadow:0 12px 30px rgba(8,102,255,.35)}.onbic.ok{background:#1FA85B;box-shadow:0 12px 30px rgba(31,168,91,.35)}
+.onbin h1{font-size:28px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
+.onbp{font-size:16px;line-height:1.45;color:var(--mute);margin-bottom:18px}.onbp b{color:var(--ink)}
+.onbl{list-style:none;padding:0;margin:0 0 26px;text-align:left;width:100%;display:flex;flex-direction:column;gap:10px;font-size:15px}
+.onbl li{padding-left:28px;position:relative}.onbl li::before{content:"";position:absolute;left:4px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--blue)}
+.onbgo{width:100%;justify-content:center;cursor:pointer;height:52px;font-size:17px;border-radius:26px}
+.onbsk{margin-top:12px;height:44px;padding:0 20px;font-size:15px;font-weight:500;color:var(--mute)}
+.onbn{margin-top:14px;font-size:12.5px;color:var(--faint);line-height:1.4}.onbn b{color:var(--mute)}
+.onbbar{width:100%;height:8px;border-radius:4px;background:var(--fill2);overflow:hidden;margin:6px 0 4px}.onbbar i{display:block;height:100%;width:0;background:var(--blue);border-radius:4px;transition:width .2s}
+.home{--pull:0px;--pullp:0}
+.home>.dowbar,.home>.cal,.home>.yr{transform:translate3d(0,var(--pull),0);transition:transform .55s cubic-bezier(.34,1.56,.64,1)}
+.home.hold>.dowbar,.home.hold>.cal,.home.hold>.yr{transition:transform .3s cubic-bezier(.2,.9,.25,1)}
+.home.drag>.dowbar,.home.drag>.cal,.home.drag>.yr{transition:none}
+.home .title{opacity:calc(1 - var(--pullp));transition:opacity .25s}.home.drag .title{transition:none}
+.cal,.yr{overscroll-behavior-y:contain}
+.ptr{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);width:40px;height:40px;margin-left:-20px;display:grid;place-items:center;opacity:var(--pullp);pointer-events:none;z-index:2;transition:opacity .25s,transform .25s cubic-bezier(.34,1.56,.64,1)}
+.home.drag .ptr{transition:none}.ptr.rdy{transform:scale(1.14)}
+.ptr svg{transform:rotate(calc(var(--pullp) * 300deg))}
+.ptr circle{fill:none;stroke-width:2.6}.ptr .bg{stroke:var(--line2)}
+.ptr .arc{stroke:var(--blue);stroke-linecap:round;stroke-dasharray:69.1;stroke-dashoffset:calc(69.1 * (1 - var(--pullp)))}
+.ptr.spin svg{animation:ptrspin .8s linear infinite}.ptr.spin .arc{stroke-dashoffset:48}
+@keyframes ptrspin{to{transform:rotate(360deg)}}
 .toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translate(-50%,-12px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;font-weight:500;z-index:70;opacity:0;pointer-events:none;transition:.3s;white-space:nowrap}.toast.on{opacity:1;transform:translate(-50%,0)}
 /* simulated iPhone keyboard (only on desktop; phones use the real one) */
 .kbd{position:absolute;left:0;right:0;bottom:0;height:300px;background:var(--kbbg);z-index:60;display:none;flex-direction:column;padding:8px 3px 6px;gap:11px;user-select:none}
@@ -819,6 +845,10 @@ function openProfile(){
     <div class="row"><span>Appearance</span><div class="seg" data-k="theme">${['light','dark'].map(x=>`<button data-v="${x}" class="${th===x?'on':''}">${x[0].toUpperCase()+x.slice(1)}</button>`).join('')}</div></div>
     <div class="row"><span>Revisits</span><div class="seg" data-k="rev">${[['off','Off'],['monthly','Monthly'],['weekly','Weekly']].map(x=>`<button data-v="${x[0]}" class="${revOn===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>
     ${CFG.demo?`<div class="row"><span>Preview empty state</span><div class="seg" data-k="empty">${[['0','Off'],['1','On']].map(x=>`<button data-v="${x[0]}" class="${(emptyMode?'1':'0')===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>`:''}
+    ${CFG.demo?'':`<div class="row"><span>Updates<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">Version ${String(CFG.build).slice(0,6)}</small></span><button class="chip fb flat" id="updChk" style="height:32px;font-size:14px;padding:0 12px">Check</button></div>
+    <div class="row"><span>Hard refresh<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">Reload the newest app. Your memories stay.</small></span><button class="chip fb flat" id="hardRf" style="height:32px;font-size:14px;padding:0 12px">Refresh</button></div>`}
+    <div class="row"><span>Import photos</span><button class="chip fb flat" id="impOpen" style="height:32px;font-size:14px;padding:0 12px">Choose</button></div>
+    ${isStandalone()?'':`<div class="row"><span>Install app</span><button class="chip fb flat" id="instOpen" style="height:32px;font-size:14px;padding:0 12px">Install</button></div>`}
     <div class="row"><span>Google Maps</span><button class="chip fb flat" id="gmOpen" style="height:32px;font-size:14px;padding:0 12px">${gmKey()?'On':'Add key'}</button></div>
     <div class="row"><span>Back up</span><button class="chip fb flat" id="bak" style="height:32px;font-size:14px;padding:0 12px">Download</button></div>
     <div class="row"><span>Restore</span><label class="chip fb flat" style="height:32px;font-size:14px;padding:0 12px;display:grid;place-items:center;cursor:pointer">Choose file<input type="file" id="rst" accept="application/json,.json" hidden></label></div>
@@ -830,6 +860,9 @@ function openProfile(){
     if(k==='empty'){emptyMode=v==='1';refresh()}
     sg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});
   $('#gmOpen').onclick=()=>{closeSheet();openMap()};
+  if($('#updChk')){$('#updChk').onclick=updCheck;$('#hardRf').onclick=hardRefresh}
+  $('#impOpen').onclick=()=>{closeSheet();onbOpen(true)};
+  if($('#instOpen'))$('#instOpen').onclick=()=>{closeSheet();installApp()};
   $('#bak').onclick=backup;$('#rst').onchange=restore;
 }
 /* ---------- simulated iPhone keyboard (desktop only) ---------- */
@@ -870,7 +903,7 @@ $('#kbd').addEventListener('mousedown',e=>e.preventDefault());
 $('#kbd').addEventListener('click',e=>{const b=e.target.closest('.k');if(b)press(b.dataset.k)});
 /* ---------- wiring ---------- */
 /* seasons: winter Jan, spring Apr, summer Jul, autumn Oct. Layers and colors blend continuously with the month in view. */
-const PAL=[['#6FD3F5','#8FA6F5','#C4B5F7'],['#9BE3B0','#7FD0F7','#F5C3DC'],['#7FCBF5','#F6B8C9','#FFD0AE'],['#B9A6F2','#F4B3C8','#F6D7A8']];
+const PAL=[['#6FD3F5','#4F9BFF','#9CC4FF'],['#7FD0F7','#2D88FF','#C2DAFF'],['#7FCBF5','#5B8CFF','#A8E4FF'],['#5DA9FF','#0866FF','#BFD8FF']];
 const hx=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 let seasonRaf=0;
 function updSeason(){
@@ -917,10 +950,236 @@ $('#chatX').onclick=closeChat;
 $('#cb').addEventListener('click',e=>{const s=e.target.closest('[data-s]');if(s){ask(s.dataset.s);return}const d=e.target.closest('[data-d]');if(d){blurAll();openDay(d.dataset.d)}});
 document.addEventListener('click',e=>{const t=e.target.closest('[data-lb]');if(t){e.stopPropagation();openLb(t.dataset.lb.split(','))}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#lb').classList.contains('on'))closeLb();else if($('#ov').classList.contains('on'))closeAdd();else if($('#sh').classList.contains('on'))closeSheet();else closeChat()}});
-refresh();setYear(false);loadUser();
+refresh();setYear(false);loadUser().then(()=>onbMaybe());
 /* a new day while the app sat open */
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!CFG.demo){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate());if(+t!==+TODAY){TODAY=t;refresh()}}});
-if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!CFG.demo)navigator.serviceWorker.register('sw.js').catch(()=>{});
+/* ---------- updates: tell the person when a new version is ready, apply it on a tap ---------- */
+let swReg=null,updGo=false;
+function updBanner(){
+  if($('#upd'))return;instHide();
+  const b=document.createElement('div');b.className='inst';b.id='upd';
+  b.innerHTML=`<img src="icons/icon-192.png" alt=""><div><b>Update available</b><small>A newer version of Keep is ready</small></div><button class="pill d" id="updGo" style="height:36px;padding:0 16px;font-size:14px">Update</button><button class="ib" id="updX" aria-label="Later" style="width:32px;height:32px">${ic.x}</button>`;
+  $('#app').appendChild(b);
+  $('#updGo').onclick=updApply;$('#updX').onclick=()=>b.remove();
+}
+function updApply(){
+  const w=swReg&&swReg.waiting;
+  if(!w){location.reload();return}
+  updGo=true;toast('Updating…');w.postMessage('skip');
+  setTimeout(()=>{if(updGo)location.reload()},4000); /* if the swap is slow, a plain reload still picks it up */
+}
+function swWatch(reg){
+  swReg=reg;
+  const ready=()=>{if(reg.waiting&&navigator.serviceWorker.controller)updBanner()};
+  ready();
+  reg.addEventListener('updatefound',()=>{const n=reg.installing;if(n)n.addEventListener('statechange',()=>{if(n.state==='installed')ready()})});
+  /* look for a new version whenever the app comes back to the front, and hourly while it stays open */
+  const look=()=>reg.update().catch(()=>{});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')look()});
+  setInterval(look,36e5);
+}
+async function updCheck(){
+  if(!swReg){toast('Updates work in the installed app, over https');return}
+  toast('Checking for updates…');
+  try{await swReg.update()}catch(e){toast('Could not check. Are you online?');return}
+  const w=swReg.installing||swReg.waiting;
+  if(w&&w.state!=='installed')await new Promise(r=>w.addEventListener('statechange',()=>{if(w.state==='installed'||w.state==='redundant')r()}));
+  if(swReg.waiting){closeSheet();updBanner()}else toast('You have the latest version · '+String(CFG.build).slice(0,6));
+}
+/* drops the cached copy of the app and loads it fresh. Everything you kept (IndexedDB) stays. */
+async function hardRefresh(){
+  toast('Refreshing…');
+  try{const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()));const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}
+  location.reload();
+}
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!CFG.demo){
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(updGo){updGo=false;location.reload()}});
+  navigator.serviceWorker.register('sw.js').then(swWatch).catch(()=>{});
+}
+/* ---------- onboarding: bring in a month of photos from the phone's library ---------- */
+/* A web app cannot read the photo library on its own, so the person picks photos in the phone's own picker.
+   Each photo is filed on the day it was taken (EXIF date, else the file's date) and keeps its location when the photo has one. */
+const ONB='kept.onboarded',ONB_MAX=300;
+const onbDone=()=>{try{return localStorage.getItem(ONB)==='1'}catch(e){return false}};
+const onbFlag=()=>{try{localStorage.setItem(ONB,'1')}catch(e){}};
+/* read DateTimeOriginal and GPS from a JPEG's EXIF block (first 128 KB is enough) */
+async function exifOf(file){
+  try{
+    const b=new DataView(await file.slice(0,131072).arrayBuffer());
+    if(b.getUint16(0)!==0xFFD8)return{};
+    let o=2;
+    while(o+4<b.byteLength){
+      const mk=b.getUint16(o),len=b.getUint16(o+2);
+      if(mk===0xFFE1&&b.getUint32(o+4)===0x45786966){
+        const t=o+10,le=b.getUint16(t)===0x4949,u16=x=>b.getUint16(t+x,le),u32=x=>b.getUint32(t+x,le);
+        const str=(off,n)=>{let r='';for(let i=0;i<n-1;i++)r+=String.fromCharCode(b.getUint8(t+off+i));return r};
+        const ifd=off=>{const n=u16(off),r={};for(let i=0;i<n;i++){const e=off+2+i*12,tag=u16(e),ty=u16(e+2),c=u32(e+4);r[tag]={ty,c,v:e+8,o:(ty===3&&c===1)?u16(e+8):u32(e+8)}}return r};
+        const i0=ifd(u32(4)),out={};
+        const ex=i0[0x8769]&&ifd(i0[0x8769].o);
+        const dt=ex&&(ex[0x9003]||ex[0x9004]);
+        if(dt){const m=/(\d{4}):(\d\d):(\d\d) (\d\d):(\d\d):(\d\d)/.exec(str(dt.o,dt.c));if(m)out.ts=new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5],+m[6]).getTime()}
+        const gp=i0[0x8825]&&ifd(i0[0x8825].o);
+        if(gp&&gp[2]&&gp[4]){
+          const rat=(e)=>{let r=0,d=1;for(let k=0;k<3;k++){const a=u32(e.o+k*8),c=u32(e.o+k*8+4);r+=(c?a/c:0)/d;d*=60}return r};
+          const ref=x=>gp[x]?String.fromCharCode(b.getUint8(t+gp[x].v)):'';
+          let la=rat(gp[2]),ln=rat(gp[4]);if(ref(1)==='S')la=-la;if(ref(3)==='W')ln=-ln;
+          if(isFinite(la)&&isFinite(ln)&&(la||ln))out.geo=[+la.toFixed(5),+ln.toFixed(5)];
+        }
+        return out;
+      }
+      if((mk&0xFF00)!==0xFF00||len<2)break;
+      o+=2+len;
+    }
+  }catch(e){}
+  return{};
+}
+function onbMaybe(){if(!CFG.demo&&!emptyMode&&!onbDone()&&!user.length)onbOpen(false)}
+function onbOpen(again){
+  if($('#onb'))return;
+  const d=document.createElement('div');d.className='onb';d.id='onb';
+  d.innerHTML=`<div class="onbin" id="onbIn"></div>`;$('#app').appendChild(d);
+  onbPick(again);
+}
+function onbClose(){const d=$('#onb');if(d)d.remove();onbFlag();refresh()}
+function onbPick(again){
+  const L=new Date(TODAY.getFullYear(),TODAY.getMonth()-1,TODAY.getDate());
+  $('#onbIn').innerHTML=`<div class="onbic">${ic.img.replace('width="22" height="22"','width="34" height="34"')}</div>
+   <h1>${again?'Add photos':'Welcome to Keep'}</h1>
+   <p class="onbp">Start with one month of memories. Pick the photos you took from <b>${MS[L.getMonth()]} ${L.getDate()}</b> to today, from your phone's photos app.</p>
+   <ul class="onbl"><li>Each photo lands on the day it was taken.</li><li>Photos that carry a location show up on the map.</li><li>Everything stays on this phone.</li></ul>
+   <label class="pill d onbgo">Choose photos<input type="file" id="onbIn2" accept="image/*" multiple hidden></label>
+   <button class="onbsk" id="onbSkip">${again?'Cancel':'Skip for now'}</button>
+   <small class="onbn">Tip: in the picker, tap <b>Select</b>, then choose a whole month at once. Up to ${ONB_MAX} at a time.</small>`;
+  $('#onbSkip').onclick=onbClose;
+  $('#onbIn2').onchange=e=>{const f=[...e.target.files].filter(x=>/^image\//.test(x.type)||/\.(jpe?g|png|heic|heif|webp)$/i.test(x.name));e.target.value='';if(f.length)onbRun(f)};
+}
+async function onbRun(files){
+  const over=files.length>ONB_MAX;files=files.slice(0,ONB_MAX);
+  const have=new Set(user.map(o=>o.fid).filter(Boolean)),base=Date.now(),got=[];let skip=0,i=0;
+  $('#onbIn').innerHTML=`<div class="onbic">${ic.img.replace('width="22" height="22"','width="34" height="34"')}</div><h1>Keeping your photos</h1><p class="onbp" id="onbT">0 of ${files.length}</p><div class="onbbar"><i id="onbB"></i></div><small class="onbn">Keep this screen open</small>`;
+  for(const f of files){
+    i++;
+    const fid=f.name+'|'+f.size+'|'+f.lastModified;
+    if(have.has(fid)){skip++}
+    else try{
+      const ex=await exifOf(f),dataUrl=await shrinkImage(f,1280);
+      const o={id:base+i,ts:Math.min(ex.ts||f.lastModified||base,base),type:'photo',ar:lastAr,src:dataUrl,text:'',fid};
+      if(ex.geo)o.geo=ex.geo;
+      user.push(o);got.push(o);have.add(fid);
+      if(got.length%10===0)persistUser();
+    }catch(e){skip++}
+    const t=$('#onbT'),bar=$('#onbB');if(t)t.textContent=i+' of '+files.length;if(bar)bar.style.width=Math.round(i/files.length*100)+'%';
+    if(i%4===0)await new Promise(r=>setTimeout(r,0));
+  }
+  persistUser();
+  if(!got.length){
+    $('#onbIn').innerHTML=`<div class="onbic">${ic.img.replace('width="22" height="22"','width="34" height="34"')}</div><h1>Nothing new to keep</h1><p class="onbp">${skip?'Those photos were already in Keep, or could not be read.':'No photos were chosen.'}</p><button class="pill d onbgo" id="onbRe">Try again</button><button class="onbsk" id="onbSkip">Close</button>`;
+    $('#onbRe').onclick=()=>onbPick(true);$('#onbSkip').onclick=onbClose;return;
+  }
+  got.sort((a,b)=>a.ts-b.ts);
+  const a=new Date(got[0].ts),z=new Date(got[got.length-1].ts),fmt=x=>MS[x.getMonth()]+' '+x.getDate(),geo=got.filter(x=>x.geo).length;
+  const days=new Set(got.map(x=>dk(new Date(x.ts)))).size;
+  onbFlag();refresh();
+  $('#onbIn').innerHTML=`<div class="onbic ok"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+   <h1>${got.length} ${got.length===1?'photo':'photos'} kept</h1>
+   <p class="onbp">${days} ${days===1?'day':'days'}, from ${fmt(a)} to ${fmt(z)}.${geo?` ${geo} ${geo===1?'has':'have'} a location and ${geo===1?'is':'are'} on the map.`:' None carried a location, so the map stays empty for now.'}${skip?` ${skip} skipped (already kept or unreadable).`:''}${over?` Only the first ${ONB_MAX} were added; run Import photos again for the rest.`:''}</p>
+   <button class="pill d onbgo" id="onbOk">Open my calendar</button><button class="onbsk" id="onbMore">Add more photos</button>`;
+  $('#onbOk').onclick=()=>{onbClose();const c=$('#cal');const t=$('#m-'+z.getFullYear()+'-'+(z.getMonth()+1));if(t&&c)c.scrollTop=t.offsetTop-4};
+  $('#onbMore').onclick=()=>onbPick(true);
+}
+/* ---------- pull to refresh ---------- */
+/* Drag down from the top of the calendar (or from the header): the page follows with rubber-band resistance, a ring fills,
+   past the threshold it spins while Keep looks for a new version, then the page springs back. A new version is applied; otherwise the calendar just refreshes. */
+(function(){
+  const home=$('#home'),TH=70,MAXD=170,K=MAXD*1.4;
+  const ring=document.createElement('div');ring.className='ptr';
+  ring.innerHTML='<svg viewBox="0 0 28 28" width="30" height="30" aria-hidden="true"><circle class="bg" cx="14" cy="14" r="11"/><circle class="arc" cx="14" cy="14" r="11" transform="rotate(-90 14 14)"/></svg>';
+  home.appendChild(ring);
+  let x0=0,y0=0,live=false,pulling=false,busy=false,off=0,scr=null;
+  const rub=d=>MAXD*(1-Math.exp(-Math.max(0,d)/K));
+  const set=o=>{
+    const was=off>=TH;off=o;
+    home.style.setProperty('--pull',o.toFixed(1)+'px');home.style.setProperty('--pullp',(busy&&o>0?1:Math.min(1,o/TH)).toFixed(3)); /* held at full while refreshing so the title stays hidden behind the spinner */
+    ring.classList.toggle('rdy',o>=TH);
+    if(!was&&o>=TH&&navigator.vibrate)try{navigator.vibrate(8)}catch(e){}
+  };
+  const begin=(x,y,t)=>{
+    if(busy)return;
+    scr=t.closest('#cal,#yr');
+    if(scr&&getComputedStyle(scr).display==='none')scr=null;
+    if(scr&&scr.scrollTop>0)return;
+    if(!scr&&!t.closest('.hdr,.dowbar'))return;
+    x0=x;y0=y;live=true;pulling=false;
+  };
+  const move=(x,y,e)=>{
+    if(!live)return;
+    const dy=y-y0,dx=x-x0;
+    if(!pulling){
+      if(dy<-6){live=false;return}
+      if(dy>8&&dy>Math.abs(dx)*1.2&&(!scr||scr.scrollTop<=0)){pulling=true;home.classList.add('drag')}
+      else return;
+    }
+    if(e.cancelable)e.preventDefault();
+    set(rub(dy-8));
+  };
+  const end=()=>{
+    if(!live)return;live=false;
+    if(!pulling)return;
+    pulling=false;home.classList.remove('drag');
+    if(off>=TH)run();else release();
+  };
+  const release=()=>{home.classList.remove('hold');ring.classList.remove('spin');set(0);busy=false};
+  async function run(){
+    busy=true;home.classList.add('hold');set(58);ring.classList.add('spin');
+    const t0=performance.now();let upd=false;
+    try{
+      if(typeof swReg!=='undefined'&&swReg){
+        await swReg.update();
+        const w=swReg.installing||swReg.waiting;
+        if(w&&w.state!=='installed')await new Promise(r=>w.addEventListener('statechange',()=>{if(w.state==='installed'||w.state==='redundant')r()}));
+        upd=!!swReg.waiting;
+      }
+    }catch(e){}
+    const c=$('#cal'),st=c.scrollTop;refresh();c.scrollTop=st;
+    await new Promise(r=>setTimeout(r,Math.max(0,900-(performance.now()-t0))));
+    if(upd){toast('New version found. Updating…');updApply();return} /* stays spinning until the reload */
+    release();toast(CFG.demo?'Refreshed':'Up to date');
+  }
+  home.addEventListener('touchstart',e=>{if(e.touches.length===1)begin(e.touches[0].clientX,e.touches[0].clientY,e.target);else{live=false}},{passive:true});
+  home.addEventListener('touchmove',e=>move(e.touches[0].clientX,e.touches[0].clientY,e),{passive:false});
+  home.addEventListener('touchend',end);home.addEventListener('touchcancel',end);
+  /* mouse, for trying it on a desktop */
+  home.addEventListener('mousedown',e=>{if(e.button===0)begin(e.clientX,e.clientY,e.target)});
+  addEventListener('mousemove',e=>move(e.clientX,e.clientY,e));addEventListener('mouseup',end);
+})();
+/* ---------- install as an app ---------- */
+/* Android and desktop Chrome hand us a real install prompt; iOS has none, so we show the Share-sheet steps instead. */
+function isStandalone(){return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+let instEv=null;
+const INST='kept.instdismissed';
+const instSeen=()=>{try{return localStorage.getItem(INST)==='1'}catch(e){return false}};
+function instBanner(){
+  if(isStandalone()||instSeen()||$('#inst'))return;
+  const b=document.createElement('div');b.className='inst';b.id='inst';
+  b.innerHTML=`<img src="icons/icon-192.png" alt=""><div><b>Install Keep</b><small>Open it like a real app, full screen</small></div><button class="pill d" id="instGo" style="height:36px;padding:0 16px;font-size:14px">Install</button><button class="ib" id="instX" aria-label="Dismiss" style="width:32px;height:32px">${ic.x}</button>`;
+  $('#app').appendChild(b);
+  $('#instGo').onclick=()=>{instHide();installApp()};
+  $('#instX').onclick=()=>{instHide();try{localStorage.setItem(INST,'1')}catch(e){}};
+}
+function instHide(){const b=$('#inst');if(b)b.remove()}
+async function installApp(){
+  if(isStandalone()){toast('Keep is already installed');return}
+  if(instEv){const e=instEv;instEv=null;e.prompt();try{const r=await e.userChoice;if(r.outcome==='accepted')toast('Installing Keep…')}catch(_){}return}
+  const steps=isIOS
+    ?['Tap the <b>Share</b> button at the bottom (or top right) of this page','Scroll down and tap <b>Add to Home Screen</b>','Tap <b>Add</b>. Keep now opens from your home screen, full screen, with no browser bars']
+    :['Tap the <b>⋮ menu</b> in your browser','Tap <b>Install app</b> (or <b>Add to Home screen</b>)','Tap <b>Install</b>. Keep now opens from your home screen, full screen'];
+  openSheet(`<div class="dh"><h1>Install Keep</h1><p>${isIOS?'On iPhone, Apple only allows this from the Share menu':'Add it to your home screen'}</p></div><div class="pb" style="padding-top:0"><div class="grp">${steps.map((t,i)=>`<div class="row" style="align-items:flex-start;gap:12px"><b style="flex:none;width:24px;height:24px;border-radius:12px;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:13px">${i+1}</b><span style="flex:1;line-height:1.4">${t}</span></div>`).join('')}</div>
+   <p class="note">Needs the site to be opened over https. Everything you keep stays on this phone.</p></div>`);
+}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();instEv=e;instBanner()});
+addEventListener('appinstalled',()=>{instEv=null;instHide();toast('Keep installed')});
+if(!CFG.demo&&isIOS&&!isStandalone())setTimeout(instBanner,2500);
 addEventListener('pointerup',()=>{if(rec&&rec.kind==='voice')stopRec()});addEventListener('pointercancel',()=>{if(rec&&rec.kind==='voice')stopRec()});
 </script>
 <script type="text/plain" id="three-src">__THREE__</script>

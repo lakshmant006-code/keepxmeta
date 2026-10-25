@@ -155,7 +155,7 @@ function arInitGL(){
   /* contact shadow + the ring that marks the spot */
   const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),gr=x.createRadialGradient(64,64,4,64,64,62);gr.addColorStop(0,'rgba(0,0,0,.5)');gr.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);
   const shadow=new T.Mesh(new T.PlaneGeometry(1.3,1.3),new T.MeshBasicMaterial({map:new T.CanvasTexture(c),transparent:true,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.005;
-  const ringM=new T.MeshBasicMaterial({color:0xffb45a,transparent:true,opacity:.8,depthWrite:false,side:T.DoubleSide});
+  const ringM=new T.MeshBasicMaterial({color:0x4599ff,transparent:true,opacity:.8,depthWrite:false,side:T.DoubleSide});
   const ring=new T.Mesh(new T.RingGeometry(.52,.56,48),ringM);ring.rotation.x=-Math.PI/2;ring.position.y=.01;
   const stage=new T.Group();stage.add(shadow,ring);stage.visible=false;sc.add(stage);
   ar.gl={r,sc,rig,cam,stage,ring,ringM,av:null,q0:null};
