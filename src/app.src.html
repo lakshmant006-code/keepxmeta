@@ -129,7 +129,14 @@ svg{display:block}
 .stk .more{flex:none;margin-left:8px;font-size:12px;color:var(--mute)}
 .lb{position:absolute;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 16px 40px;opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s}
 .lb.on{opacity:1;visibility:visible;transition-delay:0s}
-.lb img{width:100%;max-width:100%;max-height:66%;object-fit:contain;-webkit-mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,transparent,#000 9%,#000 91%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,transparent,#000 9%,#000 91%,transparent);mask-composite:intersect}
+.lb{padding:0}
+.lbtrack{display:flex;width:100%;flex:1;min-height:0;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;will-change:transform}
+.lbtrackw{width:100%;flex:1;min-height:0;overflow:hidden;display:flex}
+.lbs{flex:0 0 100%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 16px 40px}
+/* the box is exactly the picture (no letterboxing), so the fade covers the photo's own edges and corners and no hard line shows */
+.lb img{width:auto;height:auto;max-width:100%;max-height:66%;-webkit-user-drag:none;pointer-events:none;-webkit-mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);mask-composite:intersect}
+.lbdots{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;justify-content:center;gap:6px;pointer-events:none}
+.lbdots i{width:6px;height:6px;border-radius:3px;background:var(--fill2);transition:all .25s}.lbdots i.on{width:18px;background:var(--blue)}
 .lbx{position:absolute;right:12px;top:calc(env(safe-area-inset-bottom,0px) + 12px);background:var(--fill)}
 .lbc{margin-top:16px;text-align:center;font-size:16px;line-height:24px;max-width:320px}.lbn{margin-top:6px;font-size:12px;color:var(--mute)}
 .ev{padding:0;margin:0 0 26px;border:0}.ev::before{display:none}
@@ -209,6 +216,15 @@ svg{display:block}
 .scrim{position:absolute;inset:0;background:var(--scrim);opacity:0;transition:opacity .3s}.sheet.on .scrim{opacity:1}
 .panel{position:relative;background:var(--bg);border-radius:24px 24px 0 0;max-height:calc(100% - 24px);display:flex;flex-direction:column;transform:translateY(102%);transition:transform .38s cubic-bezier(.2,.85,.25,1);border:1px solid var(--bd);border-bottom:0}
 .sheet.on .panel{transform:none}
+/* frosted glass: the screen behind the sheet shows through, blurred, instead of a flat white tab */
+@supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+  .panel{background:color-mix(in srgb,var(--bg) 58%,transparent);-webkit-backdrop-filter:blur(30px) saturate(1.7);backdrop-filter:blur(30px) saturate(1.7);border-color:rgba(255,255,255,.55);box-shadow:0 -10px 40px rgba(0,0,0,.12)}
+  :root[data-theme="dark"] .panel{border-color:rgba(255,255,255,.14);box-shadow:0 -10px 40px rgba(0,0,0,.4)}
+  .sheet .grp{background:color-mix(in srgb,var(--fill) 55%,transparent)}
+  .sheet .scrim{background:rgba(0,0,0,.16)}
+  :root[data-theme="dark"] .sheet .scrim{background:rgba(0,0,0,.34)}
+  .lpc{background:color-mix(in srgb,var(--card) 70%,transparent);-webkit-backdrop-filter:blur(24px) saturate(1.7);backdrop-filter:blur(24px) saturate(1.7)}
+}
 .sheet.full .panel{height:calc(100% - 24px)}
 .handle{width:36px;height:5px;border-radius:3px;background:var(--fill2);margin:8px auto 0}
 .px{position:absolute;right:14px;top:14px;z-index:3;background:var(--fill)}
@@ -283,6 +299,13 @@ svg{display:block}
 .ptr .arc{stroke:var(--blue);stroke-linecap:round;stroke-dasharray:69.1;stroke-dashoffset:calc(69.1 * (1 - var(--pullp)))}
 .ptr.spin svg{animation:ptrspin .8s linear infinite}.ptr.spin .arc{stroke-dashoffset:48}
 @keyframes ptrspin{to{transform:rotate(360deg)}}
+[data-mid]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+[data-mid].lp{transform:scale(.96);transition:transform .22s cubic-bezier(.2,.9,.25,1);position:relative;z-index:1}
+.lpm{position:absolute;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 96px);background:rgba(0,0,0,.28);animation:lpfade .2s}
+.lpc{display:flex;gap:8px;padding:8px;border-radius:30px;background:var(--card);border:1px solid var(--bd);box-shadow:var(--shadow);animation:lppop .3s cubic-bezier(.34,1.56,.64,1)}
+.lpc button{height:48px;border-radius:24px;display:flex;align-items:center;gap:8px;padding:0 20px;font-size:16px;font-weight:600;background:var(--fill)}
+.lpc .dl{background:#FF3B30;color:#fff}.lpc .cn{width:48px;padding:0;justify-content:center}
+@keyframes lpfade{from{opacity:0}}@keyframes lppop{from{opacity:0;transform:translateY(12px) scale(.9)}}
 .toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translate(-50%,-12px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;font-weight:500;z-index:70;opacity:0;pointer-events:none;transition:.3s;white-space:nowrap}.toast.on{opacity:1;transform:translate(-50%,0)}
 /* simulated iPhone keyboard (only on desktop; phones use the real one) */
 .kbd{position:absolute;left:0;right:0;bottom:0;height:300px;background:var(--kbbg);z-index:60;display:none;flex-direction:column;padding:8px 3px 6px;gap:11px;user-select:none}
@@ -372,6 +395,7 @@ const st=(p,w)=>`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" str
 const ic={
  plus:st('<path d="M12 5v14M5 12h14"/>',2),
  x:st('<path d="M6 6l12 12M18 6L6 18"/>',1.8),
+ trash:st('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/>',1.7),
  mic:st('<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>'),
  grid:st('<rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/>'),
  cal:st('<rect x="4" y="5" width="16" height="15" rx="3.5"/><path d="M4 10h16M9 3v4M15 3v4"/>'),
@@ -540,12 +564,40 @@ function stackHTML(ms){
   ms.forEach(m=>lbReg[m.id]=m);const R=[-5,4,-1],X=[0,12,6],Y=[0,2,-3];
   return `<button class="stk" data-lb="${ms.map(m=>m.id).join(',')}" aria-label="Open ${ms.length>1?'photos':'photo'}">${ms.slice(0,4).map((m,i)=>`<i class="th ${m.type==='video'?'vd':''}" style="background-image:url(${src(m)});aspect-ratio:${arOf(m)};transform:rotate(${[-3,2,-2,3][i]}deg);z-index:${i+1}"></i>`).join('')}${ms.length>4?`<span class="more">+${ms.length-4}</span>`:''}</button>`;
 }
-let lbList=[],lbI=0;
+let lbList=[],lbI=0,lbDrag=null;
 function openLb(ids){lbList=ids.map(i=>lbReg[i]).filter(Boolean);lbI=0;if(!lbList.length)return;drawLb();$('#lb').classList.add('on')}
+/* every photo of the day sits in one strip; drag it sideways and it settles on the next or previous photo */
 function drawLb(){
-  const m=lbList[lbI];
-  $('#lb').innerHTML=`<button class="ib lbx" id="lbx" aria-label="Close">${ic.x}</button><img src="${src(m)}" alt="${esc(m.text||'Photo')}" id="lbimg"><div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${lbList.length>1?' · '+(lbI+1)+' of '+lbList.length:''}</div>`;
-  $('#lbx').onclick=closeLb;$('#lbimg').onclick=()=>{if(lbList.length>1){lbI=(lbI+1)%lbList.length;drawLb()}else closeLb()};
+  const n=lbList.length;
+  $('#lb').innerHTML=`<button class="ib lbx" id="lbx" aria-label="Close">${ic.x}</button><div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs" data-mid="${m.id}"><img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false"><div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}`;
+  $('#lbx').onclick=closeLb;
+  const tr=$('#lbtr');lbPos(tr,0,false);
+  tr.onpointerdown=e=>{if(e.button>0)return;lbDrag={x:e.clientX,y:e.clientY,t:performance.now(),dx:0,on:false,id:e.pointerId}};
+  tr.onpointermove=e=>{
+    const d=lbDrag;if(!d||d.id!==e.pointerId)return;
+    const dx=e.clientX-d.x;
+    if(!d.on){if(Math.abs(dx)<8||Math.abs(dx)<Math.abs(e.clientY-d.y))return;d.on=true;try{tr.setPointerCapture(e.pointerId)}catch(_){}}
+    /* pulling past the first or last photo gets harder, like the end of a list */
+    d.dx=((dx>0&&lbI===0)||(dx<0&&lbI===n-1))?dx*.32:dx;
+    lbPos(tr,d.dx,false);
+  };
+  const up=e=>{
+    const d=lbDrag;if(!d||d.id!==e.pointerId)return;lbDrag=null;
+    const w=tr.clientWidth,v=d.dx/Math.max(1,performance.now()-d.t);
+    if(!d.on){if(n<2&&Math.abs(e.clientX-d.x)<6&&!$('#lpm'))closeLb();return}
+    if((d.dx<-w*.2||v<-.5)&&lbI<n-1)lbI++;else if((d.dx>w*.2||v>.5)&&lbI>0)lbI--;
+    lbPos(tr,0,true);
+    document.querySelectorAll('.lbdots i').forEach((x,i)=>x.classList.toggle('on',i===lbI));
+  };
+  tr.onpointerup=up;tr.onpointercancel=up;
+}
+function lbPos(tr,dx,anim){
+  tr.style.transition=anim?'transform .38s cubic-bezier(.2,.9,.25,1)':'none';
+  tr.style.transform=`translate3d(calc(${-lbI*100}% + ${dx}px),0,0)`;
+}
+function lbStep(k){
+  const tr=$('#lbtr');if(!tr)return;const j=lbI+k;if(j<0||j>=lbList.length)return;
+  lbI=j;lbPos(tr,0,true);document.querySelectorAll('.lbdots i').forEach((x,i)=>x.classList.toggle('on',i===lbI));
 }
 function closeLb(){$('#lb').classList.remove('on')}
 
@@ -576,12 +628,10 @@ function openDay(k){
   L.forEach(x=>{
     if(x.type==='photo'||x.type==='video'){
       if(done)return;done=true;const caps=ph.map(p=>p.text).filter(Boolean);
-      h+=`<div class="ev">${stackHTML(ph)}<div class="tm">${tstr(ph[0].ts)}${ph.length>1?' to '+tstr(ph[ph.length-1].ts):''} <em>· ${[ph.filter(p=>p.type==='photo').length&&ph.filter(p=>p.type==='photo').length+' photo'+(ph.filter(p=>p.type==='photo').length>1?'s':''),ph.filter(p=>p.type==='video').length&&ph.filter(p=>p.type==='video').length+' video'+(ph.filter(p=>p.type==='video').length>1?'s':'')].filter(Boolean).join(' · ')}</em></div>${caps[0]?`<div class="tx">${esc(caps[0])}</div>`:''}</div>`;
-    }else h+=`<div class="ev">${item(x)}</div>`;
+      h+=`<div class="ev"${ph.length===1&&user.includes(ph[0])?` data-mid="${ph[0].id}"`:''}>${stackHTML(ph)}<div class="tm">${tstr(ph[0].ts)}${ph.length>1?' to '+tstr(ph[ph.length-1].ts):''} <em>· ${[ph.filter(p=>p.type==='photo').length&&ph.filter(p=>p.type==='photo').length+' photo'+(ph.filter(p=>p.type==='photo').length>1?'s':''),ph.filter(p=>p.type==='video').length&&ph.filter(p=>p.type==='video').length+' video'+(ph.filter(p=>p.type==='video').length>1?'s':'')].filter(Boolean).join(' · ')}</em></div>${caps[0]?`<div class="tx">${esc(caps[0])}</div>`:''}</div>`;
+    }else h+=`<div class="ev"${user.includes(x)?` data-mid="${x.id}"`:''}>${item(x)}</div>`;
   });
   ph.filter(p=>p.who&&src(p)).forEach(p=>{h+=`<div class="ev"><button class="pill d arbtn" data-ar="${p.id}">${ic.cube} See ${esc(firstName(p.who))} there</button></div>`});
-  const mine=L.filter(x=>user.includes(x));
-  if(mine.length)h+=`<div class="lbl" style="margin-top:22px">Manage</div><div class="grp" style="padding:0 14px;margin-top:8px">${mine.map(x=>`<div class="row"><span style="font-size:14px;color:var(--mute);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:10px">${TL[x.type]} · ${esc((x.text||x.name||'').slice(0,40))||tstr(x.ts)}</span><button class="chip fb flat" data-del="${x.id}" style="height:30px;font-size:13px;padding:0 12px;flex:none">Delete</button></div>`).join('')}</div>`;
   if(!L.length)h=`<div class="empty">Nothing kept on this day.</div>`;
   openSheet(`<div class="dh"><h1>${longDay(dt)}</h1><p>${dt.getFullYear()} · ${L.length?L.length+' moment'+(L.length>1?'s':''):'quiet day'}</p></div><div class="pb" style="padding-top:16px">${h}</div>`,{full:true});
 }
@@ -927,11 +977,6 @@ function fit(){
 addEventListener('resize',fit);fit();
 __AR_JS__
 __MAPS_JS__
-document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-del]');if(!b)return;
-  if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Tap again';setTimeout(()=>{b.textContent='Delete';delete b.dataset.arm},2500);return}
-  const id=+b.dataset.del;user=user.filter(o=>o.id!==id);saved.delete(id);idb.del(id).catch(()=>{});refresh();openDay(curDay);toast('Deleted');
-});
 let yearMode=false;
 function refresh(){index();renderCal();renderYear();renderRv()}
 $('#cal').addEventListener('click',e=>{const c=e.target.closest('[data-d]');if(c)openDay(c.dataset.d)});
@@ -949,7 +994,7 @@ $('#sendB').onclick=()=>{const v=$('#q2').value;$('#q2').value='';ask(v)};
 $('#chatX').onclick=closeChat;
 $('#cb').addEventListener('click',e=>{const s=e.target.closest('[data-s]');if(s){ask(s.dataset.s);return}const d=e.target.closest('[data-d]');if(d){blurAll();openDay(d.dataset.d)}});
 document.addEventListener('click',e=>{const t=e.target.closest('[data-lb]');if(t){e.stopPropagation();openLb(t.dataset.lb.split(','))}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#lb').classList.contains('on'))closeLb();else if($('#ov').classList.contains('on'))closeAdd();else if($('#sh').classList.contains('on'))closeSheet();else closeChat()}});
+document.addEventListener('keydown',e=>{if($('#lb').classList.contains('on')){if(e.key==='ArrowRight')lbStep(1);if(e.key==='ArrowLeft')lbStep(-1)}if(e.key==='Escape'){if($('#lb').classList.contains('on'))closeLb();else if($('#ov').classList.contains('on'))closeAdd();else if($('#sh').classList.contains('on'))closeSheet();else closeChat()}});
 refresh();setYear(false);loadUser().then(()=>onbMaybe());
 /* a new day while the app sat open */
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!CFG.demo){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate());if(+t!==+TODAY){TODAY=t;refresh()}}});
@@ -1087,6 +1132,47 @@ async function onbRun(files){
   $('#onbOk').onclick=()=>{onbClose();const c=$('#cal');const t=$('#m-'+z.getFullYear()+'-'+(z.getMonth()+1));if(t&&c)c.scrollTop=t.offsetTop-4};
   $('#onbMore').onclick=()=>onbPick(true);
 }
+/* ---------- long press a memory: delete ---------- */
+/* Hold a photo (in the viewer), a lone photo or a note in a day, and a small menu offers Delete. Only things you kept can be deleted. */
+(function(){
+  let t=null,sx=0,sy=0,el=null,fired=false;
+  const cancel=()=>{clearTimeout(t);t=null};
+  const close=()=>{const m=$('#lpm');if(m)m.remove();document.querySelectorAll('.lp').forEach(x=>x.classList.remove('lp'))};
+  function remove(id){
+    const o=user.find(x=>x.id===id);if(!o)return;
+    user=user.filter(x=>x.id!==id);saved.delete(id);idb.del(id).catch(()=>{});delete lbReg[id];
+    if($('#lb').classList.contains('on')){
+      lbList=lbList.filter(x=>x.id!==id);
+      if(!lbList.length)closeLb();else{lbI=Math.min(lbI,lbList.length-1);drawLb()}
+    }
+    refresh();if($('#sh').classList.contains('on')&&curDay)openDay(curDay);
+    toast('Deleted');
+  }
+  function menu(node){
+    const id=+node.dataset.mid;
+    if(!user.some(x=>x.id===id)){toast('Sample memories cannot be deleted');return}
+    close();node.classList.add('lp');
+    if(navigator.vibrate)try{navigator.vibrate(12)}catch(e){}
+    const m=document.createElement('div');m.className='lpm';m.id='lpm';
+    m.innerHTML=`<div class="lpc"><button class="dl" id="lpDel">${ic.trash.replace('width="22" height="22"','width="20" height="20"')} Delete</button><button class="cn" id="lpNo" aria-label="Cancel">${ic.x}</button></div>`;
+    $('#app').appendChild(m);
+    m.onclick=e=>{if(e.target===m)close()};
+    $('#lpNo').onclick=close;
+    $('#lpDel').onclick=()=>{close();remove(id)};
+  }
+  document.addEventListener('pointerdown',e=>{
+    fired=false; /* a new touch always starts clean, so a stale flag can never swallow a real tap */
+    if(e.button>0||e.target.closest('#lpm'))return;
+    const n=e.target.closest('[data-mid]');if(!n)return;
+    el=n;sx=e.clientX;sy=e.clientY;fired=false;cancel();
+    t=setTimeout(()=>{t=null;fired=true;menu(el)},480);
+  });
+  document.addEventListener('pointermove',e=>{if(t&&(Math.abs(e.clientX-sx)>8||Math.abs(e.clientY-sy)>8))cancel()});
+  ['pointerup','pointercancel'].forEach(k=>document.addEventListener(k,cancel));
+  /* the finger lifting after a long press must not also open the photo or close the viewer */
+  document.addEventListener('click',e=>{if(fired){fired=false;e.stopPropagation();e.preventDefault()}},true);
+  document.addEventListener('contextmenu',e=>{const n=e.target.closest('[data-mid]');if(n){e.preventDefault();cancel();fired=true;menu(n)}});
+})();
 /* ---------- pull to refresh ---------- */
 /* Drag down from the top of the calendar (or from the header): the page follows with rubber-band resistance, a ring fills,
    past the threshold it spins while Keep looks for a new version, then the page springs back. A new version is applied; otherwise the calendar just refreshes. */
