@@ -70,6 +70,13 @@ The pin icon shows photos kept with a location as markers; tap one to open the d
 
 Local or CI debugging: open the site with `?appcheck-debug` (the SDK prints a debug token to the console) or `?appcheck-debug=<token>` for one you registered in the Firebase console. If Firebase can't be reached, the map still loads without a token. reCAPTCHA Enterprise is free up to 10,000 assessments a month.
 
+## Avatars
+
+Meta and Instagram avatars cannot be used outside Meta's own apps (the Meta Avatars SDK is Unity/VR only, and Instagram's consumer API is closed), so Keep has its own.
+
+- **Style editor.** In Re-live, tap **Style** to change a person's skin tone, hair style and colour, top (tee or hoodie) and colour, pants and glasses. The avatar updates as you tap. Looks are saved in this browser and included in Back up / Restore. People you never style keep the look their name gave them.
+- **Your own avatar file.** In the same panel, **Import .glb file** uses any `.glb` (or `.vrm`) avatar: VRoid Studio, Avaturn, Blender, or other exports **without Draco or Meshopt compression**, up to 40 MB. It is sized to a person, stood on the ground, and its arms are swung down from a T-pose. It stands in Re-live and Street View but does not sit or wave (that needs the built-in figure). The file stays on this phone, in its own storage, and is not part of Back up. Remove it any time to go back to the built-in figure.
+
 ## Photo viewer
 
 Swipe left and right to move between a day's photos. Swipe down to close: the photo follows your finger, shrinks a little, and the page behind fades in; let go past a short distance (or flick) and it closes, otherwise it springs back. There is no close button. A single photo also closes with a tap, and Escape works on desktop.
