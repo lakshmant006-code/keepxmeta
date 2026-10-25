@@ -216,6 +216,15 @@ svg{display:block}
 .scrim{position:absolute;inset:0;background:var(--scrim);opacity:0;transition:opacity .3s}.sheet.on .scrim{opacity:1}
 .panel{position:relative;background:var(--bg);border-radius:24px 24px 0 0;max-height:calc(100% - 24px);display:flex;flex-direction:column;transform:translateY(102%);transition:transform .38s cubic-bezier(.2,.85,.25,1);border:1px solid var(--bd);border-bottom:0}
 .sheet.on .panel{transform:none}
+/* frosted glass: the screen behind the sheet shows through, blurred, instead of a flat white tab */
+@supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+  .panel{background:color-mix(in srgb,var(--bg) 58%,transparent);-webkit-backdrop-filter:blur(30px) saturate(1.7);backdrop-filter:blur(30px) saturate(1.7);border-color:rgba(255,255,255,.55);box-shadow:0 -10px 40px rgba(0,0,0,.12)}
+  :root[data-theme="dark"] .panel{border-color:rgba(255,255,255,.14);box-shadow:0 -10px 40px rgba(0,0,0,.4)}
+  .sheet .grp{background:color-mix(in srgb,var(--fill) 55%,transparent)}
+  .sheet .scrim{background:rgba(0,0,0,.16)}
+  :root[data-theme="dark"] .sheet .scrim{background:rgba(0,0,0,.34)}
+  .lpc{background:color-mix(in srgb,var(--card) 70%,transparent);-webkit-backdrop-filter:blur(24px) saturate(1.7);backdrop-filter:blur(24px) saturate(1.7)}
+}
 .sheet.full .panel{height:calc(100% - 24px)}
 .handle{width:36px;height:5px;border-radius:3px;background:var(--fill2);margin:8px auto 0}
 .px{position:absolute;right:14px;top:14px;z-index:3;background:var(--fill)}
