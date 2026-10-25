@@ -150,14 +150,14 @@ async function openStreet(p){
     const here=res.data.location.latLng,pos={lat:here.lat(),lng:here.lng()};
     const pano=new StreetViewPanorama($('#svPano'),{pano:res.data.location.pano,position:pos,pov:{heading:0,pitch:0},zoom:1,disableDefaultUI:true,motionTracking:false,motionTrackingControl:false,showRoadLabels:false,clickToGo:true,linksControl:false,fullscreenControl:false,addressControl:false});
     sv.pano=pano;sv.pos=pos;
-    svInitGL();svPlace();svCard();
+    await svInitGL();if(!sv)return;svPlace();svCard();
     pano.addListener('pov_changed',svCam);pano.addListener('zoom_changed',svCam);pano.addListener('position_changed',()=>{const q=pano.getPosition();if(q){sv.pos={lat:q.lat(),lng:q.lng()};svMove()}});
     svCam();svStat('Standing where it was kept',true);
     sv.raf=requestAnimationFrame(svTick);
   }catch(e){if(sv){toast('Street View could not load');closeStreet()}}
 }
 function svStat(t,ok){const s=$('#svStat');if(s){s.className='arstat'+(ok?' ok':'');s.innerHTML='<i></i>'+t}}
-function svInitGL(){
+async function svInitGL(){
   const T=THREE,cv=$('#svGL'),r=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true});
   r.setPixelRatio(Math.min(devicePixelRatio||1,2));r.setClearColor(0,0);
   const sc=new T.Scene(),cam=new T.PerspectiveCamera(60,1,.1,200);cam.rotation.order='YXZ';
@@ -166,11 +166,11 @@ function svInitGL(){
   const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),gr=x.createRadialGradient(64,64,4,64,64,62);gr.addColorStop(0,'rgba(0,0,0,.5)');gr.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);
   const shT=new T.CanvasTexture(c);
   sv.gl={r,sc,cam,shT};
-  sv.who.forEach(m=>{
-    const a=buildAvatar(avLook(m.who));a.set(arPose(m));a.pop();
+  for(const m of sv.who){
+    const a=await avatarFor(m.who);if(!sv)return;a.set(arPose(m));a.pop();
     const sh=new T.Mesh(new T.PlaneGeometry(1.3,1.3),new T.MeshBasicMaterial({map:shT,transparent:true,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.position.y=.01;a.group.add(sh);
     sc.add(a.group);sv.av.push(a);
-  });
+  }
   svResize();sv.ro=new ResizeObserver(svResize);sv.ro.observe($('#svw'));
 }
 function svResize(){

@@ -57,7 +57,9 @@ function buildAvatar(look){
   });
   head.add(M(new T.SphereGeometry(.024,12,10),skin,0,.185,.217));
   const mouth=M(new T.TorusGeometry(.05,.008,8,20,Math.PI),ink,0,.15,.206);mouth.rotation.z=Math.PI;mouth.scale.z=.5;head.add(mouth);
-  const cap=M(new T.SphereGeometry(.24,32,20,0,Math.PI*2,0,Math.PI*.56),hairM,0,.215,-.015);cap.rotation.x=-.3;head.add(cap);
+  if(look.style!==4){const cap=M(new T.SphereGeometry(.24,32,20,0,Math.PI*2,0,Math.PI*.56),hairM,0,.215,-.015);cap.rotation.x=-.3;head.add(cap)}
+  if(look.style===3){[[0,.43,.02],[.14,.4,.0],[-.14,.4,.0],[.0,.4,-.14],[.16,.34,-.1],[-.16,.34,-.1],[.1,.42,.1],[-.1,.42,.1]].forEach(c=>head.add(M(new T.SphereGeometry(.085,14,12),hairM,c[0],c[1],c[2])))}
+  if(look.glasses){const fr=new T.MeshBasicMaterial({color:'#15151a'});[-1,1].forEach(s=>head.add(M(new T.TorusGeometry(.058,.009,8,28),fr,s*.078,.23,.212)));head.add(M(new T.BoxGeometry(.04,.01,.01),fr,0,.235,.215))}
   if(look.style===1){head.add(M(new T.CapsuleGeometry(.2,.3,8,16),hairM,0,.04,-.1)).scale.set(1.05,1,.62)}
   if(look.style===2){head.add(M(new T.SphereGeometry(.105,18,14),hairM,0,.47,-.05))}
   const arm=s=>{
@@ -76,6 +78,7 @@ function buildAvatar(look){
     kn.add(M(new T.SphereGeometry(.095,16,12),shoe,0,-.47,.06)).scale.set(.95,.62,1.75);
     return{th,kn};
   };
+  if(look.hoodie){const hd=M(new T.TorusGeometry(.14,.055,10,28),topM,0,.62,-.03);hd.rotation.x=Math.PI/2.4;spine.add(hd);spine.add(M(new T.BoxGeometry(.24,.11,.05),topM,0,.16,.15))}
   const aL=arm(-1),aR=arm(1),lL=leg(-1),lR=leg(1);
   /* ghost seat so a sitting pose reads as sitting on something */
   const seat=M(new T.CylinderGeometry(.3,.3,.04,32),new T.MeshBasicMaterial({color:'#fff',transparent:true,opacity:0}),0,.38,-.02);G.add(seat);
@@ -86,6 +89,18 @@ function buildAvatar(look){
     wave:{hy:.95,lean:0,tL:0,kL:0,tR:0,kR:0,sL:.14,xL:0,eL:.15,sR:2.55,xR:0,eR:.0},
     walk:{hy:.95,lean:.03,tL:0,kL:0,tR:0,kR:0,sL:.14,xL:0,eL:.3,sR:.14,xR:0,eR:.3}
   };
+  /* writes one pose's joint values onto the figure. gnd lifts or drops the hips so the feet stand on the ground. */
+  const place=(Q,name,t,hb,hxN)=>{
+    hips.position.y=Q.hy+hb+Math.sin(t*1.8)*.004-(Q.gnd||0);spine.rotation.x=Q.lean+Math.sin(t*1.8)*.01;
+    lL.th.rotation.x=Q.tL;lL.kn.rotation.x=Q.kL;lR.th.rotation.x=Q.tR;lR.kn.rotation.x=Q.kR;
+    aL.sh.rotation.z=-Q.sL;aL.sh.rotation.x=Q.xL;aL.el.rotation.x=-Q.eL*(name==='sit'?1:.4);
+    aR.sh.rotation.z=Q.sR;aR.sh.rotation.x=Q.xR;aR.el.rotation.x=name==='wave'?0:-Q.eR*(name==='sit'?1:.4);aR.el.rotation.z=name==='wave'?Q.eR:0;
+    head.rotation.y=Math.sin(t*.7)*.12;head.rotation.x=hxN+Math.sin(t*.9)*.03;
+  };
+  /* Object3D.add() returns the parent, so the .scale.set(...) calls above squash the whole body and the feet end up off the floor.
+     Rather than change the figure's look, measure how far each pose floats and take that off the hips. */
+  for(const n in TG){place(TG[n],n,0,0,0);G.updateMatrixWorld(true);TG[n].gnd=new T.Box3().setFromObject(lL.kn).union(new T.Box3().setFromObject(lR.kn)).min.y}
+  P.gnd=TG.stand.gnd;place(P,'stand',0,0,0);
   let cur='stand',pop=0;
   const api={group:G,seat,
     set(n){cur=TG[n]?n:'stand'},get pose(){return cur},
@@ -96,11 +111,7 @@ function buildAvatar(look){
       if(cur==='walk'){const w=t*4.2,s=Math.sin(w);tg.tL=s*.6;tg.tR=-s*.6;tg.kL=Math.max(0,-s)*1.0;tg.kR=Math.max(0,s)*1.0;tg.xL=-s*.5;tg.xR=s*.5;hb=Math.abs(Math.cos(w))*.025}
       if(cur==='wave'){tg.eR=.35+Math.sin(t*8)*.45;hxN=Math.sin(t*1.3)*.05}
       for(const key in tg)P[key]+=(tg[key]-P[key])*(key==='tL'||key==='tR'||key==='xL'||key==='xR'?(cur==='walk'?.5:k):k);
-      hips.position.y=P.hy+hb+Math.sin(t*1.8)*.004;spine.rotation.x=P.lean+Math.sin(t*1.8)*.01;
-      lL.th.rotation.x=P.tL;lL.kn.rotation.x=P.kL;lR.th.rotation.x=P.tR;lR.kn.rotation.x=P.kR;
-      aL.sh.rotation.z=-P.sL;aL.sh.rotation.x=P.xL;aL.el.rotation.x=-P.eL*(cur==='sit'?1:.4);
-      aR.sh.rotation.z=P.sR;aR.sh.rotation.x=P.xR;aR.el.rotation.x=cur==='wave'?0:-P.eR*(cur==='sit'?1:.4);aR.el.rotation.z=cur==='wave'?P.eR:0;
-      head.rotation.y=Math.sin(t*.7)*.12;head.rotation.x=hxN+Math.sin(t*.9)*.03;
+      place(P,cur,t,hb,hxN);
       seat.material.opacity+=((cur==='sit'?.22:0)-seat.material.opacity)*k;seat.position.y=P.hy-.15;
       if(pop<1){pop=Math.min(1,pop+dt*2.2);const e=1+2.7*Math.pow(pop-1,3)+1.7*Math.pow(pop-1,2);G.scale.setScalar(Math.max(.01,e))}
     },
@@ -163,7 +174,7 @@ function arInitGL(){
 }
 function arResize(){
   if(!ar||!ar.gl)return;const a=$('#ar'),w=a.clientWidth,h=a.clientHeight;
-  ar.gl.r.setSize(w,h,false);ar.gl.cam.aspect=w/h;ar.gl.cam.updateProjectionMatrix();
+  ar.gl.r.setSize(w,h,false);ar.gl.cam.aspect=w/h;ar.gl.cam.updateProjectionMatrix();if(ar.edit)arEditView();
 }
 function arTick(){
   if(!ar||!ar.on)return;ar.raf=requestAnimationFrame(arTick);
@@ -202,7 +213,7 @@ async function arLock(p,how){
   if(g){
     g.stage.visible=true;g.q0=null;g.cam.quaternion.identity();
     if(g.av){g.sc.remove(g.av.group);g.av.dispose()}
-    g.av=buildAvatar(look);g.av.set(arPose(p));g.av.pop();g.sc.add(g.av.group);
+    g.av=await avatarFor(p.who);if(!ar||!ar.on)return;g.av.set(arPose(p));g.av.pop();g.sc.add(g.av.group);
     const pt=arPlace(p);g.av.group.position.copy(pt);g.stage.position.set(pt.x,0,pt.z);
     ar.baseYaw=Math.atan2(-pt.x,-pt.z)*.5;
     ar.useGyro=true;ar.gyro=!!ar.dev;
@@ -252,9 +263,10 @@ function arBottom(){
   if(!ar.cur){
     b.innerHTML=`<div class="arhint">${ar.near&&ar.near.length?ar.near.length+' kept within 200 m of you':ar.stream?'Point at a place you kept, or try one of these':'Pick a memory to stand in its place'}</div><div class="arrow">${chips}</div>`;
   }else{
-    b.innerHTML=`<div class="arrow">${POSES.map(x=>`<button class="archip t ${ar.gl&&ar.gl.av&&ar.gl.av.pose===x[0]?'on':''}" data-pose="${x[0]}">${x[1]}</button>`).join('')}</div>
+    b.innerHTML=`<div class="arrow">${POSES.map(x=>`<button class="archip t ${ar.gl&&ar.gl.av&&ar.gl.av.pose===x[0]?'on':''}" data-pose="${x[0]}">${x[1]}</button>`).join('')}<button class="archip t" id="arStyle">Style</button></div>
      <div class="arctl"><button class="archip t" id="arAgain">Scan again</button><button class="arshut" id="arShot" aria-label="Capture"><i></i></button><button class="archip t" id="arSw">${ar.how==='camera'?'Scene photo':'Live camera'}</button></div>`;
     $('#arAgain').onclick=()=>arScanStart();
+    $('#arStyle').onclick=avEdit;
     $('#arShot').onclick=arCapture;
     $('#arSw').onclick=async()=>{
       if(ar.how==='camera'){arLockHow('photo')}

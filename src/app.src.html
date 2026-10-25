@@ -319,6 +319,7 @@ svg{display:block}
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 __AR_CSS__
 __MAPS_CSS__
+__AV_CSS__
 </style>
 
 <div class="app" id="app">
@@ -365,20 +366,28 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const ini=n=>n.split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 /* Stylized 3D-avatar bust (Meta avatar reference): glossy shaded head, hair, jacket. Deterministic per name. */
 const avKey=n=>{let h=0;for(const c of n||'?')h=(h*31+c.charCodeAt(0))>>>0;return h};
+/* palettes: the first entries are what a name picks by default (unchanged); the rest are there to choose from in the style editor */
+const SKINS=[['#FFD9BF','#E9A67F'],['#F3C09A','#C98558'],['#D9A27A','#A8693F'],['#B97D55','#7E4A2B'],['#8D5A3A','#5B3420'],['#FFE6D5','#F0B796'],['#C58E65','#92602F'],['#6E4328','#442612']];
+const HAIRS=['#2B1B14','#6B3E22','#C9812E','#1F2A44','#E9E1D3','#7A2E5C','#0E0E10','#8C8C92','#B5482F','#E3C16F'];
+const TOPS=[['#7C5CFF','#4A2FD0'],['#FF8A3D','#E0561A'],['#2FB8A6','#157E73'],['#FF6FA3','#D33F78'],['#5DA9FF','#2B6FD6'],['#E5484D','#B3262B'],['#2D2D31','#111114'],['#F2F2F4','#C9C9CE'],['#3FBF6B','#1F8A47'],['#FFD25A','#E0A21B']];
+const PANTS=['#2F3A57','#3B3B3B','#6B4F3A','#27496D','#4A4E69','#1B1B1F','#8A8F98','#A4895C','#3C6E47'];
+const HSTYLES=['Short','Long','Bun','Curly','Bald'];
+const lookKey=n=>(n||'').trim().toLowerCase();
+let LOOKS={};try{LOOKS=JSON.parse(localStorage.getItem('kept.looks')||'{}')||{}}catch(e){}
+const saveLooks=()=>{try{localStorage.setItem('kept.looks',JSON.stringify(LOOKS))}catch(e){}};
 function avLook(name){
-  const h=avKey(name),pk=(a,o)=>a[(h>>>o)%a.length];
-  return{h,
-    skin:pk([['#FFD9BF','#E9A67F'],['#F3C09A','#C98558'],['#D9A27A','#A8693F'],['#B97D55','#7E4A2B'],['#8D5A3A','#5B3420']],0),
-    hair:pk(['#2B1B14','#6B3E22','#C9812E','#1F2A44','#E9E1D3','#7A2E5C'],3),
-    top:pk([['#7C5CFF','#4A2FD0'],['#FF8A3D','#E0561A'],['#2FB8A6','#157E73'],['#FF6FA3','#D33F78'],['#5DA9FF','#2B6FD6']],6),
-    pants:pk(['#2F3A57','#3B3B3B','#6B4F3A','#27496D','#4A4E69'],12),
-    style:(h>>>9)%3};
+  const h=avKey(name),ik=(n,o)=>(h>>>o)%n,o=LOOKS[lookKey(name)]||{},pick=(v,d)=>v!=null?v:d;
+  const ix={skin:pick(o.skin,ik(5,0)),hair:pick(o.hair,ik(6,3)),top:pick(o.top,ik(5,6)),pants:pick(o.pants,ik(5,12)),style:pick(o.style,(h>>>9)%3)};
+  return{h,ix,skin:SKINS[ix.skin],hair:HAIRS[ix.hair],top:TOPS[ix.top],pants:PANTS[ix.pants],style:ix.style,glasses:!!o.glasses,hoodie:!!o.hoodie};
 }
 function avatar(name){
   const L=avLook(name),h=L.h,skin=L.skin,hair=L.hair,top=L.top,style=L.style,id='a'+h;
   const hairPath=style===0?'<path d="M26 44c-2-18 10-26 24-26s26 8 24 26c-4-9-12-13-24-13s-20 4-24 13z" fill="'+hair+'"/>'
     :style===1?'<path d="M24 50c-4-24 8-34 26-34s30 10 26 34c-2-8-3-14-6-18-6 4-14 6-20 6s-14-2-20-6c-3 4-4 10-6 18z" fill="'+hair+'"/>'
+    :style===3?[[30,34],[40,24],[52,21],[63,25],[71,35],[50,31]].map(c=>'<circle cx="'+c[0]+'" cy="'+c[1]+'" r="11" fill="'+hair+'"/>').join('')
+    :style===4?''
     :'<circle cx="50" cy="22" r="13" fill="'+hair+'"/><path d="M27 42c0-14 10-20 23-20s23 6 23 20c-5-7-13-10-23-10s-18 3-23 10z" fill="'+hair+'"/>';
+  const specs=L.glasses?'<g fill="none" stroke="#1E1A1A" stroke-width="2"><circle cx="41" cy="46" r="7.5"/><circle cx="59" cy="46" r="7.5"/><path d="M48.5 46h3"/></g>':'';
   return `<svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true"><defs>
 <radialGradient id="${id}s" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="${skin[0]}"/><stop offset="1" stop-color="${skin[1]}"/></radialGradient>
 <linearGradient id="${id}t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${top[0]}"/><stop offset="1" stop-color="${top[1]}"/></linearGradient></defs>
@@ -388,7 +397,7 @@ function avatar(name){
 <ellipse cx="41" cy="46" rx="3.2" ry="4" fill="#1E1A1A"/><ellipse cx="59" cy="46" rx="3.2" ry="4" fill="#1E1A1A"/>
 <circle cx="42" cy="44.5" r="1.1" fill="#fff"/><circle cx="60" cy="44.5" r="1.1" fill="#fff"/>
 <path d="M43 56q7 6 14 0" stroke="#7A3B2B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-<ellipse cx="38" cy="36" rx="8" ry="5" fill="#fff" opacity=".22" transform="rotate(-25 38 36)"/></svg>`}
+${specs}<ellipse cx="38" cy="36" rx="8" ry="5" fill="#fff" opacity=".22" transform="rotate(-25 38 36)"/></svg>`}
 const TL={photo:'Photo',video:'Video',text:'Note',quote:'Quote',voice:'Voice',person:'Person',file:'File',place:'Place'};
 const st=(p,w)=>`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w||1.7}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const ic={
@@ -898,7 +907,7 @@ function save(){
 }
 /* ---------- profile ---------- */
 function backup(){
-  const d={app:'keep',v:1,saved:new Date().toISOString(),memories:user},a=document.createElement('a');
+  const lk={};Object.keys(LOOKS).forEach(k=>{lk[k]=Object.assign({},LOOKS[k]);delete lk[k].glb});const d={app:'keep',v:1,saved:new Date().toISOString(),memories:user,looks:lk},a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='keep-backup-'+dk(new Date())+'.json';
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast(user.length+(user.length===1?' memory':' memories')+' saved to a file');
 }
@@ -906,6 +915,7 @@ function restore(e){
   const f=e.target.files[0];e.target.value='';if(!f)return;
   f.text().then(t=>{
     const d=JSON.parse(t),L=Array.isArray(d)?d:d.memories;if(!Array.isArray(L))throw 0;
+    if(d&&d.looks&&typeof d.looks==='object'&&!Array.isArray(d)){Object.keys(d.looks).forEach(k=>{if(!LOOKS[k]){LOOKS[k]=d.looks[k];delete LOOKS[k].glb}});saveLooks()}
     const have=new Set(user.map(o=>o.id));let n=0;
     L.forEach(o=>{if(o&&o.id&&o.ts&&o.type&&!have.has(o.id)){user.push(o);have.add(o.id);n++}});
     persistUser();refresh();toast(n?n+(n===1?' memory':' memories')+' restored':'Nothing new in that file');
@@ -1001,6 +1011,7 @@ function fit(){
 addEventListener('resize',fit);fit();
 __AR_JS__
 __MAPS_JS__
+__AV_JS__
 let yearMode=false;
 function refresh(){index();renderCal();renderYear();renderRv()}
 $('#cal').addEventListener('click',e=>{const c=e.target.closest('[data-d]');if(c)openDay(c.dataset.d)});
@@ -1293,3 +1304,4 @@ if(!CFG.demo&&isIOS&&!isStandalone())setTimeout(instBanner,2500);
 addEventListener('pointerup',()=>{if(rec&&rec.kind==='voice')stopRec()});addEventListener('pointercancel',()=>{if(rec&&rec.kind==='voice')stopRec()});
 </script>
 <script type="text/plain" id="three-src">__THREE__</script>
+<script type="text/plain" id="gltf-src">__GLTF__</script>
