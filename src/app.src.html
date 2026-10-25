@@ -832,6 +832,8 @@ function openProfile(){
     <div class="row"><span>Appearance</span><div class="seg" data-k="theme">${['light','dark'].map(x=>`<button data-v="${x}" class="${th===x?'on':''}">${x[0].toUpperCase()+x.slice(1)}</button>`).join('')}</div></div>
     <div class="row"><span>Revisits</span><div class="seg" data-k="rev">${[['off','Off'],['monthly','Monthly'],['weekly','Weekly']].map(x=>`<button data-v="${x[0]}" class="${revOn===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>
     ${CFG.demo?`<div class="row"><span>Preview empty state</span><div class="seg" data-k="empty">${[['0','Off'],['1','On']].map(x=>`<button data-v="${x[0]}" class="${(emptyMode?'1':'0')===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>`:''}
+    ${CFG.demo?'':`<div class="row"><span>Updates<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">Version ${String(CFG.build).slice(0,6)}</small></span><button class="chip fb flat" id="updChk" style="height:32px;font-size:14px;padding:0 12px">Check</button></div>
+    <div class="row"><span>Hard refresh<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">Reload the newest app. Your memories stay.</small></span><button class="chip fb flat" id="hardRf" style="height:32px;font-size:14px;padding:0 12px">Refresh</button></div>`}
     <div class="row"><span>Import photos</span><button class="chip fb flat" id="impOpen" style="height:32px;font-size:14px;padding:0 12px">Choose</button></div>
     ${isStandalone()?'':`<div class="row"><span>Install app</span><button class="chip fb flat" id="instOpen" style="height:32px;font-size:14px;padding:0 12px">Install</button></div>`}
     <div class="row"><span>Google Maps</span><button class="chip fb flat" id="gmOpen" style="height:32px;font-size:14px;padding:0 12px">${gmKey()?'On':'Add key'}</button></div>
@@ -845,6 +847,7 @@ function openProfile(){
     if(k==='empty'){emptyMode=v==='1';refresh()}
     sg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});
   $('#gmOpen').onclick=()=>{closeSheet();openMap()};
+  if($('#updChk')){$('#updChk').onclick=updCheck;$('#hardRf').onclick=hardRefresh}
   $('#impOpen').onclick=()=>{closeSheet();onbOpen(true)};
   if($('#instOpen'))$('#instOpen').onclick=()=>{closeSheet();installApp()};
   $('#bak').onclick=backup;$('#rst').onchange=restore;
@@ -937,7 +940,49 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#lb').classLi
 refresh();setYear(false);loadUser().then(()=>onbMaybe());
 /* a new day while the app sat open */
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!CFG.demo){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate());if(+t!==+TODAY){TODAY=t;refresh()}}});
-if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!CFG.demo)navigator.serviceWorker.register('sw.js').catch(()=>{});
+/* ---------- updates: tell the person when a new version is ready, apply it on a tap ---------- */
+let swReg=null,updGo=false;
+function updBanner(){
+  if($('#upd'))return;instHide();
+  const b=document.createElement('div');b.className='inst';b.id='upd';
+  b.innerHTML=`<img src="icons/icon-192.png" alt=""><div><b>Update available</b><small>A newer version of Keep is ready</small></div><button class="pill d" id="updGo" style="height:36px;padding:0 16px;font-size:14px">Update</button><button class="ib" id="updX" aria-label="Later" style="width:32px;height:32px">${ic.x}</button>`;
+  $('#app').appendChild(b);
+  $('#updGo').onclick=updApply;$('#updX').onclick=()=>b.remove();
+}
+function updApply(){
+  const w=swReg&&swReg.waiting;
+  if(!w){location.reload();return}
+  updGo=true;toast('Updating…');w.postMessage('skip');
+  setTimeout(()=>{if(updGo)location.reload()},4000); /* if the swap is slow, a plain reload still picks it up */
+}
+function swWatch(reg){
+  swReg=reg;
+  const ready=()=>{if(reg.waiting&&navigator.serviceWorker.controller)updBanner()};
+  ready();
+  reg.addEventListener('updatefound',()=>{const n=reg.installing;if(n)n.addEventListener('statechange',()=>{if(n.state==='installed')ready()})});
+  /* look for a new version whenever the app comes back to the front, and hourly while it stays open */
+  const look=()=>reg.update().catch(()=>{});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')look()});
+  setInterval(look,36e5);
+}
+async function updCheck(){
+  if(!swReg){toast('Updates work in the installed app, over https');return}
+  toast('Checking for updates…');
+  try{await swReg.update()}catch(e){toast('Could not check. Are you online?');return}
+  const w=swReg.installing||swReg.waiting;
+  if(w&&w.state!=='installed')await new Promise(r=>w.addEventListener('statechange',()=>{if(w.state==='installed'||w.state==='redundant')r()}));
+  if(swReg.waiting){closeSheet();updBanner()}else toast('You have the latest version · '+String(CFG.build).slice(0,6));
+}
+/* drops the cached copy of the app and loads it fresh. Everything you kept (IndexedDB) stays. */
+async function hardRefresh(){
+  toast('Refreshing…');
+  try{const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()));const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}
+  location.reload();
+}
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!CFG.demo){
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(updGo){updGo=false;location.reload()}});
+  navigator.serviceWorker.register('sw.js').then(swWatch).catch(()=>{});
+}
 /* ---------- onboarding: bring in a month of photos from the phone's library ---------- */
 /* A web app cannot read the photo library on its own, so the person picks photos in the phone's own picker.
    Each photo is filed on the day it was taken (EXIF date, else the file's date) and keeps its location when the photo has one. */
