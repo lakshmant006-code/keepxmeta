@@ -106,6 +106,12 @@ Name a face once and Keep finds that person in your other photos.
 
 **How accurate.** It compares faces as distances (same person usually under 0.25, different people usually over 0.5 in testing). Keep tags automatically only under 0.45 (and only when clearly closer to one person than another), shows 0.45 to 0.5 as "Maybe", and ignores the rest. It works best on clear, front-facing faces; sunglasses, profiles, tiny faces in a crowd and children whose looks change are harder. Always check the review screen. On a phone with working graphics acceleration a photo takes about a second; without it Keep falls back to the processor and a big scan can take minutes (there is a Stop button).
 
+## Friends
+
+Tap the people icon in the header (or Profile → Friends) for a page of the people you know. Add a friend with a name, an optional photo and an Instagram username or profile link (tap the Instagram button on a row to open their profile). Tap a row to edit or delete (two taps). Friends are stored in this browser, included in Back up and Restore, and their names show up as suggestions when you tag a photo.
+
+**Instagram.** Instagram closed its friends and followers access for apps like this one (the Basic Display API ended on December 4, 2024, and the replacement is for business accounts only), so Keep cannot sync with your account. Instead, **From Instagram** imports Instagram's own export: in Instagram go to Settings → Accounts Center → Your information and permissions → Download your information, choose Followers and following in JSON, then pick `followers_1.json` and `following.json` (the HTML files work too). Keep reads them on the phone, lists the accounts (mutuals first, with search), and adds the ones you tick. The export only has usernames, so rename people afterwards.
+
 ## Deleting
 
 Press and hold a memory to delete it: a photo in the viewer (swipe to it, then hold), a single photo or a note in a day. A small menu offers a red **Delete** button and a cancel icon. There is no list of delete buttons in the day sheet any more.
