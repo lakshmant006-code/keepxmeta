@@ -292,6 +292,7 @@ function arCard(p){
     let body='';
     if(m.type==='quote')body=`<div class="jb q">“${esc(m.text)}”${m.who?' · '+esc(m.who):''}</div>`;
     else if(m.type==='voice')body=`<div class="jm"><span class="pl2">${ic.play}</span><span style="font-size:12px;opacity:.85">${esc(m.dur||'')}</span></div><div class="jb">${esc(m.text||'')}</div>`;
+    else if(m.type==='video'&&m.vid)body=`<video class="mv" src="${vidURL(m)}" poster="${src(m)}" controls playsinline preload="metadata" style="max-height:220px"></video><div class="jb">${esc(m.text||'')}</div>`;
     else if(m.type==='photo'||m.type==='video')body=`<div class="jm">${src(m)?`<img src="${src(m)}" alt="">`:''}<div class="jb" style="margin:0">${esc(m.text||'')}</div></div>`;
     else if(m.type==='person')body=`<div class="jb"><b>${esc(m.name)}.</b> ${esc(m.text||'')}</div>`;
     else if(m.type==='file')body=`<div class="jb"><b>${esc(m.name)}</b> ${esc(m.text||'')}</div>`;
