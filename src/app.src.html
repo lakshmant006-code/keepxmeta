@@ -322,7 +322,10 @@ svg{display:block}
 .lbplay{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:32px;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center;pointer-events:none;transition:opacity .2s;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .lbplay svg{width:28px;height:28px}
 .lbvw.playing .lbplay{opacity:0}
-.mv{display:block;width:100%;max-height:62vh;border-radius:20px;background:#000;object-fit:contain}
+.mvw{display:flex;justify-content:center;max-height:none;margin:4px auto 2px;cursor:pointer}
+.mv{display:block;width:auto;height:auto;max-width:100%;max-height:60vh;pointer-events:none;-webkit-mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);mask-composite:intersect}
+.mvw .lbmute{right:14%;bottom:12%}
+.arcard .mv{max-height:220px}
 .toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translate(-50%,-12px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;font-weight:500;z-index:70;opacity:0;pointer-events:none;transition:.3s;white-space:nowrap}.toast.on{opacity:1;transform:translate(-50%,0)}
 /* simulated iPhone keyboard (only on desktop; phones use the real one) */
 .kbd{position:absolute;left:0;right:0;bottom:0;height:300px;background:var(--kbbg);z-index:60;display:none;flex-direction:column;padding:8px 3px 6px;gap:11px;user-select:none}
@@ -594,7 +597,16 @@ let lbList=[],lbI=0,lbDrag=null;
 const vidURLs=new Map();
 const vidURL=m=>{let u=vidURLs.get(m.id);if(!u){u=URL.createObjectURL(m.vid);vidURLs.set(m.id,u)}return u};
 /* a video you kept plays right where it is shown: tap play. One at a time. */
-const vidHTML=m=>`<video class="mv" src="${vidURL(m)}" poster="${src(m)}" controls playsinline preload="metadata"></video>`;
+const SPK='<svg class="on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7"/></svg><svg class="off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+/* a kept video shown in a memory looks like a kept photo: soft faded edges, no player chrome. Tap to play or pause; the speaker turns sound off or on. */
+const vidHTML=m=>`<div class="lbvw mvw"><video class="mv" src="${vidURL(m)}" poster="${src(m)}" playsinline loop preload="metadata"></video><span class="lbplay">${ic.play}</span><button class="lbmute" aria-label="Sound">${SPK}</button></div>`;
+document.addEventListener('click',e=>{
+  const w=e.target.closest('.mvw');if(!w)return;
+  const v=w.querySelector('video');
+  if(e.target.closest('.lbmute')){v.muted=!v.muted;w.classList.toggle('muted',v.muted);return}
+  if(v.paused)v.play().catch(()=>{});else v.pause();
+});
+['play','pause','ended'].forEach(k=>document.addEventListener(k,e=>{const w=e.target.closest&&e.target.closest('.mvw');if(w)w.classList.toggle('playing',k==='play')},true));
 document.addEventListener('play',e=>{document.querySelectorAll('video').forEach(v=>{if(v!==e.target)v.pause()})},true);
 /* a video starts as you arrive on it. If the phone will not play it with sound yet, it plays muted and the speaker button turns sound on. */
 function lbArrive(){
