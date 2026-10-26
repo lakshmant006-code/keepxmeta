@@ -87,7 +87,11 @@ Drag up or down on the viewfinder or on the red button to zoom (up zooms in), or
 
 ## Photo viewer
 
-Swipe left and right to move between a day's photos. Swipe down to close: the photo follows your finger, shrinks a little, and the page behind fades in; let go past a short distance (or flick) and it closes, otherwise it springs back. There is no close button. A single photo also closes with a tap, and Escape works on desktop.
+Swipe left and right to move between a day's photos. Swipe down to close: the photo follows your finger, shrinks a little, and the page behind fades in; let go past a short distance (or flick) and it closes, otherwise it springs back. There is no close button. Escape works on desktop.
+
+## Tagging who is in a photo
+
+Tap a photo in the viewer to say who is in it: type a name (or tap one you have used before), pick the pose they were in, and Save. The photo then shows up in Re-live, where their avatar can stand in the same place, and its date line reads "with <name>". Tap again to change the name or Remove the tag. Videos and the demo sample memories cannot be tagged. A tap on empty space around a lone photo still closes the viewer.
 
 ## Deleting
 

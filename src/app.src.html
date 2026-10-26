@@ -325,6 +325,17 @@ svg{display:block}
 .lbvw.playing .lbplay{opacity:0}
 .mvw{--mh:58vh;margin:6px auto 4px;cursor:pointer}
 .arcard .mvw{--mh:220px}
+.tagp{position:absolute;inset:0;z-index:90;background:rgba(0,0,0,.28);display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 56px) 14px 0;animation:lpfade .2s}
+.tagc{width:100%;max-width:400px;border-radius:26px;padding:14px 16px 16px;background:var(--card);border:1px solid var(--bd);box-shadow:var(--shadow);animation:lppop .3s cubic-bezier(.34,1.56,.64,1)}
+@supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){.tagc{background:color-mix(in srgb,var(--card) 82%,transparent);-webkit-backdrop-filter:blur(28px) saturate(1.7);backdrop-filter:blur(28px) saturate(1.7)}}
+.tagh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.tagh b{font-size:19px;font-weight:700}
+.tagth{display:block;width:100%;height:120px;object-fit:cover;border-radius:16px;margin-bottom:12px}
+#tagIn{width:100%;height:46px;border-radius:14px;background:var(--fill);border:1px solid var(--bd);padding:0 14px;font-size:17px;color:var(--ink);outline:0}
+#tagIn:focus{border-color:var(--blue)}
+.tagr{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.tagch{height:34px;padding:0 14px;border-radius:17px;background:var(--fill);font-size:14px;font-weight:500}.tagch.on{background:var(--blue);color:#fff}
+.taglb{margin:14px 2px 0;font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--faint)}
+.tagn{margin-top:12px;font-size:12.5px;line-height:1.4;color:var(--mute)}
 .toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translate(-50%,-12px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;font-weight:500;z-index:70;opacity:0;pointer-events:none;transition:.3s;white-space:nowrap}.toast.on{opacity:1;transform:translate(-50%,0)}
 /* simulated iPhone keyboard (only on desktop; phones use the real one) */
 .kbd{position:absolute;left:0;right:0;bottom:0;height:300px;background:var(--kbbg);z-index:60;display:none;flex-direction:column;padding:8px 3px 6px;gap:11px;user-select:none}
@@ -628,7 +639,7 @@ function openLb(ids){lbList=ids.map(i=>lbReg[i]).filter(Boolean);lbI=0;if(!lbLis
 /* every photo of the day sits in one strip; drag it sideways and it settles on the next or previous photo */
 function drawLb(){
   const n=lbList.length;
-  $('#lb').innerHTML=`<div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs" data-mid="${m.id}">${m.type==='video'&&m.vid?`<div class="lbvw"><video src="${vidURL(m)}" poster="${src(m)}" playsinline loop preload="auto"></video><span class="lbplay">${ic.play}</span><button class="lbmute" aria-label="Sound"><svg class="on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7"/></svg><svg class="off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button></div>`:`<img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false">`}<div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}`;
+  $('#lb').innerHTML=`<div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs" data-mid="${m.id}">${m.type==='video'&&m.vid?`<div class="lbvw"><video src="${vidURL(m)}" poster="${src(m)}" playsinline loop preload="auto"></video><span class="lbplay">${ic.play}</span><button class="lbmute" aria-label="Sound"><svg class="on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7"/></svg><svg class="off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button></div>`:`<img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false">`}<div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}${m.who?' · with '+esc(m.who):(m.type==='photo'&&user.includes(m)?' · tap the photo to tag who is in it':'')}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}`;
   const tr=$('#lbtr');lbPos(tr,0,false);
   tr.querySelectorAll('.lbmute').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const v=b.closest('.lbvw').querySelector('video');v.muted=!v.muted;b.closest('.lbvw').classList.toggle('muted',v.muted)});
   tr.onpointerdown=e=>{if(e.button>0||e.target.closest('.lbmute'))return;lbDrag={x:e.clientX,y:e.clientY,t:performance.now(),dx:0,dy:0,on:false,axis:null,id:e.pointerId}};
@@ -650,7 +661,14 @@ function drawLb(){
   const up=e=>{
     const d=lbDrag;if(!d||d.id!==e.pointerId)return;lbDrag=null;
     const dt=Math.max(1,performance.now()-d.t);
-    if(!d.on){if($('#lpm'))return;if(lbToggleVideo())return;if(n<2&&Math.abs(e.clientX-d.x)<6)closeLb();return}
+    if(!d.on){
+      if($('#lpm')||$('#tagp'))return;
+      if(lbToggleVideo())return;
+      const sl=document.querySelectorAll('.lbs')[lbI],im=sl&&sl.querySelector('img'),r=im&&im.getBoundingClientRect();
+      if(r&&e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){openTag(lbList[lbI]);return}
+      if(n<2)closeLb();
+      return;
+    }
     if(d.axis==='y'){
       /* speed over the last ~100 ms of the drag, so a quick flick counts however slowly it started */
       const now=performance.now(),h=d.h||[];let ref=h[0]||[d.t,0];for(const q of h){if(now-q[0]<=100){ref=q;break}}
@@ -685,7 +703,41 @@ function lbStep(k){
   lbI=j;lbPos(tr,0,true);lbArrive();document.querySelectorAll('.lbdots i').forEach((x,i)=>x.classList.toggle('on',i===lbI));
 }
 document.addEventListener('ended',e=>{const w=e.target.closest&&e.target.closest('.lbvw');if(w)w.classList.remove('playing')},true);
-function closeLb(){lbPause();$('#lb').classList.remove('on')}
+/* Tap a photo: say who is in it (and how they stood). That puts the photo in Re-live, where their avatar can stand in the same place. */
+function openTag(m){
+  if(!m||m.type!=='photo')return;
+  if(!user.includes(m)){toast('Sample memories cannot be edited');return}
+  if($('#tagp'))return;
+  const names=[...new Set([...user.filter(x=>x.who).map(x=>x.who),...all().filter(x=>x.type==='person').map(x=>x.name)])].filter(Boolean).slice(0,8);
+  let pose=m.pose||'stand';
+  const p=document.createElement('div');p.className='tagp';p.id='tagp';
+  p.innerHTML=`<div class="tagc"><div class="tagh"><b>Who's in it?</b><button class="ib" id="tagX" aria-label="Close" style="width:34px;height:34px">${ic.x}</button></div>
+   <img class="tagth" src="${src(m)}" alt="">
+   <input id="tagIn" placeholder="Name" autocomplete="off" autocapitalize="words" maxlength="40" value="${esc(m.who||'')}">
+   ${names.length?`<div class="tagr" id="tagNames">${names.map(n=>`<button class="tagch" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div>`:''}
+   <div class="taglb">Pose</div><div class="tagr" id="tagPoses">${POSES.map(x=>`<button class="tagch ${x[0]===pose?'on':''}" data-p="${x[0]}">${x[1]}</button>`).join('')}</div>
+   <div class="tagr" style="margin-top:14px"><button class="pill d" id="tagSave" style="flex:1;justify-content:center">Save</button>${m.who?'<button class="pill g" id="tagRm">Remove</button>':''}</div>
+   <p class="tagn">Tagged photos show up in Re-live, where their avatar can stand in the same place.</p></div>`;
+  /* the tap that opened this card is still finishing: the phone sends its follow-up click to whatever is now under the finger (Save, for a tagged photo). Ignore touches for a moment. */
+  p.style.pointerEvents='none';setTimeout(()=>{p.style.pointerEvents=''},400);
+  $('#app').appendChild(p);
+  const close=()=>{const e=$('#tagp');if(e)e.remove()},inp=$('#tagIn');
+  const put=()=>{idb.put(m).catch(()=>toast('Could not save that. Storage may be full.'))};
+  p.addEventListener('click',e=>{if(e.target===p)close()});
+  $('#tagX').onclick=close;
+  $('#tagNames')&&($('#tagNames').onclick=e=>{const b=e.target.closest('[data-n]');if(b){inp.value=b.dataset.n;inp.focus()}});
+  $('#tagPoses').onclick=e=>{const b=e.target.closest('[data-p]');if(!b)return;pose=b.dataset.p;$('#tagPoses').querySelectorAll('.tagch').forEach(x=>x.classList.toggle('on',x===b))};
+  const save=()=>{
+    const v=inp.value.trim().slice(0,40);
+    if(!v){inp.focus();toast('Type a name first');return}
+    m.who=v;m.pose=pose;if(!m.at)m.at=[.5,.74];
+    put();close();refresh();drawLb();lbArrive();toast('Tagged '+v+'. Find it in Re-live.');
+  };
+  $('#tagSave').onclick=save;
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}});
+  $('#tagRm')&&($('#tagRm').onclick=()=>{delete m.who;delete m.pose;delete m.at;put();close();refresh();drawLb();lbArrive();toast('Tag removed')});
+}
+function closeLb(){const t=$('#tagp');if(t)t.remove();lbPause();$('#lb').classList.remove('on')}
 
 const wave=(n,seed)=>'<div class="wv">'+Array.from({length:n},(_,i)=>`<i style="height:${6+Math.abs(Math.sin(i*1.7+seed))*16}px"></i>`).join('')+'</div>';
 function item(m,withTime){
@@ -1159,7 +1211,7 @@ $('#sendB').onclick=()=>{const v=$('#q2').value;$('#q2').value='';ask(v)};
 $('#chatX').onclick=closeChat;
 $('#cb').addEventListener('click',e=>{const s=e.target.closest('[data-s]');if(s){ask(s.dataset.s);return}const d=e.target.closest('[data-d]');if(d){blurAll();openDay(d.dataset.d)}});
 document.addEventListener('click',e=>{const t=e.target.closest('[data-lb]');if(t){e.stopPropagation();openLb(t.dataset.lb.split(','))}});
-document.addEventListener('keydown',e=>{if($('#lb').classList.contains('on')){if(e.key==='ArrowRight')lbStep(1);if(e.key==='ArrowLeft')lbStep(-1)}if(e.key==='Escape'){if($('#lb').classList.contains('on'))closeLb();else if($('#ov').classList.contains('on'))closeAdd();else if($('#sh').classList.contains('on'))closeSheet();else closeChat()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#tagp')){$('#tagp').remove();return}if($('#lb').classList.contains('on')){if(e.key==='ArrowRight')lbStep(1);if(e.key==='ArrowLeft')lbStep(-1)}if(e.key==='Escape'){if($('#lb').classList.contains('on'))closeLb();else if($('#ov').classList.contains('on'))closeAdd();else if($('#sh').classList.contains('on'))closeSheet();else closeChat()}});
 refresh();setYear(false);loadUser().then(()=>onbMaybe());
 /* a new day while the app sat open */
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!CFG.demo){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate());if(+t!==+TODAY){TODAY=t;refresh()}}});
