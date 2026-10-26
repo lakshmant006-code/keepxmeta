@@ -17,6 +17,10 @@ A single static web app, installable on a phone (PWA). Everything you keep is st
 
 The first time Keep opens with nothing in it, it asks you to bring in a month of memories: **Choose photos** opens the phone's own photo picker (a web app cannot read the library silently). Each photo is filed on the day it was taken (EXIF date, falling back to the file's date) and keeps its location if the photo carries one, so it shows up on the map. Up to 300 photos per go; photos already kept are skipped. Profile → Import photos runs the same flow again. On iPhone, location is only included if you allow it in the picker's Options.
 
+## Status bar
+
+On iPhone the installed app asks for a transparent status bar (`black-translucent`), so the gradient runs all the way to the top of the screen, behind the clock and battery. iOS draws those in white there, so a soft dark fade (`.topshade`) sits behind them to keep them readable. If the old gray bar is still there after updating, iOS kept the old setting from when the app was added: Back up first (Profile → Back up), then remove the app and add it to the Home Screen again (deleting it erases what is kept on that phone).
+
 ## Updates
 
 Every deploy changes the app's version. An installed Keep checks for a new one when you open it, when it comes back to the front, and hourly while open. When one is ready it shows **Update available**; tap **Update** and the app swaps to the new version and reloads. **Pull to refresh:** drag down from the top of the calendar (or from the header) and let go; the page follows with rubber-band resistance, a ring fills and spins, and Keep looks for a new version. A new one is applied right away, otherwise the calendar just refreshes. Profile → Updates → **Check** looks on demand, and **Hard refresh** clears the cached copy and loads the app fresh. Your memories are never touched by either. Updates arrive as an in-app banner; real push notifications while the app is closed would need a push server, which Keep does not have.
