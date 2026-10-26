@@ -23,7 +23,9 @@ r=lambda f:open(f).read()
 imgs=r('src/sample-images.json').strip() if demo else '{}'
 body=(r('src/app.src.html').replace('__IMGS__',imgs).replace('__AR_CSS__',r('src/ar.css')).replace('__AR_JS__',r('src/ar.js'))
   .replace('__MAPS_CSS__',r('src/maps.css')).replace('__MAPS_JS__',r('src/maps.js')).replace('__THREE__',r('src/vendor/three.min.js')).replace('__GLTF__',r('src/vendor/gltf.min.js'))
-  .replace('__AV_CSS__',r('src/avatars.css')).replace('__AV_JS__',r('src/avatars.js')))
+  .replace('__AV_CSS__',r('src/avatars.css')).replace('__AV_JS__',r('src/avatars.js'))
+  .replace('__FACE_CSS__',r('src/faces.css')).replace('__FACE_JS__',r('src/faces.js'))
+  .replace('__FR_CSS__',r('src/friends.css')).replace('__FR_JS__',r('src/friends.js')))
 ver=hashlib.sha1(body.encode()).hexdigest()[:10]
 def jget(k):
     v=get(k)

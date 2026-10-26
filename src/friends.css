@@ -1,0 +1,15 @@
+/* Friends page */
+.frbody{flex:1;min-height:0;overflow-y:auto;padding:4px 16px 24px;scrollbar-width:none}.frbody::-webkit-scrollbar{display:none}
+.fract{display:flex;gap:10px;margin:6px 0 14px}
+.frl{display:flex;flex-direction:column}
+.frr{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}.frr:last-child{border-bottom:0}.frr:active{opacity:.7}
+.fav{width:46px;height:46px;border-radius:23px;flex:none;background-size:cover;background-position:center;background-color:var(--fill2);overflow:hidden;display:block}.fav svg{width:100%;height:100%}
+.frt{flex:1;min-width:0}.frt b{display:block;font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.frt small{font-size:12.5px;color:var(--mute)}
+.frig{width:38px;height:38px;border-radius:19px;display:grid;place-items:center;background:var(--fill);color:var(--ink);flex:none}
+.frin{width:100%;height:46px;border-radius:14px;background:var(--fill);border:1px solid var(--bd);padding:0 14px;font-size:16px;color:var(--ink);outline:0}.frin:focus{border-color:var(--blue)}
+.frsteps{margin:4px 0 14px;padding-left:20px;font-size:14px;line-height:1.45;display:flex;flex-direction:column;gap:8px}
+.frpick{max-height:300px;overflow-y:auto;border-radius:14px;background:var(--fill);padding:4px 10px;scrollbar-width:none}.frpick::-webkit-scrollbar{display:none}
+.frpi{display:flex;align-items:center;gap:10px;width:100%;padding:10px 0;border-bottom:1px solid var(--line);text-align:left;font-size:15px}.frpi:last-child{border-bottom:0}
+.frpi .ck{width:22px;height:22px;border-radius:11px;border:2px solid var(--ring);flex:none;display:grid;place-items:center;color:transparent;font-size:12px}.frpi.on .ck{background:var(--blue);border-color:var(--blue);color:#fff}
+.frpi b{font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}.frpi em{font-style:normal;font-size:11px;font-weight:600;padding:2px 8px;border-radius:9px;background:var(--fill2);color:var(--mute)}
+#frp button:disabled{opacity:.5}
