@@ -315,7 +315,10 @@ svg{display:block}
 .zpill{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);height:28px;padding:0 12px;border-radius:14px;background:rgba(0,0,0,.5);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;opacity:0;pointer-events:none;transition:opacity .2s;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .zpill.on{opacity:1}
 .lbvw{position:relative;display:flex;max-width:100%;max-height:66%}
-.lb video{width:auto;height:auto;max-width:100%;max-height:100%;border-radius:20px;background:#000;pointer-events:none}
+.lb video{width:auto;height:auto;max-width:100%;max-height:100%;pointer-events:none;-webkit-mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);mask-composite:intersect}
+.lbmute{position:absolute;right:16%;bottom:14%;width:36px;height:36px;border-radius:18px;background:rgba(0,0,0,.5);color:#fff;display:none;place-items:center;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.lbvw.playing .lbmute,.lbvw.muted .lbmute{display:grid}
+.lbmute .off{display:none}.lbvw.muted .lbmute .on{display:none}.lbvw.muted .lbmute .off{display:block}
 .lbplay{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:32px;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center;pointer-events:none;transition:opacity .2s;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .lbplay svg{width:28px;height:28px}
 .lbvw.playing .lbplay{opacity:0}
@@ -593,6 +596,14 @@ const vidURL=m=>{let u=vidURLs.get(m.id);if(!u){u=URL.createObjectURL(m.vid);vid
 /* a video you kept plays right where it is shown: tap play. One at a time. */
 const vidHTML=m=>`<video class="mv" src="${vidURL(m)}" poster="${src(m)}" controls playsinline preload="metadata"></video>`;
 document.addEventListener('play',e=>{document.querySelectorAll('video').forEach(v=>{if(v!==e.target)v.pause()})},true);
+/* a video starts as you arrive on it. If the phone will not play it with sound yet, it plays muted and the speaker button turns sound on. */
+function lbArrive(){
+  lbPause();
+  const sl=document.querySelectorAll('.lbs')[lbI],v=sl&&sl.querySelector('video');if(!v)return;
+  const w=v.closest('.lbvw'),on=()=>w.classList.add('playing');
+  v.muted=false;w.classList.remove('muted');
+  v.play().then(on).catch(()=>{v.muted=true;w.classList.add('muted');v.play().then(on).catch(()=>{})});
+}
 const lbPause=()=>document.querySelectorAll('.lb video').forEach(v=>{v.pause();v.closest('.lbvw')&&v.closest('.lbvw').classList.remove('playing')});
 /* a tap on a video slide plays or pauses it; returns true if it handled the tap */
 function lbToggleVideo(){
@@ -601,13 +612,14 @@ function lbToggleVideo(){
   if(v.paused){v.play().catch(()=>{});w.classList.add('playing')}else{v.pause();w.classList.remove('playing')}
   return true;
 }
-function openLb(ids){lbList=ids.map(i=>lbReg[i]).filter(Boolean);lbI=0;if(!lbList.length)return;const lb=$('#lb');lb.style.removeProperty('--lbo');lb.style.transition='';drawLb();lb.classList.add('on')}
+function openLb(ids){lbList=ids.map(i=>lbReg[i]).filter(Boolean);lbI=0;if(!lbList.length)return;const lb=$('#lb');lb.style.removeProperty('--lbo');lb.style.transition='';drawLb();lb.classList.add('on');setTimeout(lbArrive,320)}
 /* every photo of the day sits in one strip; drag it sideways and it settles on the next or previous photo */
 function drawLb(){
   const n=lbList.length;
-  $('#lb').innerHTML=`<div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs" data-mid="${m.id}">${m.type==='video'&&m.vid?`<div class="lbvw"><video src="${vidURL(m)}" poster="${src(m)}" playsinline preload="metadata"></video><span class="lbplay">${ic.play}</span></div>`:`<img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false">`}<div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}`;
+  $('#lb').innerHTML=`<div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs" data-mid="${m.id}">${m.type==='video'&&m.vid?`<div class="lbvw"><video src="${vidURL(m)}" poster="${src(m)}" playsinline loop preload="auto"></video><span class="lbplay">${ic.play}</span><button class="lbmute" aria-label="Sound"><svg class="on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7"/></svg><svg class="off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button></div>`:`<img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false">`}<div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}`;
   const tr=$('#lbtr');lbPos(tr,0,false);
-  tr.onpointerdown=e=>{if(e.button>0)return;lbDrag={x:e.clientX,y:e.clientY,t:performance.now(),dx:0,dy:0,on:false,axis:null,id:e.pointerId}};
+  tr.querySelectorAll('.lbmute').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const v=b.closest('.lbvw').querySelector('video');v.muted=!v.muted;b.closest('.lbvw').classList.toggle('muted',v.muted)});
+  tr.onpointerdown=e=>{if(e.button>0||e.target.closest('.lbmute'))return;lbDrag={x:e.clientX,y:e.clientY,t:performance.now(),dx:0,dy:0,on:false,axis:null,id:e.pointerId}};
   tr.onpointermove=e=>{
     const d=lbDrag;if(!d||d.id!==e.pointerId)return;
     const dx=e.clientX-d.x,dy=e.clientY-d.y;
@@ -638,7 +650,7 @@ function drawLb(){
     }
     const w=tr.clientWidth,v=d.dx/dt;
     if((d.dx<-w*.2||v<-.5)&&lbI<n-1)lbI++;else if((d.dx>w*.2||v>.5)&&lbI>0)lbI--;
-    lbPos(tr,0,true);lbPause();
+    lbPos(tr,0,true);lbArrive();
     document.querySelectorAll('.lbdots i').forEach((x,i)=>x.classList.toggle('on',i===lbI));
   };
   tr.onpointerup=up;tr.onpointercancel=up;
@@ -658,7 +670,7 @@ function lbPos(tr,dx,anim){
 }
 function lbStep(k){
   const tr=$('#lbtr');if(!tr)return;const j=lbI+k;if(j<0||j>=lbList.length)return;
-  lbI=j;lbPos(tr,0,true);lbPause();document.querySelectorAll('.lbdots i').forEach((x,i)=>x.classList.toggle('on',i===lbI));
+  lbI=j;lbPos(tr,0,true);lbArrive();document.querySelectorAll('.lbdots i').forEach((x,i)=>x.classList.toggle('on',i===lbI));
 }
 document.addEventListener('ended',e=>{const w=e.target.closest&&e.target.closest('.lbvw');if(w)w.classList.remove('playing')},true);
 function closeLb(){lbPause();$('#lb').classList.remove('on')}
@@ -687,9 +699,8 @@ let curDay='';
 function openDay(k){
   curDay=k;
   const [y,m,d]=k.split('-').map(Number),dt=new Date(y,m-1,d),L=byDay[k]||[];
-  const ph=L.filter(x=>x.type==='photo'||x.type==='video'),st=ph.filter(x=>!(x.type==='video'&&x.vid));let done=false,h='';
+  const ph=L.filter(x=>x.type==='photo'||x.type==='video'),st=ph;let done=false,h='';
   L.forEach(x=>{
-    if(x.type==='video'&&x.vid){h+=`<div class="ev"${user.includes(x)?` data-mid="${x.id}"`:''}>${item(x)}</div>`;return}
     if(x.type==='photo'||x.type==='video'){
       if(done)return;done=true;const caps=st.map(p=>p.text).filter(Boolean),np=st.filter(p=>p.type==='photo').length,nv=st.filter(p=>p.type==='video').length;
       h+=`<div class="ev"${st.length===1&&user.includes(st[0])?` data-mid="${st[0].id}"`:''}>${stackHTML(st)}<div class="tm">${tstr(st[0].ts)}${st.length>1?' to '+tstr(st[st.length-1].ts):''} <em>· ${[np&&np+' photo'+(np>1?'s':''),nv&&nv+' video'+(nv>1?'s':'')].filter(Boolean).join(' · ')}</em></div>${caps[0]?`<div class="tx">${esc(caps[0])}</div>`:''}</div>`;
@@ -1285,7 +1296,7 @@ async function onbRun(files){
     user=user.filter(x=>x.id!==id);saved.delete(id);idb.del(id).catch(()=>{});delete lbReg[id];if(vidURLs.has(id)){URL.revokeObjectURL(vidURLs.get(id));vidURLs.delete(id)}
     if($('#lb').classList.contains('on')){
       lbList=lbList.filter(x=>x.id!==id);
-      if(!lbList.length)closeLb();else{lbI=Math.min(lbI,lbList.length-1);drawLb()}
+      if(!lbList.length)closeLb();else{lbI=Math.min(lbI,lbList.length-1);drawLb();lbArrive()}
     }
     refresh();if($('#sh').classList.contains('on')&&curDay)openDay(curDay);
     toast('Deleted');
