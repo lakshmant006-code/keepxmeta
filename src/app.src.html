@@ -319,6 +319,7 @@ svg{display:block}
 .lbplay{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:32px;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center;pointer-events:none;transition:opacity .2s;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .lbplay svg{width:28px;height:28px}
 .lbvw.playing .lbplay{opacity:0}
+.mv{display:block;width:100%;max-height:62vh;border-radius:20px;background:#000;object-fit:contain}
 .toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translate(-50%,-12px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;font-weight:500;z-index:70;opacity:0;pointer-events:none;transition:.3s;white-space:nowrap}.toast.on{opacity:1;transform:translate(-50%,0)}
 /* simulated iPhone keyboard (only on desktop; phones use the real one) */
 .kbd{position:absolute;left:0;right:0;bottom:0;height:300px;background:var(--kbbg);z-index:60;display:none;flex-direction:column;padding:8px 3px 6px;gap:11px;user-select:none}
@@ -589,6 +590,9 @@ function stackHTML(ms){
 let lbList=[],lbI=0,lbDrag=null;
 const vidURLs=new Map();
 const vidURL=m=>{let u=vidURLs.get(m.id);if(!u){u=URL.createObjectURL(m.vid);vidURLs.set(m.id,u)}return u};
+/* a video you kept plays right where it is shown: tap play. One at a time. */
+const vidHTML=m=>`<video class="mv" src="${vidURL(m)}" poster="${src(m)}" controls playsinline preload="metadata"></video>`;
+document.addEventListener('play',e=>{document.querySelectorAll('video').forEach(v=>{if(v!==e.target)v.pause()})},true);
 const lbPause=()=>document.querySelectorAll('.lb video').forEach(v=>{v.pause();v.closest('.lbvw')&&v.closest('.lbvw').classList.remove('playing')});
 /* a tap on a video slide plays or pauses it; returns true if it handled the tap */
 function lbToggleVideo(){
@@ -662,7 +666,8 @@ function closeLb(){lbPause();$('#lb').classList.remove('on')}
 const wave=(n,seed)=>'<div class="wv">'+Array.from({length:n},(_,i)=>`<i style="height:${6+Math.abs(Math.sin(i*1.7+seed))*16}px"></i>`).join('')+'</div>';
 function item(m,withTime){
   const t=`<div class="tm">${tstr(m.ts)} <em>· ${TL[m.type]}</em></div>`;let b='';
-  if(m.type==='photo'||m.type==='video')b=stackHTML([m])+(m.text?`<div class="tx">${esc(m.text)}</div>`:'');
+  if(m.type==='video'&&m.vid)b=vidHTML(m)+(m.text?`<div class="tx">${esc(m.text)}</div>`:'');
+  else if(m.type==='photo'||m.type==='video')b=stackHTML([m])+(m.text?`<div class="tx">${esc(m.text)}</div>`:'');
   else if(m.type==='text')b=`<div class="tx">${esc(m.text)}</div>`;
   else if(m.type==='quote')b=`<div class="qcard fb"><q>${esc(m.text)}</q>${m.who?`<small>${esc(m.who)}</small>`:''}</div>`;
   else if(m.type==='voice')b=`<div class="vp fb"><span class="pl">${ic.play}</span>${wave(18,m.id)}<small>${esc(m.dur||'0:10')}</small></div>${m.text?`<div class="tr">${esc(m.text)}</div>`:''}`;
@@ -675,18 +680,19 @@ function item(m,withTime){
 function openSheet(html,opts){
   opts=opts||{};$('#pc').innerHTML=html;$('#sh').classList.toggle('full',!!opts.full);$('#sh').classList.add('on');
 }
-function closeSheet(){$('#sh').classList.remove('on')}
+function closeSheet(){document.querySelectorAll('#pc video').forEach(v=>v.pause());$('#sh').classList.remove('on')}
 $('#scrim').onclick=closeSheet;$('#px').onclick=closeSheet;
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),1700)}
 let curDay='';
 function openDay(k){
   curDay=k;
   const [y,m,d]=k.split('-').map(Number),dt=new Date(y,m-1,d),L=byDay[k]||[];
-  const ph=L.filter(x=>x.type==='photo'||x.type==='video');let done=false,h='';
+  const ph=L.filter(x=>x.type==='photo'||x.type==='video'),st=ph.filter(x=>!(x.type==='video'&&x.vid));let done=false,h='';
   L.forEach(x=>{
+    if(x.type==='video'&&x.vid){h+=`<div class="ev"${user.includes(x)?` data-mid="${x.id}"`:''}>${item(x)}</div>`;return}
     if(x.type==='photo'||x.type==='video'){
-      if(done)return;done=true;const caps=ph.map(p=>p.text).filter(Boolean);
-      h+=`<div class="ev"${ph.length===1&&user.includes(ph[0])?` data-mid="${ph[0].id}"`:''}>${stackHTML(ph)}<div class="tm">${tstr(ph[0].ts)}${ph.length>1?' to '+tstr(ph[ph.length-1].ts):''} <em>· ${[ph.filter(p=>p.type==='photo').length&&ph.filter(p=>p.type==='photo').length+' photo'+(ph.filter(p=>p.type==='photo').length>1?'s':''),ph.filter(p=>p.type==='video').length&&ph.filter(p=>p.type==='video').length+' video'+(ph.filter(p=>p.type==='video').length>1?'s':'')].filter(Boolean).join(' · ')}</em></div>${caps[0]?`<div class="tx">${esc(caps[0])}</div>`:''}</div>`;
+      if(done)return;done=true;const caps=st.map(p=>p.text).filter(Boolean),np=st.filter(p=>p.type==='photo').length,nv=st.filter(p=>p.type==='video').length;
+      h+=`<div class="ev"${st.length===1&&user.includes(st[0])?` data-mid="${st[0].id}"`:''}>${stackHTML(st)}<div class="tm">${tstr(st[0].ts)}${st.length>1?' to '+tstr(st[st.length-1].ts):''} <em>· ${[np&&np+' photo'+(np>1?'s':''),nv&&nv+' video'+(nv>1?'s':'')].filter(Boolean).join(' · ')}</em></div>${caps[0]?`<div class="tx">${esc(caps[0])}</div>`:''}</div>`;
     }else h+=`<div class="ev"${user.includes(x)?` data-mid="${x.id}"`:''}>${item(x)}</div>`;
   });
   ph.filter(p=>p.who&&src(p)).forEach(p=>{h+=`<div class="ev"><button class="pill d arbtn" data-ar="${p.id}">${ic.cube} See ${esc(firstName(p.who))} there</button></div>`});
@@ -703,7 +709,8 @@ function renderRv(){
 }
 function cardHTML(m){
   const lab=`<div class="lab"><span>${TL[m.type]}</span><span>${tstr(m.ts)}</span></div>`;let b='';
-  if(m.type==='photo'||m.type==='video')b=`<div class="photo feather" style="background-image:url(${src(m)})"></div><div class="cap">${esc(m.text||'')}</div>`;
+  if(m.type==='video'&&m.vid)b=vidHTML(m)+`<div class="cap">${esc(m.text||'')}</div>`;
+  else if(m.type==='photo'||m.type==='video')b=`<div class="photo feather" style="background-image:url(${src(m)})"></div><div class="cap">${esc(m.text||'')}</div>`;
   else if(m.type==='quote')b=`<div class="big"><q>${esc(m.text)}</q><div class="tr">${esc(m.who||'')}</div></div>`;
   else if(m.type==='voice')b=`<div class="big">${wave(24,m.id).replace('class="wv"','class="wv" style="height:70px;gap:4px;justify-content:center"').replace(/<i /g,'<i style="width:4px" ').replace(/<i style="width:4px" style="/g,'<i style="width:4px;')}<div class="tr" style="text-align:center;margin-top:14px">${esc(m.dur)}</div><div class="cap" style="margin-top:14px">${esc(m.text||'')}</div></div>`;
   else if(m.type==='person')b=`<div class="big" style="align-items:flex-start;gap:14px"><div class="av" style="width:56px;height:56px;border-radius:28px;font-size:18px">${avatar(m.name)}</div><div style="font-size:22px;font-weight:600">${esc(m.name)}</div><div class="cap" style="color:var(--mute)">${esc(m.text)}</div></div>`;

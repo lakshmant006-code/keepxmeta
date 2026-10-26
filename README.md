@@ -97,5 +97,5 @@ Press and hold a memory to delete it: a photo in the viewer (swipe to it, then h
 
 - Memories are stored per browser/device. Clearing site data deletes them, so back up. The app asks the browser for persistent storage.
 - No sync across devices yet; use Back up and Restore.
-- Videos you record (or pick from your library, up to 300 MB) are kept as real video, with sound, next to a still. Tap one in the photo viewer to play or pause. Back up saves the still and length but not the video file itself, so a restored video shows as a still. Voice notes keep their length but not the audio.
+- Videos you record (or pick from your library, up to 300 MB) are kept as real video, with sound, next to a still. Videos play right where they appear: in a day they sit in time order as players (tap play; fullscreen and scrubbing are in the controls), and the same player shows in search answers, revisits and Re-live journals. One plays at a time and closing a sheet stops it. Older videos that kept only a still stay in the photo stack. Back up saves the still and length but not the video file itself, so a restored video shows as a still. Voice notes keep their length but not the audio.
 - Search is keyword matching.
