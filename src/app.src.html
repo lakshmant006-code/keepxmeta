@@ -305,6 +305,14 @@ svg{display:block}
 .lpc button{height:48px;border-radius:24px;display:flex;align-items:center;gap:8px;padding:0 20px;font-size:16px;font-weight:600;background:var(--fill)}
 .lpc .dl{background:#FF3B30;color:#fff}.lpc .cn{width:48px;padding:0;justify-content:center}
 @keyframes lpfade{from{opacity:0}}@keyframes lppop{from{opacity:0;transform:translateY(12px) scale(.9)}}
+#vf,#shutter{touch-action:none}
+.zpill{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);height:28px;padding:0 12px;border-radius:14px;background:rgba(0,0,0,.5);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;opacity:0;pointer-events:none;transition:opacity .2s;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.zpill.on{opacity:1}
+.lbvw{position:relative;display:flex;max-width:100%;max-height:66%}
+.lb video{width:auto;height:auto;max-width:100%;max-height:100%;border-radius:20px;background:#000;pointer-events:none}
+.lbplay{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:32px;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center;pointer-events:none;transition:opacity .2s;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.lbplay svg{width:28px;height:28px}
+.lbvw.playing .lbplay{opacity:0}
 .toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translate(-50%,-12px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;font-weight:500;z-index:70;opacity:0;pointer-events:none;transition:.3s;white-space:nowrap}.toast.on{opacity:1;transform:translate(-50%,0)}
 /* simulated iPhone keyboard (only on desktop; phones use the real one) */
 .kbd{position:absolute;left:0;right:0;bottom:0;height:300px;background:var(--kbbg);z-index:60;display:none;flex-direction:column;padding:8px 3px 6px;gap:11px;user-select:none}
@@ -573,11 +581,21 @@ function stackHTML(ms){
   return `<button class="stk" data-lb="${ms.map(m=>m.id).join(',')}" aria-label="Open ${ms.length>1?'photos':'photo'}">${ms.slice(0,4).map((m,i)=>`<i class="th ${m.type==='video'?'vd':''}" style="background-image:url(${src(m)});aspect-ratio:${arOf(m)};transform:rotate(${[-3,2,-2,3][i]}deg);z-index:${i+1}"></i>`).join('')}${ms.length>4?`<span class="more">+${ms.length-4}</span>`:''}</button>`;
 }
 let lbList=[],lbI=0,lbDrag=null;
+const vidURLs=new Map();
+const vidURL=m=>{let u=vidURLs.get(m.id);if(!u){u=URL.createObjectURL(m.vid);vidURLs.set(m.id,u)}return u};
+const lbPause=()=>document.querySelectorAll('.lb video').forEach(v=>{v.pause();v.closest('.lbvw')&&v.closest('.lbvw').classList.remove('playing')});
+/* a tap on a video slide plays or pauses it; returns true if it handled the tap */
+function lbToggleVideo(){
+  const sl=document.querySelectorAll('.lbs')[lbI],v=sl&&sl.querySelector('video');if(!v)return false;
+  const w=v.closest('.lbvw');
+  if(v.paused){v.play().catch(()=>{});w.classList.add('playing')}else{v.pause();w.classList.remove('playing')}
+  return true;
+}
 function openLb(ids){lbList=ids.map(i=>lbReg[i]).filter(Boolean);lbI=0;if(!lbList.length)return;const lb=$('#lb');lb.style.removeProperty('--lbo');lb.style.transition='';drawLb();lb.classList.add('on')}
 /* every photo of the day sits in one strip; drag it sideways and it settles on the next or previous photo */
 function drawLb(){
   const n=lbList.length;
-  $('#lb').innerHTML=`<div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs" data-mid="${m.id}"><img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false"><div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}`;
+  $('#lb').innerHTML=`<div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs" data-mid="${m.id}">${m.type==='video'&&m.vid?`<div class="lbvw"><video src="${vidURL(m)}" poster="${src(m)}" playsinline preload="metadata"></video><span class="lbplay">${ic.play}</span></div>`:`<img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false">`}<div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}`;
   const tr=$('#lbtr');lbPos(tr,0,false);
   tr.onpointerdown=e=>{if(e.button>0)return;lbDrag={x:e.clientX,y:e.clientY,t:performance.now(),dx:0,dy:0,on:false,axis:null,id:e.pointerId}};
   tr.onpointermove=e=>{
@@ -598,7 +616,7 @@ function drawLb(){
   const up=e=>{
     const d=lbDrag;if(!d||d.id!==e.pointerId)return;lbDrag=null;
     const dt=Math.max(1,performance.now()-d.t);
-    if(!d.on){if(n<2&&Math.abs(e.clientX-d.x)<6&&!$('#lpm'))closeLb();return}
+    if(!d.on){if($('#lpm'))return;if(lbToggleVideo())return;if(n<2&&Math.abs(e.clientX-d.x)<6)closeLb();return}
     if(d.axis==='y'){
       /* speed over the last ~100 ms of the drag, so a quick flick counts however slowly it started */
       const now=performance.now(),h=d.h||[];let ref=h[0]||[d.t,0];for(const q of h){if(now-q[0]<=100){ref=q;break}}
@@ -610,7 +628,7 @@ function drawLb(){
     }
     const w=tr.clientWidth,v=d.dx/dt;
     if((d.dx<-w*.2||v<-.5)&&lbI<n-1)lbI++;else if((d.dx>w*.2||v>.5)&&lbI>0)lbI--;
-    lbPos(tr,0,true);
+    lbPos(tr,0,true);lbPause();
     document.querySelectorAll('.lbdots i').forEach((x,i)=>x.classList.toggle('on',i===lbI));
   };
   tr.onpointerup=up;tr.onpointercancel=up;
@@ -630,9 +648,10 @@ function lbPos(tr,dx,anim){
 }
 function lbStep(k){
   const tr=$('#lbtr');if(!tr)return;const j=lbI+k;if(j<0||j>=lbList.length)return;
-  lbI=j;lbPos(tr,0,true);document.querySelectorAll('.lbdots i').forEach((x,i)=>x.classList.toggle('on',i===lbI));
+  lbI=j;lbPos(tr,0,true);lbPause();document.querySelectorAll('.lbdots i').forEach((x,i)=>x.classList.toggle('on',i===lbI));
 }
-function closeLb(){$('#lb').classList.remove('on')}
+document.addEventListener('ended',e=>{const w=e.target.closest&&e.target.closest('.lbvw');if(w)w.classList.remove('playing')},true);
+function closeLb(){lbPause();$('#lb').classList.remove('on')}
 
 const wave=(n,seed)=>'<div class="wv">'+Array.from({length:n},(_,i)=>`<i style="height:${6+Math.abs(Math.sin(i*1.7+seed))*16}px"></i>`).join('')+'</div>';
 function item(m,withTime){
@@ -764,27 +783,62 @@ const P1={quote:'Said by',person:'Name',place:'Place name',file:'File name'};
 ic.cam=st('<path d="M4 8.5A2.5 2.5 0 016.5 6h1.2l1.3-2h6l1.3 2h1.2A2.5 2.5 0 0120 8.5v8a2.5 2.5 0 01-2.5 2.5h-11A2.5 2.5 0 014 16.5z"/><circle cx="12" cy="12.5" r="3.4"/>',1.6);
 ic.dots='<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/></svg>';
 let lastAr='4 / 3';let mode='photo',moreT='quote',stream=null,live=false,rec=null,cap={photo:null,video:null,voice:null},newM={};
-function stopCam(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}live=false;const v=$('#cam');if(v){v.srcObject=null;v.style.display='none'}const f=$('#fbk');if(f)f.style.display=''}
+function stopCam(){setZoom(1);if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}live=false;const v=$('#cam');if(v){v.srcObject=null;v.style.display='none'}const f=$('#fbk');if(f)f.style.display=''}
+/* ---- zoom: drag up/down on the viewfinder or the red button, or pinch. Digital, so it reaches photos and recorded video on every phone. ---- */
+let camZoom=1;const ZMAX=5;
+function setZoom(z,show){
+  camZoom=Math.max(1,Math.min(ZMAX,z));
+  const t=camZoom>1?`scale(${camZoom.toFixed(3)})`:'';
+  ['#cam','#fbk'].forEach(q=>{const e=$(q);if(e)e.style.transform=t});
+  const zp=$('#zpill');if(!zp)return;
+  zp.textContent=camZoom.toFixed(1)+'×';
+  zp.classList.toggle('on',camZoom>1.02||!!show);
+  if(show){clearTimeout(setZoom.t);setZoom.t=setTimeout(()=>{if(camZoom<=1.02)zp.classList.remove('on')},900)}
+}
+function zoomGestures(){
+  const vf=$('#vf'),sh=$('#shutter'),P=new Map();let z0=1,y0=0,d0=0,moved=false;
+  const usable=e=>!(e.target.closest('.vfb'))&&$('#shot').hidden&&(mode==='photo'||mode==='video');
+  const down=e=>{
+    if(!usable(e))return;
+    P.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    z0=camZoom;moved=false;
+    if(P.size===1)y0=e.clientY;
+    if(P.size===2){const [a,b]=[...P.values()];d0=Math.hypot(a.x-b.x,a.y-b.y)||1;z0=camZoom}
+  };
+  const move=e=>{
+    if(!P.has(e.pointerId))return;
+    const q=P.get(e.pointerId);q.x=e.clientX;q.y=e.clientY;
+    if(P.size>=2){const [a,b]=[...P.values()];moved=true;setZoom(z0*Math.hypot(a.x-b.x,a.y-b.y)/d0,true);return}
+    const dy=e.clientY-y0;
+    if(!moved&&Math.abs(dy)<8)return;
+    moved=true;setZoom(z0*Math.exp(-dy/190),true); /* up zooms in, down zooms out */
+  };
+  const up=e=>{P.delete(e.pointerId);if(P.size===1){const [a]=[...P.values()];y0=a.y;z0=camZoom}if(!P.size)setTimeout(()=>{moved=false},0)};
+  [vf,sh].forEach(el=>{el.addEventListener('pointerdown',down);el.addEventListener('pointermove',move);['pointerup','pointercancel'].forEach(k=>el.addEventListener(k,up))});
+  /* a drag that zoomed must not also count as a tap on the red button */
+  sh.addEventListener('click',e=>{if(moved){e.stopImmediatePropagation();e.preventDefault()}},true);
+}
 async function startCam(){
   if(stream)return;
   try{
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw 0;
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}},audio:false});
     const v=$('#cam');if(!v){stopCam();return}
+    setZoom(1);
     v.srcObject=stream;v.style.display='block';$('#fbk').style.display='none';live=true;$('#vflab').innerHTML='Camera';
   }catch(e){live=false;const l=$('#vflab');if(l)l.innerHTML=DEMOLAB}
 }
 const shrinkImage=(file,max=1600)=>new Promise((res,rej)=>{const u=URL.createObjectURL(file),i=new Image();i.onload=()=>{const k=Math.min(1,max/Math.max(i.naturalWidth,i.naturalHeight)),c=document.createElement('canvas');c.width=Math.round(i.naturalWidth*k);c.height=Math.round(i.naturalHeight*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);lastAr=c.width>=c.height?'4 / 3':'3 / 4';res(c.toDataURL('image/jpeg',.85))};i.onerror=()=>{URL.revokeObjectURL(u);rej()};i.src=u});
 const videoPoster=file=>new Promise((res,rej)=>{const u=URL.createObjectURL(file),v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='metadata';v.onloadeddata=()=>{v.currentTime=Math.min(.5,(v.duration||1)/2)};v.onseeked=()=>{const k=Math.min(1,1280/Math.max(v.videoWidth,v.videoHeight)),c=document.createElement('canvas');c.width=Math.round(v.videoWidth*k);c.height=Math.round(v.videoHeight*k);c.getContext('2d').drawImage(v,0,0,c.width,c.height);const n=Math.round(v.duration||0);URL.revokeObjectURL(u);res({src:c.toDataURL('image/jpeg',.8),dur:Math.floor(n/60)+':'+pad(n%60)})};v.onerror=()=>{URL.revokeObjectURL(u);rej()};v.src=u});
 function frame(){
-  if(live){const v=$('#cam'),w=v.videoWidth||640,h=v.videoHeight||480,k=Math.min(1,1280/Math.max(w,h)),c=document.createElement('canvas');c.width=w*k;c.height=h*k;lastAr=w>=h?'4 / 3':'3 / 4';c.getContext('2d').drawImage(v,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.8)}
+  if(live){const v=$('#cam'),w=v.videoWidth||640,h=v.videoHeight||480,z=camZoom,sw=w/z,sh=h/z,k=Math.min(1,1280/Math.max(sw,sh)),c=document.createElement('canvas');c.width=Math.round(sw*k);c.height=Math.round(sh*k);lastAr=sw>=sh?'4 / 3':'3 / 4';c.getContext('2d').drawImage(v,(w-sw)/2,(h-sh)/2,sw,sh,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.8)}
   return CFG.demo?(IMG.bike||IMG.cup||''):'';
 }
 function openAdd(dayKey){
   newM={day:dayKey||dk(TODAY)};mode='photo';moreT='quote';cap={photo:null,video:null,voice:null};
   $('#ov').innerHTML=`<div class="ot"><button class="ib" id="ox" aria-label="Close">${ic.x}</button><div class="title" id="otitle">Photo</div><button class="keepb" id="keep" disabled>Keep</button></div>
   <div class="canvas">
-   <section class="pane on" data-p="cam"><div class="vf" id="vf"><video id="cam" playsinline muted autoplay></video><div class="fbk" id="fbk" style="background-image:url(${IMG.bike||''})"></div><img id="shot" alt="" hidden><div class="vflab" id="vflab">Demo viewfinder</div>
+   <section class="pane on" data-p="cam"><div class="vf" id="vf"><video id="cam" playsinline muted autoplay></video><div class="fbk" id="fbk" style="background-image:url(${IMG.bike||''})"></div><img id="shot" alt="" hidden><div class="vflab" id="vflab">Demo viewfinder</div><div class="zpill" id="zpill">1.0×</div>
       <label class="vfb" id="libb" style="left:12px;bottom:12px" aria-label="Choose from library">${ic.img.replace('width="22" height="22"','width="20" height="20"')}<input type="file" id="lib" accept="image/*,video/*" hidden></label>
       <button class="vfb" id="retake" style="right:12px;bottom:12px" hidden aria-label="Retake">${ic.x.replace('width="22" height="22"','width="18" height="18"')}</button></div>
      <div class="shut"><button class="shutter" id="shutter" aria-label="Capture"><i></i></button></div>
@@ -807,10 +861,10 @@ function openAdd(dayKey){
   $('#retake').onclick=()=>{cap[mode]=null;showShot();validate()};
   $('#lib').onchange=async e=>{const fl=e.target.files[0];e.target.value='';if(!fl)return;
     try{const isV=fl.type.startsWith('video'),r=isV?await videoPoster(fl):await shrinkImage(fl);
-      if(isV){cap.video=r;if(mode!=='video')setMode('video')}else{cap.photo=r;if(mode!=='photo')setMode('photo')}
+      if(isV){cap.video=r;if(fl.size<=300e6)r.blob=fl;else toast('Too large to keep the video itself. Keeping a still.');if(mode!=='video')setMode('video')}else{cap.photo=r;if(mode!=='photo')setMode('photo')}
       showShot();validate()}catch(err){toast('Could not read that file')}};
   document.querySelectorAll('#ov textarea').forEach(e=>e.addEventListener('input',validate));
-  drawMore(false);setMode('photo',true);startCam();
+  drawMore(false);zoomGestures();setMode('photo',true);startCam();
 }
 function titleFor(){const t=MODES.find(m=>m[0]===mode)[1];return newM.day!==dk(TODAY)?t+' · '+longDay(new Date(...newM.day.split('-').map((v,i)=>i===1?v-1:+v))):t}
 function setMode(m,first){
@@ -837,8 +891,23 @@ function shutter(){
   if(mode==='photo'){cap.photo=frame();if(!cap.photo){toast('No camera here. Use the library button.');return}gps(g=>{newM.geo=[+g.lat.toFixed(5),+g.lng.toFixed(5)];const l=$('#vflab');if(l&&!rec)l.innerHTML=(live?'Camera':DEMOLAB)+' · located'});showShot();validate();return}
   if(rec){stopRec();return}
   const t0=Date.now(),l=$('#vflab');
-  rec={t0,iv:setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);l.innerHTML='<i></i>'+Math.floor(s/60)+':'+pad(s%60)},250),kind:'video'};
+  const r=rec={t0,iv:setInterval(()=>{const s=Math.floor((Date.now()-r.t0)/1000);l.innerHTML='<i></i>'+Math.floor(s/60)+':'+pad(s%60)},250),kind:'video'};
   l.classList.add('rec');l.innerHTML='<i></i>0:00';$('#shutter').classList.add('rec');
+  if(live&&window.MediaRecorder)vidStart(r).catch(e=>{console.warn('video recording unavailable',e);toast('Could not record video here')});
+}
+/* The recorder is fed from a canvas that draws the camera at the current zoom, with the microphone mixed in, so the zoom you see is the zoom you keep. */
+async function vidStart(r){
+  const v=$('#cam'),w=v.videoWidth||1280,h=v.videoHeight||720,k=Math.min(1,1280/Math.max(w,h)),cw=Math.round(w*k)&~1,ch=Math.round(h*k)&~1;
+  const cv=document.createElement('canvas');cv.width=cw;cv.height=ch;const x=cv.getContext('2d');
+  const draw=()=>{const z=camZoom,sw=w/z,sh=h/z;x.drawImage(v,(w-sw)/2,(h-sh)/2,sw,sh,0,0,cw,ch);r.raf=requestAnimationFrame(draw)};draw();
+  if(!cv.captureStream)throw new Error('no captureStream');
+  const out=cv.captureStream(30);
+  try{const a=await navigator.mediaDevices.getUserMedia({audio:true});if(rec!==r){a.getTracks().forEach(t=>t.stop());return}r.aud=a;a.getAudioTracks().forEach(t=>out.addTrack(t))}catch(e){/* no microphone access: the video still records, silent */}
+  if(rec!==r)return;
+  const mime=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';
+  r.mr=new MediaRecorder(out,Object.assign({videoBitsPerSecond:3.5e6},mime?{mimeType:mime}:{}));
+  r.chunks=[];r.mr.ondataavailable=e=>{if(e.data&&e.data.size)r.chunks.push(e.data)};
+  r.mr.start(1000);r.t0=Date.now(); /* the clock starts when the recorder does, after any microphone prompt */
 }
 let aud=null;
 async function audStart(){
@@ -871,7 +940,12 @@ function voiceStart(){
 }
 function stopRec(){
   if(!rec)return;clearInterval(rec.iv);const s=Math.max(1,Math.round((Date.now()-rec.t0)/1000)),d=Math.floor(s/60)+':'+pad(s%60);
-  if(rec.kind==='video'){cap.video={src:frame(),dur:d};const l=$('#vflab');if(l){l.classList.remove('rec');l.innerHTML=live?'Camera':DEMOLAB}const sh=$('#shutter');if(sh)sh.classList.remove('rec')}
+  if(rec.kind==='video'){
+    const r=rec,mine=cap.video={src:frame(),dur:d,pending:!!(r.mr||(live&&window.MediaRecorder))};
+    cancelAnimationFrame(r.raf);
+    const done=()=>{if(r.aud)r.aud.getTracks().forEach(t=>t.stop());const blob=r.chunks&&r.chunks.length?new Blob(r.chunks,{type:(r.mr&&r.mr.mimeType)||'video/mp4'}):null;if(cap.video===mine){mine.pending=false;if(blob&&blob.size)mine.blob=blob}validate()};
+    if(r.mr&&r.mr.state!=='inactive'){r.mr.onstop=done;try{r.mr.stop()}catch(e){done()}}else{mine.pending=false;done()}
+    const l=$('#vflab');if(l){l.classList.remove('rec');l.innerHTML=live?'Camera':DEMOLAB}const sh=$('#shutter');if(sh)sh.classList.remove('rec')}
   else{cap.voice=d;audStop();const mb=document.querySelector('#modes [data-m="voice"]');if(mb)mb.classList.remove('hold');document.querySelectorAll('#lw i').forEach(i=>i.style.height='');const b=$('#bigrec');if(b)b.classList.remove('live');const w=$('#lw');if(w)w.classList.remove('live');const v=$('#vt');if(v)v.textContent=d}
   rec=null;if(mode==='video')showShot();validate();
 }
@@ -885,7 +959,7 @@ const val=id=>($('#'+id)&&$('#'+id).value.trim())||'';
 function validate(){
   let ok=false;
   if(mode==='photo')ok=!!cap.photo;
-  if(mode==='video')ok=!!(cap.video&&cap.video.src);
+  if(mode==='video')ok=!!(cap.video&&cap.video.src&&!cap.video.pending);
   if(mode==='voice')ok=!!cap.voice;
   if(mode==='text')ok=!!val('tx');
   if(mode==='more')ok=moreT==='quote'?!!val('f2'):!!val('f1');
@@ -897,7 +971,7 @@ function save(){
   const o={id:Date.now(),ts:new Date(y,m-1,d,now.getHours(),now.getMinutes()).getTime()};
   if(mode==='photo'){o.type='photo';o.ar=lastAr;o.src=cap.photo;o.text=val('capIn')
     if(newM.geo)o.geo=newM.geo;const w=val('whoIn');if(w){o.who=w;o.pose=newM.pose||'stand';o.at=newM.at||[.5,.74]}}
-  if(mode==='video'){o.type='video';o.src=cap.video.src;o.dur=cap.video.dur;o.text=val('capIn')}
+  if(mode==='video'){o.type='video';o.src=cap.video.src;o.dur=cap.video.dur;o.text=val('capIn');if(cap.video.blob)o.vid=cap.video.blob}
   if(mode==='voice'){o.type='voice';o.dur=cap.voice;o.text=val('vtx')}
   if(mode==='text'){o.type='text';o.text=val('tx')}
   if(mode==='more'){o.type=moreT;if(moreT==='quote'){o.text=val('f2');o.who=val('f1')}else{o.name=val('f1');o.text=val('f2')}}
@@ -907,7 +981,7 @@ function save(){
 }
 /* ---------- profile ---------- */
 function backup(){
-  const lk={};Object.keys(LOOKS).forEach(k=>{lk[k]=Object.assign({},LOOKS[k]);delete lk[k].glb});const d={app:'keep',v:1,saved:new Date().toISOString(),memories:user,looks:lk},a=document.createElement('a');
+  const lk={};Object.keys(LOOKS).forEach(k=>{lk[k]=Object.assign({},LOOKS[k]);delete lk[k].glb});const d={app:'keep',v:1,saved:new Date().toISOString(),memories:user.map(o=>{if(!o.vid)return o;const c=Object.assign({},o);delete c.vid;return c}),looks:lk},a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='keep-backup-'+dk(new Date())+'.json';
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast(user.length+(user.length===1?' memory':' memories')+' saved to a file');
 }
@@ -1175,7 +1249,7 @@ async function onbRun(files){
   const close=()=>{const m=$('#lpm');if(m)m.remove();document.querySelectorAll('.lp').forEach(x=>x.classList.remove('lp'))};
   function remove(id){
     const o=user.find(x=>x.id===id);if(!o)return;
-    user=user.filter(x=>x.id!==id);saved.delete(id);idb.del(id).catch(()=>{});delete lbReg[id];
+    user=user.filter(x=>x.id!==id);saved.delete(id);idb.del(id).catch(()=>{});delete lbReg[id];if(vidURLs.has(id)){URL.revokeObjectURL(vidURLs.get(id));vidURLs.delete(id)}
     if($('#lb').classList.contains('on')){
       lbList=lbList.filter(x=>x.id!==id);
       if(!lbList.length)closeLb();else{lbI=Math.min(lbI,lbList.length-1);drawLb()}
