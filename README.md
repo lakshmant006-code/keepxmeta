@@ -77,6 +77,10 @@ Meta and Instagram avatars cannot be used outside Meta's own apps (the Meta Avat
 - **Style editor.** In Re-live, tap **Style** to change a person's skin tone, hair style and colour, top (tee or hoodie) and colour, pants and glasses. The avatar updates as you tap. Looks are saved in this browser and included in Back up / Restore. People you never style keep the look their name gave them.
 - **Your own avatar file.** In the same panel, **Import .glb file** uses any `.glb` (or `.vrm`) avatar: VRoid Studio, Avaturn, Blender, or other exports **without Draco or Meshopt compression**, up to 40 MB. It is sized to a person, stood on the ground, and its arms are swung down from a T-pose. It stands in Re-live and Street View but does not sit or wave (that needs the built-in figure). The file stays on this phone, in its own storage, and is not part of Back up. Remove it any time to go back to the built-in figure.
 
+## Profile photo
+
+Profile → tap the circle at the top to choose a photo. It is cropped to a square, kept on this phone, and shown in the header button in place of the letter. Remove photo brings the letter back. Back up carries it and Restore puts it back if you have none.
+
 ## Camera
 
 Drag up or down on the viewfinder or on the red button to zoom (up zooms in), or pinch. The zoom is digital, so it applies to photos and to recorded video on every phone, and a pill shows the level (up to 5x). In Video, tap the red button to start and again to stop; the microphone is used if you allow it, otherwise the video is silent.

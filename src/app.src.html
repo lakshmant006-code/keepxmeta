@@ -35,6 +35,12 @@ svg{display:block}
 .ib{width:40px;height:40px;display:grid;place-items:center;border-radius:20px;color:var(--ink)}
 .ib:active{background:var(--fill)}
 .av0{width:32px;height:32px;border-radius:16px;background:var(--fill2);font-size:14px;font-weight:600;display:grid;place-items:center}
+.av0.img{background-size:cover;background-position:center;background-repeat:no-repeat;color:transparent;box-shadow:0 0 0 1.5px var(--card),0 0 0 3px var(--blue)}
+.pfp{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0 4px}
+.pfp label{position:relative;width:88px;height:88px;border-radius:44px;background:var(--fill2);background-size:cover;background-position:center;display:grid;place-items:center;font-size:34px;font-weight:600;cursor:pointer;box-shadow:0 0 0 3px var(--blue)}
+.pfp label.nopic{box-shadow:0 0 0 2px var(--bd)}
+.pfp label .cam{position:absolute;right:-2px;bottom:-2px;width:30px;height:30px;border-radius:15px;background:var(--blue);color:#fff;display:grid;place-items:center;border:2px solid var(--bg)}
+.pfp small{font-size:13px;color:var(--mute)}.pfp .rm{font-size:13px;color:#FF3B30;font-weight:500;height:28px}
 .title .logo{flex:none}
 .title{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);height:40px;transform:translateX(-50%);font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;white-space:nowrap}
 .rv{flex:none;margin:4px 16px 6px;height:56px;border-radius:16px;display:flex;align-items:center;gap:12px;padding:0 12px 0 10px;text-align:left}
@@ -981,7 +987,7 @@ function save(){
 }
 /* ---------- profile ---------- */
 function backup(){
-  const lk={};Object.keys(LOOKS).forEach(k=>{lk[k]=Object.assign({},LOOKS[k]);delete lk[k].glb});const d={app:'keep',v:1,saved:new Date().toISOString(),memories:user.map(o=>{if(!o.vid)return o;const c=Object.assign({},o);delete c.vid;return c}),looks:lk},a=document.createElement('a');
+  const lk={};Object.keys(LOOKS).forEach(k=>{lk[k]=Object.assign({},LOOKS[k]);delete lk[k].glb});const d={app:'keep',v:1,saved:new Date().toISOString(),memories:user.map(o=>{if(!o.vid)return o;const c=Object.assign({},o);delete c.vid;return c}),looks:lk,profile:pfp()||undefined},a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='keep-backup-'+dk(new Date())+'.json';
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast(user.length+(user.length===1?' memory':' memories')+' saved to a file');
 }
@@ -990,15 +996,33 @@ function restore(e){
   f.text().then(t=>{
     const d=JSON.parse(t),L=Array.isArray(d)?d:d.memories;if(!Array.isArray(L))throw 0;
     if(d&&d.looks&&typeof d.looks==='object'&&!Array.isArray(d)){Object.keys(d.looks).forEach(k=>{if(!LOOKS[k]){LOOKS[k]=d.looks[k];delete LOOKS[k].glb}});saveLooks()}
+    if(d&&typeof d.profile==='string'&&/^data:image\//.test(d.profile)&&d.profile.length<400000&&!pfp()){pfpSet(d.profile);renderProf()}
     const have=new Set(user.map(o=>o.id));let n=0;
     L.forEach(o=>{if(o&&o.id&&o.ts&&o.type&&!have.has(o.id)){user.push(o);have.add(o.id);n++}});
     persistUser();refresh();toast(n?n+(n===1?' memory':' memories')+' restored':'Nothing new in that file');
   }).catch(()=>toast('That is not a Keep backup'));
 }
+/* ---- profile photo: shown in the header button instead of the letter ---- */
+const PFP='kept.pfp';
+const pfp=()=>{try{return localStorage.getItem(PFP)||''}catch(e){return''}};
+const pfpSet=v=>{try{v?localStorage.setItem(PFP,v):localStorage.removeItem(PFP)}catch(e){toast('Could not save the photo. Storage may be full.')}};
+function renderProf(){
+  const b=$('#profBtn');if(!b)return;const u=pfp();
+  b.innerHTML=u?`<span class="av0 img" style="background-image:url(${u})"></span>`:'<span class="av0">K</span>';
+}
+/* centre-square crop to 256 px so it stays tiny in storage and sharp at any size it is shown */
+const pfpFrom=file=>new Promise((res,rej)=>{
+  const u=URL.createObjectURL(file),i=new Image();
+  i.onload=()=>{const s=Math.min(i.naturalWidth,i.naturalHeight),c=document.createElement('canvas');c.width=c.height=256;
+    c.getContext('2d').drawImage(i,(i.naturalWidth-s)/2,(i.naturalHeight-s)/2,s,s,0,0,256,256);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',.88))};
+  i.onerror=()=>{URL.revokeObjectURL(u);rej()};i.src=u;
+});
 function openProfile(){
   const n=all().length,first=n?new Date(Math.min(...all().map(m=>m.ts))):null;
   const th=document.documentElement.getAttribute('data-theme')||'light';
   openSheet(`<div class="dh"><h1>Profile</h1><p>${n} kept${first?' · since '+MS[first.getMonth()]+' '+first.getFullYear():''}</p></div><div class="pb" style="padding-top:0">
+   <div class="pfp"><label id="pfpLab" class="${pfp()?'':'nopic'}" style="${pfp()?`background-image:url(${pfp()})`:''}" aria-label="Choose a profile photo">${pfp()?'':'K'}<span class="cam">${ic.img.replace('width="22" height="22"','width="15" height="15"')}</span><input type="file" id="pfpIn" accept="image/*" hidden></label>
+    <small>${pfp()?'Your profile photo':'Add a profile photo'}</small>${pfp()?'<button class="rm" id="pfpRm">Remove photo</button>':''}</div>
    <div class="grp">
     <div class="row"><span>Appearance</span><div class="seg" data-k="theme">${['light','dark'].map(x=>`<button data-v="${x}" class="${th===x?'on':''}">${x[0].toUpperCase()+x.slice(1)}</button>`).join('')}</div></div>
     <div class="row"><span>Revisits</span><div class="seg" data-k="rev">${[['off','Off'],['monthly','Monthly'],['weekly','Weekly']].map(x=>`<button data-v="${x[0]}" class="${revOn===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>
@@ -1019,6 +1043,8 @@ function openProfile(){
     sg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});
   $('#gmOpen').onclick=()=>{closeSheet();openMap()};
   if($('#updChk')){$('#updChk').onclick=updCheck;$('#hardRf').onclick=hardRefresh}
+  $('#pfpIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{pfpSet(await pfpFrom(f));renderProf();openProfile();toast('Profile photo updated')}catch(err){toast('Could not read that photo')}};
+  if($('#pfpRm'))$('#pfpRm').onclick=()=>{pfpSet('');renderProf();openProfile();toast('Photo removed')};
   $('#impOpen').onclick=()=>{closeSheet();onbOpen(true)};
   if($('#instOpen'))$('#instOpen').onclick=()=>{closeSheet();installApp()};
   $('#bak').onclick=backup;$('#rst').onchange=restore;
@@ -1095,7 +1121,7 @@ $('#zoomBtn').onclick=()=>setYear(!yearMode);
 $('#mapBtn').innerHTML=ic.pinm;$('#mapBtn').onclick=openMap;$('#arBtn').innerHTML=ic.cube;$('#arBtn').onclick=()=>openAR();
 $('#addBtn').innerHTML=ic.plus+'<span>Add a moment</span>';$('#addBtn').onclick=()=>openAdd();
 $('#micB').innerHTML=ic.mic;$('#px').innerHTML=ic.x;$('#chatX').innerHTML=ic.x;$('#sendB').innerHTML=ic.up;
-$('#profBtn').onclick=openProfile;$('#rvp').onclick=openRevisit;
+renderProf();$('#profBtn').onclick=openProfile;$('#rvp').onclick=openRevisit;
 $('#q').addEventListener('focus',()=>{openChat()});
 $('#micB').onclick=()=>openChat();
 $('#q2').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=$('#q2').value;$('#q2').value='';ask(v)}});
