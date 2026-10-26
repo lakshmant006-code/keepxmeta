@@ -351,6 +351,7 @@ svg{display:block}
 __AR_CSS__
 __MAPS_CSS__
 __AV_CSS__
+__FACE_CSS__
 </style>
 
 <div class="app" id="app">
@@ -639,7 +640,7 @@ function openLb(ids){lbList=ids.map(i=>lbReg[i]).filter(Boolean);lbI=0;if(!lbLis
 /* every photo of the day sits in one strip; drag it sideways and it settles on the next or previous photo */
 function drawLb(){
   const n=lbList.length;
-  $('#lb').innerHTML=`<div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs" data-mid="${m.id}">${m.type==='video'&&m.vid?`<div class="lbvw"><video src="${vidURL(m)}" poster="${src(m)}" playsinline loop preload="auto"></video><span class="lbplay">${ic.play}</span><button class="lbmute" aria-label="Sound"><svg class="on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7"/></svg><svg class="off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button></div>`:`<img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false">`}<div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}${m.who?' · with '+esc(m.who):(m.type==='photo'&&user.includes(m)?' · tap the photo to tag who is in it':'')}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}`;
+  $('#lb').innerHTML=`<div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs" data-mid="${m.id}">${m.type==='video'&&m.vid?`<div class="lbvw"><video src="${vidURL(m)}" poster="${src(m)}" playsinline loop preload="auto"></video><span class="lbplay">${ic.play}</span><button class="lbmute" aria-label="Sound"><svg class="on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7"/></svg><svg class="off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button></div>`:`<img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false">`}<div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}${namesOf(m).length?' · with '+namesOf(m).map(esc).join(', '):(m.type==='photo'&&user.includes(m)?' · tap the photo to tag who is in it':'')}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}`;
   const tr=$('#lbtr');lbPos(tr,0,false);
   tr.querySelectorAll('.lbmute').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const v=b.closest('.lbvw').querySelector('video');v.muted=!v.muted;b.closest('.lbvw').classList.toggle('muted',v.muted)});
   tr.onpointerdown=e=>{if(e.button>0||e.target.closest('.lbmute'))return;lbDrag={x:e.clientX,y:e.clientY,t:performance.now(),dx:0,dy:0,on:false,axis:null,id:e.pointerId}};
@@ -717,7 +718,7 @@ function openTag(m){
    ${names.length?`<div class="tagr" id="tagNames">${names.map(n=>`<button class="tagch" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div>`:''}
    <div class="taglb">Pose</div><div class="tagr" id="tagPoses">${POSES.map(x=>`<button class="tagch ${x[0]===pose?'on':''}" data-p="${x[0]}">${x[1]}</button>`).join('')}</div>
    <div class="tagr" style="margin-top:14px"><button class="pill d" id="tagSave" style="flex:1;justify-content:center">Save</button>${m.who?'<button class="pill g" id="tagRm">Remove</button>':''}</div>
-   <p class="tagn">Tagged photos show up in Re-live, where their avatar can stand in the same place.</p></div>`;
+   <p class="tagn">${m.who?`Tagged ${esc(m.who)}. To add someone else in this photo, type their name instead.`:'Tagged photos show up in Re-live, where their avatar can stand in the same place.'}</p></div>`;
   /* the tap that opened this card is still finishing: the phone sends its follow-up click to whatever is now under the finger (Save, for a tagged photo). Ignore touches for a moment. */
   p.style.pointerEvents='none';setTimeout(()=>{p.style.pointerEvents=''},400);
   $('#app').appendChild(p);
@@ -730,12 +731,13 @@ function openTag(m){
   const save=()=>{
     const v=inp.value.trim().slice(0,40);
     if(!v){inp.focus();toast('Type a name first');return}
-    m.who=v;m.pose=pose;if(!m.at)m.at=[.5,.74];
-    put();close();refresh();drawLb();lbArrive();toast('Tagged '+v+'. Find it in Re-live.');
+    if(m.who&&v.toLowerCase()!==m.who.toLowerCase()){m.people=[...(m.people||[]).filter(n=>n.toLowerCase()!==v.toLowerCase()),v]} /* another person in the same photo */
+    else{m.who=v;m.pose=pose;if(!m.at)m.at=[.5,.74]}
+    put();close();refresh();drawLb();lbArrive();toast('Tagged '+v+'. Find it in Re-live.');setTimeout(()=>faceAfterTag(m,v),250);
   };
   $('#tagSave').onclick=save;
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}});
-  $('#tagRm')&&($('#tagRm').onclick=()=>{delete m.who;delete m.pose;delete m.at;put();close();refresh();drawLb();lbArrive();toast('Tag removed')});
+  $('#tagRm')&&($('#tagRm').onclick=()=>{delete m.who;delete m.pose;delete m.at;delete m.people;put();close();refresh();drawLb();lbArrive();toast('Tag removed')});
 }
 function closeLb(){const t=$('#tagp');if(t)t.remove();lbPause();$('#lb').classList.remove('on')}
 
@@ -1111,6 +1113,7 @@ function openProfile(){
     ${CFG.demo?`<div class="row"><span>Preview empty state</span><div class="seg" data-k="empty">${[['0','Off'],['1','On']].map(x=>`<button data-v="${x[0]}" class="${(emptyMode?'1':'0')===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>`:''}
     ${CFG.demo?'':`<div class="row"><span>Updates<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">Version ${String(CFG.build).slice(0,6)}</small></span><button class="chip fb flat" id="updChk" style="height:32px;font-size:14px;padding:0 12px">Check</button></div>
     <div class="row"><span>Hard refresh<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">Reload the newest app. Your memories stay.</small></span><button class="chip fb flat" id="hardRf" style="height:32px;font-size:14px;padding:0 12px">Refresh</button></div>`}
+    <div class="row"><span>People<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">Find a person in all your photos</small></span><button class="chip fb flat" id="peopleOpen" style="height:32px;font-size:14px;padding:0 12px">Open</button></div>
     <div class="row"><span>Import photos</span><button class="chip fb flat" id="impOpen" style="height:32px;font-size:14px;padding:0 12px">Choose</button></div>
     ${isStandalone()?'':`<div class="row"><span>Install app</span><button class="chip fb flat" id="instOpen" style="height:32px;font-size:14px;padding:0 12px">Install</button></div>`}
     <div class="row"><span>Google Maps</span><button class="chip fb flat" id="gmOpen" style="height:32px;font-size:14px;padding:0 12px">${gmKey()?'On':'Add key'}</button></div>
@@ -1127,6 +1130,7 @@ function openProfile(){
   if($('#updChk')){$('#updChk').onclick=updCheck;$('#hardRf').onclick=hardRefresh}
   $('#pfpIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{pfpSet(await pfpFrom(f));renderProf();openProfile();toast('Profile photo updated')}catch(err){toast('Could not read that photo')}};
   if($('#pfpRm'))$('#pfpRm').onclick=()=>{pfpSet('');renderProf();openProfile();toast('Photo removed')};
+  $('#peopleOpen').onclick=()=>{closeSheet();faceOpenPeople()};
   $('#impOpen').onclick=()=>{closeSheet();onbOpen(true)};
   if($('#instOpen'))$('#instOpen').onclick=()=>{closeSheet();installApp()};
   $('#bak').onclick=backup;$('#rst').onchange=restore;
@@ -1194,6 +1198,7 @@ addEventListener('resize',fit);fit();
 __AR_JS__
 __MAPS_JS__
 __AV_JS__
+__FACE_JS__
 let yearMode=false;
 function refresh(){index();renderCal();renderYear();renderRv()}
 $('#cal').addEventListener('click',e=>{const c=e.target.closest('[data-d]');if(c)openDay(c.dataset.d)});
