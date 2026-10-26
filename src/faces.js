@@ -117,7 +117,7 @@ async function faceScan(name){
         if(!m.who){m.who=name;m.pose=m.pose||'stand';m.at=m.at||[.5,.74]}else if(!namesOf(m).includes(name))m.people=(m.people||[]).concat(name);
         idb.put(m).catch(()=>{});await faceLearn(name,h.d);n++;
       }
-      refresh();fcClose();toast('Tagged '+n+' photo'+(n===1?'':'s')+' as '+name);
+      refreshKeep();fcClose();toast('Tagged '+n+' photo'+(n===1?'':'s')+' as '+name);
     };
   };
   draw();
@@ -148,3 +148,80 @@ async function faceOpenPeople(){
   pn.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>faceScan(b.dataset.f));
   if($('#fcForget'))$('#fcForget').onclick=async()=>{await faceDB.clear('people');await faceDB.clear('photos');fcClose();toast('Face data forgotten. Names on photos stay.')};
 }
+
+
+/* ---------- quiet background matching ---------- */
+/* After you name someone, Keep learns their face and tags them in your other photos without showing anything. It runs only while the app is open
+   and in front, in small steps, skips when Data Saver is on, never re-adds a tag you removed (m.reject), and marks what it added (m.auto) so the
+   tag card can say so. Only clear matches are used (under FACE_AUTO); anything borderline stays for Profile → People, where you review it. */
+const FACE_AUTO=.42,FACE_SHARED=.4;
+const faceBg={run:false,again:false,t:null};
+const fsleep=ms=>new Promise(r=>setTimeout(r,ms));
+const fvisible=()=>document.visibilityState==='visible';
+const isManual=(m,n)=>namesOf(m).some(x=>pkey(x)===pkey(n))&&!(m.auto||[]).some(x=>pkey(x)===pkey(n));
+function faceKick(ms){clearTimeout(faceBg.t);faceBg.t=setTimeout(faceBgRun,ms==null?2500:ms)}
+document.addEventListener('visibilitychange',()=>{if(fvisible())faceKick(3000)});
+/* learn a name's face from the photos you tagged it on, only when it is unambiguous */
+async function faceLearnQuiet(name,people){
+  const tagged=user.filter(m=>m.type==='photo'&&src(m)&&isManual(m,name)).slice(0,8);
+  const others=people.filter(p=>pkey(p.name)!==pkey(name));
+  const cand=[];
+  for(const m of tagged){
+    if(!fvisible())return false;
+    const {faces}=await facesOf(m);
+    cand.push({m,faces:faces.filter(f=>!faceWho(f.d,others))}); /* not someone Keep already knows */
+    await fsleep(60);
+  }
+  const have=cand.filter(c=>c.faces.length);
+  if(!have.length)return false;
+  if(have.length===1){ /* one photo to go on: fine if it has exactly one unknown face */
+    if(have[0].faces.length!==1)return false;
+    await faceLearn(name,have[0].faces[0].d);return true;
+  }
+  /* several photos: the face they have in common */
+  const shared=[];
+  have.forEach((a,i)=>a.faces.forEach(fa=>{if(have.some((b,j)=>j!==i&&b.faces.some(fb=>fdist(fa.d,fb.d)<FACE_SHARED)))shared.push({i,d:fa.d})}));
+  const per=new Map();shared.forEach(s=>per.set(s.i,(per.get(s.i)||0)+1));
+  if(!shared.length||[...per.values()].some(v=>v>1))return false; /* two people appear together in all of them: cannot tell */
+  for(const s of shared.slice(0,4))await faceLearn(name,s.d);
+  return true;
+}
+async function faceBgRun(){
+  if(faceBg.run){faceBg.again=true;return}
+  if(!window.indexedDB||!fvisible()||(navigator.connection&&navigator.connection.saveData))return;
+  const photos=()=>user.filter(m=>m.type==='photo'&&src(m));
+  const names=[...new Set(photos().flatMap(m=>namesOf(m).filter(n=>isManual(m,n))))];
+  let people;try{people=await peopleAll()}catch(e){return}
+  if(!names.length&&!people.length)return;
+  faceBg.run=true;let changed=false;
+  try{
+    const known=new Set(people.map(p=>pkey(p.name)));
+    for(const n of names.filter(n=>!known.has(pkey(n)))){if(!fvisible())break;try{await faceLearnQuiet(n,people)}catch(e){}}
+    people=await peopleAll();
+    if(people.length){
+      let detected=0,limit=Infinity;
+      for(const m of photos()){
+        if(!fvisible())break;
+        const cached=await faceDB.get('photos',m.id);
+        if(!cached){if(detected>=limit)continue;detected++}
+        let rec;try{rec=await facesOf(m)}catch(e){break}
+        if(!cached){if(faceLib){try{const f=await faceLib;if(f.tf.getBackend()==='cpu')limit=25}catch(e){}}await fsleep(150)} /* slow phones: a few photos per visit, with breathing room */
+        rec.faces.forEach(fc=>{
+          const w=faceWho(fc.d,people);
+          if(!w||w.dist>=FACE_AUTO)return;
+          const nm=people.find(p=>pkey(p.name)===pkey(w.name)).name;
+          if(namesOf(m).some(x=>pkey(x)===pkey(nm))||(m.reject||[]).some(x=>pkey(x)===pkey(nm)))return;
+          m.auto=(m.auto||[]).concat(nm);
+          if(!m.who){m.who=nm;m.pose=m.pose||'stand';m.at=m.at||[.5,.74]}else m.people=(m.people||[]).concat(nm);
+          idb.put(m).catch(()=>{});changed=true;
+        });
+      }
+    }
+  }catch(e){console.warn('background face matching stopped',e)}
+  finally{
+    faceBg.run=false;
+    if(changed)refreshKeep(); /* keep the calendar where you were */
+    if(faceBg.again){faceBg.again=false;faceKick(1500)}
+  }
+}
+if(!CFG.demo)setTimeout(()=>faceKick(0),7000); /* once per visit, a few seconds after opening */

@@ -95,16 +95,17 @@ Tap a photo in the viewer to say who is in it: type a name (or tap one you have 
 
 ## People: find someone in all your photos
 
-Name a face once and Keep finds that person in your other photos.
+Name someone and Keep quietly does the rest. There is nothing to confirm and no message about it.
 
-1. Tap a photo in the viewer, type a name and Save. If the photo has several faces, tap the one that is them. Keep learns that face.
-2. Keep offers to **look through your other photos**. It shows what it found, you untick anything wrong, and tap **Tag N photos**. Strong matches are ticked; borderline ones are marked "Maybe" and left unticked.
-3. A photo can hold several people: type a second, different name on an already-tagged photo to add them (the first stays the main name that Re-live uses). The date line reads "with Maya, Leo".
-4. **Profile → People** lists who Keep has learned, lets you search all photos again for one of them, and **Forget all face data** wipes it (names already on photos stay).
+1. Tap a photo in the viewer, type a name and Save. That is all you do.
+2. In the background (only while the app is open and in front), Keep learns that face and tags the same person in your other photos. It also looks at photos you keep or import later. Tagged photos show "with Maya" in the date line and appear in Re-live; the tag card says "Tagged automatically" for ones Keep added, and **Remove** takes a wrong one off. A removed tag is never added back to that photo.
+3. Keep only learns a face when it is unambiguous: a photo with exactly one face, or a face that two or more photos you tagged with that name share. In a group photo it cannot guess which face is yours, so tag them on a photo where they are alone, or tag a few group photos with them, or tap **Pick their face in a group photo** in the tag card to point them out.
+4. A photo can hold several people: type a second, different name on an already-tagged photo to add them (the first stays the main name Re-live uses).
+5. **Profile → People** lists who Keep has learned, lets you search all photos again for someone and review the matches (borderline ones show as "Maybe"), and **Forget all face data** wipes it (names on photos stay).
 
-**Private by design.** The face library and models ship inside the app (`public/face/`, about 8 MB, MIT-licensed `@vladmandic/face-api`), so it all runs on the phone: nothing is uploaded. A face is stored as 128 numbers, per person up to 12 varied ones, in this browser only. The models download once when first used, then the app caches them.
+**Private by design.** The face library and models ship inside the app (`public/face/`, about 8 MB, MIT-licensed `@vladmandic/face-api`), so it all runs on the phone and nothing is uploaded. A face is stored as 128 numbers, up to 12 varied ones per person, in this browser only. The models download once, quietly, the first time Keep needs them (skipped when Data Saver is on), then the app caches them.
 
-**How accurate.** It compares faces as distances (same person usually under 0.25, different people usually over 0.5 in testing). Keep tags automatically only under 0.45 (and only when clearly closer to one person than another), shows 0.45 to 0.5 as "Maybe", and ignores the rest. It works best on clear, front-facing faces; sunglasses, profiles, tiny faces in a crowd and children whose looks change are harder. Always check the review screen. On a phone with working graphics acceleration a photo takes about a second; without it Keep falls back to the processor and a big scan can take minutes (there is a Stop button).
+**How careful it is.** It compares faces as distances (the same person is usually under 0.25 and different people over 0.5 in testing). In the background Keep tags only under 0.42, and only when the face is clearly closer to one person than another; the Profile → People review shows 0.45 to 0.5 as "Maybe". It works best on clear, front-facing faces; sunglasses, profiles, tiny faces in a crowd and children whose looks change are harder. On a phone without graphics acceleration Keep checks only a few new photos per visit so the app stays responsive.
 
 ## Friends
 

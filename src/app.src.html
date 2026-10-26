@@ -720,7 +720,8 @@ function openTag(m){
    ${names.length?`<div class="tagr" id="tagNames">${names.map(n=>`<button class="tagch" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div>`:''}
    <div class="taglb">Pose</div><div class="tagr" id="tagPoses">${POSES.map(x=>`<button class="tagch ${x[0]===pose?'on':''}" data-p="${x[0]}">${x[1]}</button>`).join('')}</div>
    <div class="tagr" style="margin-top:14px"><button class="pill d" id="tagSave" style="flex:1;justify-content:center">Save</button>${m.who?'<button class="pill g" id="tagRm">Remove</button>':''}</div>
-   <p class="tagn">${m.who?`Tagged ${esc(m.who)}. To add someone else in this photo, type their name instead.`:'Tagged photos show up in Re-live, where their avatar can stand in the same place.'}</p></div>`;
+   ${typeof faceAfterTag==='function'?'<button class="tagch" id="tagFace" style="margin-top:12px">Pick their face in a group photo</button>':''}
+   <p class="tagn">${m.who?`Tagged ${esc(m.who)}. To add someone else in this photo, type their name instead.${(m.auto||[]).length?` Tagged automatically: ${esc(m.auto.join(', '))}. Not them? Remove.`:''}`:'Tagged photos show up in Re-live, where their avatar can stand in the same place.'}</p></div>`;
   /* the tap that opened this card is still finishing: the phone sends its follow-up click to whatever is now under the finger (Save, for a tagged photo). Ignore touches for a moment. */
   p.style.pointerEvents='none';setTimeout(()=>{p.style.pointerEvents=''},400);
   $('#app').appendChild(p);
@@ -730,16 +731,22 @@ function openTag(m){
   $('#tagX').onclick=close;
   $('#tagNames')&&($('#tagNames').onclick=e=>{const b=e.target.closest('[data-n]');if(b){inp.value=b.dataset.n;inp.focus()}});
   $('#tagPoses').onclick=e=>{const b=e.target.closest('[data-p]');if(!b)return;pose=b.dataset.p;$('#tagPoses').querySelectorAll('.tagch').forEach(x=>x.classList.toggle('on',x===b))};
+  let pickFace=false;
   const save=()=>{
     const v=inp.value.trim().slice(0,40);
     if(!v){inp.focus();toast('Type a name first');return}
     if(m.who&&v.toLowerCase()!==m.who.toLowerCase()){m.people=[...(m.people||[]).filter(n=>n.toLowerCase()!==v.toLowerCase()),v]} /* another person in the same photo */
     else{m.who=v;m.pose=pose;if(!m.at)m.at=[.5,.74]}
-    put();close();refresh();drawLb();lbArrive();toast('Tagged '+v+'. Find it in Re-live.');setTimeout(()=>faceAfterTag(m,v),250);
+    m.reject=(m.reject||[]).filter(n=>n.toLowerCase()!==v.toLowerCase()); /* typing a name yourself overrides an earlier Remove */
+    m.auto=(m.auto||[]).filter(n=>n.toLowerCase()!==v.toLowerCase());
+    put();close();refreshKeep();drawLb();lbArrive();toast('Tagged '+v+'. Find it in Re-live.');
+    /* learning the face and tagging them elsewhere happens quietly in the background; only the optional picker shows anything */
+    if(typeof faceKick==='function'){if(pickFace)setTimeout(()=>faceAfterTag(m,v),250);else faceKick(1500)}
   };
   $('#tagSave').onclick=save;
+  if($('#tagFace'))$('#tagFace').onclick=()=>{pickFace=true;save()};
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save()}});
-  $('#tagRm')&&($('#tagRm').onclick=()=>{delete m.who;delete m.pose;delete m.at;delete m.people;put();close();refresh();drawLb();lbArrive();toast('Tag removed')});
+  $('#tagRm')&&($('#tagRm').onclick=()=>{m.reject=[...new Set([...(m.reject||[]),...namesOf(m)])];delete m.auto;delete m.who;delete m.pose;delete m.at;delete m.people;put();close();refreshKeep();drawLb();lbArrive();toast('Tag removed')});
 }
 function closeLb(){const t=$('#tagp');if(t)t.remove();lbPause();$('#lb').classList.remove('on')}
 
@@ -1070,6 +1077,7 @@ function save(){
   user.push(o);
   persistUser();
   closeAdd();refresh();toast('Kept');
+  if(typeof faceKick==='function'&&o.type==='photo')faceKick(6000);
 }
 /* ---------- profile ---------- */
 function backup(){
@@ -1207,6 +1215,7 @@ __FACE_JS__
 __FR_JS__
 let yearMode=false;
 function refresh(){index();renderCal();renderYear();renderRv()}
+function refreshKeep(){const c=$('#cal'),st=c?c.scrollTop:0;refresh();if(c)c.scrollTop=st}
 $('#cal').addEventListener('click',e=>{const c=e.target.closest('[data-d]');if(c)openDay(c.dataset.d)});
 $('#yr').addEventListener('click',e=>{const c=e.target.closest('[data-m]');if(!c)return;const [y,m]=c.dataset.m.split('-').map(Number);setYear(false);setTimeout(()=>{const t=$('#m-'+y+'-'+m);if(t)$('#cal').scrollTop=t.offsetTop-4},30)});
 function setYear(on){yearMode=on;$('#yr').classList.toggle('on',on);$('#cal').classList.toggle('off',on);$('#dowbar').classList.toggle('off',on);$('#zoomBtn').innerHTML=on?ic.cal:ic.grid;$('#zoomBtn').setAttribute('aria-label',on?'Back to months':'Zoom out to year')}
@@ -1353,6 +1362,7 @@ async function onbRun(files){
   const a=new Date(got[0].ts),z=new Date(got[got.length-1].ts),fmt=x=>MS[x.getMonth()]+' '+x.getDate(),geo=got.filter(x=>x.geo).length;
   const days=new Set(got.map(x=>dk(new Date(x.ts)))).size;
   onbFlag();refresh();
+  if(typeof faceKick==='function')faceKick(8000);
   $('#onbIn').innerHTML=`<div class="onbic ok"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
    <h1>${got.length} ${got.length===1?'photo':'photos'} kept</h1>
    <p class="onbp">${days} ${days===1?'day':'days'}, from ${fmt(a)} to ${fmt(z)}.${geo?` ${geo} ${geo===1?'has':'have'} a location and ${geo===1?'is':'are'} on the map.`:' None carried a location, so the map stays empty for now.'}${skip?` ${skip} skipped (already kept or unreadable).`:''}${over?` Only the first ${ONB_MAX} were added; run Import photos again for the rest.`:''}</p>
@@ -1373,7 +1383,7 @@ async function onbRun(files){
       lbList=lbList.filter(x=>x.id!==id);
       if(!lbList.length)closeLb();else{lbI=Math.min(lbI,lbList.length-1);drawLb();lbArrive()}
     }
-    refresh();if($('#sh').classList.contains('on')&&curDay)openDay(curDay);
+    refreshKeep();if($('#sh').classList.contains('on')&&curDay)openDay(curDay);
     toast('Deleted');
   }
   function menu(node){
