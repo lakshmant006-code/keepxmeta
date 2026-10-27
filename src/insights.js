@@ -60,15 +60,15 @@ function insActivity(D,range){
 const insEsc=esc;
 function insCols(B,unit,emph){
   const max=insNice(Math.max(1,...B.map(b=>b.n))),mid=max/2;
-  const hi=emph?Math.max(...B.map(b=>b.n)):-1;
+  const hi=Math.max(...B.map(b=>b.n)); /* the peak is picked out in solid blue, the rest stay light */
   return `<div class="inschart"><div class="insy"><span>${insFmt(max)}</span><span>${insFmt(mid)}</span><span>0</span></div>
    <div class="inspl"><i class="insgl" style="top:0"></i><i class="insgl" style="top:50%"></i><i class="insgl" style="top:100%"></i>
-    <div class="inscols">${B.map((b,i)=>`<div class="icl" tabindex="0" role="img" data-tip="${insEsc(b.tip+': '+b.n+' '+(b.n===1?'memory':'memories'))}" aria-label="${insEsc(b.tip+': '+b.n)}"><i class="icb ${emph&&b.n!==hi?'dim':''}" style="height:${b.n/max*100}%"></i></div>`).join('')}</div></div></div>
+    <div class="inscols">${B.map((b,i)=>`<div class="icl" tabindex="0" role="img" data-tip="${insEsc(b.tip+': '+b.n+' '+(b.n===1?'memory':'memories'))}" aria-label="${insEsc(b.tip+': '+b.n)}"><i class="icb ${b.n===hi&&hi>0?'hi':''}" style="height:${b.n/max*100}%"></i></div>`).join('')}</div></div></div>
    <div class="insxl"><span class="insyp"></span><div class="insxr">${B.map(b=>`<span><em>${insEsc(b.label)}</em></span>`).join('')}</div></div>`;
 }
 function insBars(rows){
   const max=Math.max(1,...rows.map(r=>r.n));
-  return `<div class="insh">${rows.map(r=>`<div class="irw" tabindex="0" role="img" data-tip="${insEsc(r.label+': '+r.n)}" aria-label="${insEsc(r.label+': '+r.n)}">${r.av||''}<span class="ilb">${insEsc(r.label)}</span><div class="itr"><i class="ihb" style="width:calc(${r.n/max} * (100% - 40px));min-width:${r.n?2:0}px"></i><b>${insFmt(r.n)}</b></div></div>`).join('')}</div>`;
+  return `<div class="insh">${rows.map(r=>`<div class="irw" tabindex="0" role="img" data-tip="${insEsc(r.label+': '+r.n)}" aria-label="${insEsc(r.label+': '+r.n)}">${r.av||''}<span class="ilb">${insEsc(r.label)}</span><div class="itr"><i class="ihb ${r.n===max&&max>0?'hi':''}" style="width:calc(${r.n/max} * (100% - 40px));min-width:${r.n?2:0}px"></i><b>${insFmt(r.n)}</b></div></div>`).join('')}</div>`;
 }
 function insTable(rows){return `<table class="instb">${rows.map(r=>`<tr><td>${insEsc(r[0])}</td><td>${insEsc(String(r[1]))}</td></tr>`).join('')}</table>`}
 function insCard(title,sub,chart,table){
