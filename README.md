@@ -106,6 +106,14 @@ Name a face once and Keep finds that person in your other photos.
 
 **How accurate.** It compares faces as distances (same person usually under 0.25, different people usually over 0.5 in testing). Keep tags automatically only under 0.45 (and only when clearly closer to one person than another), shows 0.45 to 0.5 as "Maybe", and ignores the rest. It works best on clear, front-facing faces; sunglasses, profiles, tiny faces in a crowd and children whose looks change are harder. Always check the review screen. On a phone with working graphics acceleration a photo takes about a second; without it Keep falls back to the processor and a big scan can take minutes (there is a Stop button).
 
+## Insights
+
+Tap the chart icon in the header (or Profile → Insights) for a page that shows what you keep and when, counted on this phone from your memories. One range row at the top (30 days, 90 days, 12 months, All time) scopes everything below it.
+
+- **Headline:** how many memories you kept in the range and on how many days, then your current streak, longest streak and busiest day (streaks count every day with a memory, all time).
+- **Activity:** thin columns per day, week or month depending on the range. **What you keep:** by type. **Busiest weekday**, with the top day highlighted. **Time of day.** **People** in your photos (from your tags). **Places:** photos with a location and how many different places. **Words you use** in notes and captions. **A year ago today**, with a button to open that day.
+- Tap (or hover, or focus) a bar for its exact number, and switch any card to a **Table** view of the same numbers. Colors are one hue (the app's blue) for magnitude; names and words from your memories are shown as plain text.
+
 ## Friends
 
 Tap the people icon in the header (or Profile → Friends) for a page of the people you know. Add a friend with a name, an optional photo and an Instagram username or profile link (tap the Instagram button on a row to open their profile). Tap a row to edit or delete (two taps). Friends are stored in this browser, included in Back up and Restore, and their names show up as suggestions when you tag a photo.
