@@ -1,36 +1,116 @@
-/* ---------- first-run intro: what Keep is, in four slides, before the photo import ---------- */
+/* ---------- first-run intro: five things to do with your hands, then the photo import ---------- */
 const INTRO='kept.intro';
 const introDone=()=>{try{return localStorage.getItem(INTRO)==='1'}catch(e){return false}};
-const introSlides=[
- {h:'Keep anything',p:'Photos, videos, voice, notes, quotes, people, places and files. Drop them onto one calendar.',
-  art:`<div class="a-cal"><b>October</b><div class="a-grid">${'<i></i>'.repeat(3)}<i class="p"></i><i></i><i class="q"></i><i></i>${'<i></i>'.repeat(2)}<i class="t"></i><i class="r"></i>${'<i></i>'.repeat(3)}<i class="q"></i><i></i><i class="p"></i><i></i><i></i><i class="r"></i><i></i><i class="t"></i></div></div>`},
- {h:'Ask for it later',p:'Ask in your own words. Keep shows the original memory, and says so when nothing matches.',
-  art:`<div class="a-q"><span>that bike ride in June</span><div>Found one on June 14.<em></em></div></div>`},
- {h:'Re-live the moment',p:'Tag who was there, then point your camera at the same spot to see them standing in it again.',
-  art:`<div class="a-me"><div class="ring"></div><div class="bg"></div><div class="hd"></div><div class="bd"></div></div>`},
- {h:'Private by design',p:'Everything stays on this phone. No account, no server, no upload.',
-  art:`<div class="a-lock">${ic.lock||'<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>'}</div>`}
+const introReduced=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
+const introBuzz=n=>{try{navigator.vibrate&&navigator.vibrate(n)}catch(e){}};
+/* a burst of confetti from a point, drawn inside #intro */
+function introBoom(x,y){
+  const host=$('#intro');if(!host||introReduced())return;
+  const r=host.getBoundingClientRect(),cols=['#0866FF','#4F9BFF','#9CC4FF','#7FD6FF','#FFB020','#FF5C8A'];
+  for(let i=0;i<22;i++){
+    const s=document.createElement('i'),a=Math.random()*Math.PI*2,d=70+Math.random()*100;
+    s.className='cf';s.style.cssText=`left:${x-r.left}px;top:${y-r.top}px;background:${cols[i%cols.length]}`;host.appendChild(s);
+    s.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:`translate(${Math.cos(a)*d}px,${Math.sin(a)*d+50}px) rotate(${Math.random()*540}deg)`,opacity:0}],{duration:800+Math.random()*500,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=()=>s.remove();
+  }
+}
+const introCenter=el=>{const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}};
+const introTiles=[['img','#4F9BFF',-112,-96,.6,0],['mic','#FF5C8A',104,-104,.9,-1.2],['quote','#8E7CFF',-120,44,1.1,-2.1],['pin','#1F9D61',116,36,.7,-.6],['cube','#FFB020',-30,-134,.5,-3],['users','#0AA5C2',24,122,1,-1.7],['txt','#6B7280',-70,118,.8,-2.6]];
+const introSteps=[
+ {h:'Keep it all',p:'Photos, voice, notes, quotes, people, places. Everything worth keeping, in one calendar.',hint:'',
+  art(){return`<div class="w-wrap">${introTiles.map(t=>`<div class="w-t" style="left:${150+t[2]-31}px;top:${150+t[3]-31}px;background:${t[1]};--d:${t[4]*14};--dl:${t[5]}s">${ic[t[0]]||''}</div>`).join('')}<div class="w-logo">K</div></div>`},
+  run(root,done){
+    const host=$('#intro'),mv=e=>{const r=host.getBoundingClientRect();host.style.setProperty('--px',((e.clientX-r.left)/r.width-.5)*2);host.style.setProperty('--py',((e.clientY-r.top)/r.height-.5)*2)};
+    host.addEventListener('pointermove',mv);root._off=()=>{host.removeEventListener('pointermove',mv);host.style.setProperty('--px',0);host.style.setProperty('--py',0)};
+    const logo=$('#intro .w-logo');logo.addEventListener('pointerdown',()=>{const c=introCenter(logo);introBoom(c.x,c.y);introBuzz(12)});
+    done(true)}},
+ {h:'Keep your first memory',p:'Drag this photo onto a day. Or just tap it.',hint:'Drag it onto the calendar',
+  art(){const cells=Array.from({length:28},(_,i)=>`<i data-i="${i}" class="${({2:'p',5:'q',9:'r',11:'p',14:'q',20:'r',23:'p'})[i]||''}"></i>`).join('');
+   return`<div class="k-cal"><b>October<span id="kN">7 kept</span></b><div class="k-grid">${cells}</div></div><div class="k-ph" id="kPh" aria-label="Photo to keep"></div>`},
+  run(root,done){
+    const card=$('#kPh'),cells=[...root.querySelectorAll('.k-grid i')],tgtDefault=cells[17];
+    let sx=0,sy=0,dx=0,dy=0,drag=false,moved=false,over=null;
+    const hot=t=>{if(over===t)return;if(over)over.classList.remove('hot');over=t;if(t)t.classList.add('hot')};
+    const under=(x,y)=>{card.style.pointerEvents='none';const el=document.elementFromPoint(x,y);card.style.pointerEvents='';const c=el&&el.closest('.k-grid i');return c&&!c.classList.contains('got')?c:null};
+    const land=t=>{
+      const a=card.getBoundingClientRect(),b=t.getBoundingClientRect(),ddx=b.left+b.width/2-(a.left+a.width/2),ddy=b.top+b.height/2-(a.top+a.height/2),k=b.width/a.width;
+      card.classList.add('fly');card.classList.remove('lift');
+      const an=card.animate([{transform:`translate(${dx}px,${dy}px) scale(1.08)`,opacity:1},{transform:`translate(${dx+ddx}px,${dy+ddy}px) scale(${k})`,opacity:.9}],{duration:introReduced()?1:380,easing:'cubic-bezier(.5,0,.2,1)',fill:'forwards'});
+      an.onfinish=()=>{card.style.visibility='hidden';hot(null);t.classList.add('got');const c=introCenter(t);introBoom(c.x,c.y);introBuzz(18);$('#kN').textContent='8 kept';
+        const h=$('#intro .ihint');h.textContent='Kept. It will be on this day forever.';h.classList.add('ok');done(true)};
+    };
+    card.addEventListener('pointerdown',e=>{card.setPointerCapture(e.pointerId);sx=e.clientX;sy=e.clientY;drag=true;moved=false;card.classList.add('lift');card.style.transform='scale(1.08)'});
+    card.addEventListener('pointermove',e=>{if(!drag)return;dx=e.clientX-sx;dy=e.clientY-sy;if(Math.hypot(dx,dy)>6)moved=true;card.style.transform=`translate(${dx}px,${dy}px) scale(1.08) rotate(${dx/18}deg)`;hot(under(e.clientX,e.clientY))});
+    card.addEventListener('pointerup',e=>{if(!drag)return;drag=false;const t=(moved&&under(e.clientX,e.clientY))||tgtDefault;land(t)});
+    card.addEventListener('pointercancel',()=>{drag=false;card.classList.remove('lift');card.style.transform='';dx=dy=0;hot(null)});
+    card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();land(tgtDefault)}});card.tabIndex=0}},
+ {h:'Ask for it later',p:'Ask in your own words. Keep shows the original, or tells you it found nothing.',hint:'Tap a question',
+  art(){return`<div class="a-chat"><div class="a-log" id="aLog"></div><div class="a-chips" id="aCh"><button>That sunset</button><button>Where was I in June?</button><button>My passport number</button></div></div>`},
+  run(root,done){
+    const log=$('#aLog'),ch=$('#aCh'),ans={'That sunset':['Found it. Sat, Oct 18, 6:12 PM.',1],'Where was I in June?':['Cartel Coffee on Mill, June 14. You wrote "Actually good."',0],'My passport number':['Nothing matches. I only show what you kept.',0]};
+    ch.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+      const q=b.textContent;b.disabled=true;[...ch.children].forEach(x=>x.disabled=true);introBuzz(8);
+      log.insertAdjacentHTML('beforeend',`<div class="a-me">${esc(q)}</div><div class="a-ai" id="aTy"><span class="dt"><i></i><i></i><i></i></span></div>`);
+      setTimeout(()=>{const t=$('#aTy');if(!t)return;t.removeAttribute('id');t.innerHTML=esc(ans[q][0])+(ans[q][1]?'<em></em>':'');
+        [...ch.children].forEach(x=>{if(x!==b)x.disabled=false});
+        const h=$('#intro .ihint');h.textContent=ans[q][1]?'Always the original memory, never a guess.':'Honest when nothing matches.';h.classList.add('ok');done(true)},introReduced()?50:1000)})}},
+ {h:'Bring people back',p:'Tag who was there and their avatar stands where you stood.',hint:'Try a pose',
+  art(){return`<div class="v-stage"><div class="v-name">Maya</div>
+   <svg class="v-fig" id="vFig" data-pose="stand" viewBox="0 0 150 200" aria-label="Avatar of Maya">
+    <ellipse cx="75" cy="192" rx="42" ry="6" fill="rgba(0,0,0,.14)"/>
+    <g class="lg"><rect x="52" y="120" width="20" height="66" rx="10" fill="#3B4A6B"/><rect x="78" y="120" width="20" height="66" rx="10" fill="#3B4A6B"/></g>
+    <g class="bd"><rect x="44" y="64" width="62" height="70" rx="26" fill="#0866FF"/></g>
+    <g class="arL"><rect x="28" y="68" width="16" height="58" rx="8" fill="#0866FF"/></g>
+    <g class="arR"><rect x="106" y="68" width="16" height="58" rx="8" fill="#0866FF"/></g>
+    <g class="hd"><circle cx="75" cy="42" r="26" fill="#F2C7A5"/><path d="M49 40c2-20 18-26 28-24 12 2 24 10 24 28-6-10-16-14-26-14s-20 2-26 10z" fill="#3A2A22"/><circle cx="67" cy="46" r="2.6" fill="#222"/><circle cx="83" cy="46" r="2.6" fill="#222"/><path d="M68 56q7 6 14 0" stroke="#222" stroke-width="2.4" fill="none" stroke-linecap="round"/></g>
+   </svg>
+   <div class="v-seg" id="vSeg"><button data-p="stand" class="on">Stand</button><button data-p="wave">Wave</button><button data-p="sit">Sit</button></div></div>`},
+  run(root,done){
+    const fig=$('#vFig'),seg=$('#vSeg');let used=new Set();
+    seg.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+      [...seg.children].forEach(x=>x.classList.toggle('on',x===b));fig.dataset.pose=b.dataset.p;introBuzz(10);used.add(b.dataset.p);
+      if(b.dataset.p==='wave'){const c=introCenter(fig);introBoom(c.x+40,c.y-60)}
+      if(used.size>=1){const h=$('#intro .ihint');h.textContent=used.size>=2?'Same spot, same pose, from your photo.':'Nice. Try another.';h.classList.add('ok');done(true)}})}},
+ {h:'Yours alone',p:'No account. No server. Nothing uploaded. Everything stays on this phone.',hint:'Press and hold to lock it in',
+  art(){return`<div class="l-wrap"><div class="l-btn" id="lBtn" role="button" tabindex="0" aria-label="Press and hold to lock">
+   <svg class="rg" viewBox="0 0 168 168"><circle cx="84" cy="84" r="80" fill="none" stroke="var(--fill2)" stroke-width="6"/><circle id="lRg" cx="84" cy="84" r="80" fill="none" stroke="#1F9D61" stroke-width="6" stroke-linecap="round" stroke-dasharray="502.7" stroke-dashoffset="502.7"/></svg>
+   <div class="core"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path class="sh" d="M8 11V8a4 4 0 018 0v3"/></svg></div></div>
+   <div class="l-tags"><span>On this phone</span><span>No account</span><span>No upload</span></div></div>`},
+  run(root,done){
+    const btn=$('#lBtn'),rg=$('#lRg'),L=502.7,T=1100;let t0=0,raf=0,p=0,shut=false;
+    const set=v=>{p=v;rg.style.strokeDashoffset=L*(1-v)};
+    const tick=()=>{p=Math.min(1,(performance.now()-t0)/T);set(p);if(p>=1)lock();else raf=requestAnimationFrame(tick)};
+    const lock=()=>{if(shut)return;shut=true;cancelAnimationFrame(raf);btn.classList.remove('hold');btn.classList.add('shut');set(1);const c=introCenter(btn);introBoom(c.x,c.y);introBuzz([20,40,30]);
+      const h=$('#intro .ihint');h.textContent='Locked in. Only you can see your memories.';h.classList.add('ok');done(true)};
+    const down=e=>{if(shut)return;try{btn.setPointerCapture(e.pointerId)}catch(_){}btn.classList.add('hold');t0=performance.now()-p*T;cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);introBuzz(6)};
+    const up=()=>{if(shut)return;btn.classList.remove('hold');cancelAnimationFrame(raf);const s=p,u0=performance.now();const back=()=>{const k=Math.max(0,s-(performance.now()-u0)/300);set(k);if(k>0&&!btn.classList.contains('hold'))raf=requestAnimationFrame(back)};raf=requestAnimationFrame(back)};
+    btn.addEventListener('pointerdown',down);btn.addEventListener('pointerup',up);btn.addEventListener('pointercancel',up);btn.addEventListener('contextmenu',e=>e.preventDefault());
+    btn.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();lock()}})}}
 ];
 function introMaybe(){
-  if(CFG.demo&&!/[?&]intro\b/.test(location.search))return false;
-  if(!/[?&]intro\b/.test(location.search)&&(introDone()||emptyMode||user.length))return false;
+  const forced=/[?&]intro\b/.test(location.search);
+  if(CFG.demo&&!forced)return false;
+  if(!forced&&(introDone()||emptyMode||user.length))return false;
   introOpen();return true;
 }
 function introOpen(){
   if($('#intro'))return;
-  const d=document.createElement('div');d.id='intro';
-  d.innerHTML=`<button class="isk" id="iSk">Skip</button><div class="itrack" id="iTr">${introSlides.map(s=>`<div class="islide"><div class="iart">${s.art}</div><h1>${s.h}</h1><p>${s.p}</p></div>`).join('')}</div>
-   <div class="idots">${introSlides.map(()=>'<i></i>').join('')}</div><button class="pill d igo" id="iGo">Next</button>`;
+  const d=document.createElement('div');d.id='intro';const n=introSteps.length;
+  d.innerHTML=`<div class="itop"><div class="ibar">${introSteps.map(()=>'<i></i>').join('')}</div><button class="isk" id="iSk">Skip</button></div><div class="istage" id="iSt"></div><button class="pill d igo" id="iGo"></button>`;
   $('#app').appendChild(d);
-  let i=0;const tr=$('#iTr'),sl=[...tr.children],dots=[...d.querySelectorAll('.idots i')],n=sl.length;
-  const show=k=>{i=Math.max(0,Math.min(n-1,k));tr.style.transform=`translateX(${-i*100}%)`;
-    sl.forEach((s,j)=>s.classList.toggle('on',j===i));dots.forEach((x,j)=>x.classList.toggle('on',j===i));
-    $('#iGo').textContent=i===n-1?'Get started':'Next';$('#iSk').style.visibility=i===n-1?'hidden':'visible'};
-  const done=()=>{try{localStorage.setItem(INTRO,'1')}catch(e){}d.remove();onbMaybe()};
-  $('#iGo').onclick=()=>i===n-1?done():show(i+1);$('#iSk').onclick=done;
-  let x0=null;
-  tr.addEventListener('pointerdown',e=>{x0=e.clientX});
-  tr.addEventListener('pointerup',e=>{if(x0==null)return;const dx=e.clientX-x0;x0=null;if(Math.abs(dx)>50)show(i+(dx<0?1:-1))});
-  tr.addEventListener('pointercancel',()=>{x0=null});
+  let i=-1,cur=null;const st=$('#iSt'),go=$('#iGo'),bars=[...d.querySelectorAll('.ibar i')];
+  const finish=()=>{try{localStorage.setItem(INTRO,'1')}catch(e){}if(cur&&cur._off)cur._off();d.animate([{opacity:1},{opacity:0}],{duration:introReduced()?1:260}).onfinish=()=>{d.remove();onbMaybe()}};
+  const show=k=>{
+    const s=introSteps[k],old=cur;i=k;
+    const el=document.createElement('div');el.className='islide';
+    el.innerHTML=`<div class="iart">${s.art()}</div><h1>${s.h}</h1><p>${s.p}</p><div class="ihint">${s.hint}</div>`;
+    const enter=()=>{if(old){if(old._off)old._off();old.remove()}st.appendChild(el);cur=el;
+      bars.forEach((b,j)=>b.classList.toggle('on',j<=k));
+      go.disabled=true;go.classList.remove('ready');go.textContent=k===n-1?'Open Keep':'Continue';
+      $('#iSk').style.visibility=k===n-1?'hidden':'visible';
+      s.run(el,ok=>{go.disabled=!ok;if(ok)go.classList.add('ready')});
+      if(!introReduced())el.animate([{opacity:0,transform:'translateX(28px)'},{opacity:1,transform:'none'}],{duration:380,easing:'cubic-bezier(.22,.8,.24,1)'})};
+    if(old&&!introReduced())old.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateX(-28px)'}],{duration:200,easing:'ease-in',fill:'forwards'}).onfinish=enter;else enter();
+  };
+  go.onclick=()=>{if(go.disabled)return;i===n-1?finish():show(i+1)};$('#iSk').onclick=finish;
   show(0);
 }

@@ -15,7 +15,7 @@ A single static web app, installable on a phone (PWA). Everything you keep is st
 
 ## First launch
 
-A four-slide intro (Keep anything, Ask for it later, Re-live the moment, Private by design) shows once, then the photo import below. Open the site with `?intro` to see it again. Screen recordings: `docs/videos/onboarding.mp4` (intro and import) and `docs/videos/screens.mp4` (calendar, a day, search, Insights, Places, Profile).
+A hands-on intro shows once, then the photo import below: confetti from the logo, drag a photo onto the calendar, tap a question and watch Keep answer (or say nothing matches), pick a pose for an avatar, and press and hold to lock it in. Phones buzz on each step. Open the site with `?intro` to see it again. Screen recordings: `docs/videos/onboarding.mp4` (intro and import) and `docs/videos/screens.mp4` (calendar, a day, search, Insights, Places, Profile).
 
 The first time Keep opens with nothing in it, it asks you to bring in a month of memories: **Choose photos** opens the phone's own photo picker (a web app cannot read the library silently). Each photo is filed on the day it was taken (EXIF date, falling back to the file's date) and keeps its location if the photo carries one, so it shows up on the map. Up to 300 photos per go; photos already kept are skipped. Profile → Import photos runs the same flow again. On iPhone, location is only included if you allow it in the picker's Options.
 
