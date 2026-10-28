@@ -1,0 +1,34 @@
+/* ---- motion language: soft press, sliding pills, depth, gentle reveals. One curve, small distances. ---- */
+:root{--mo-ease:cubic-bezier(.2,.85,.25,1);--mo-spring:cubic-bezier(.3,.85,.3,1.08)}
+/* soft press: 97% on touch, springs back (uses the separate scale property so it never fights other transforms) */
+button,.cell,.frr,.fcit,.pcard,.stk{transition:scale .16s var(--mo-ease)}
+button:not(:disabled):active,.cell:active,.frr:active,.fcit:active,.stk:active{scale:.97}
+.cell:active{scale:.93}.ib:active{scale:.9}.addp:active{opacity:1;scale:.96}.shutter:active,.mb:active{scale:1}
+.bar{transition:scale .3s var(--mo-ease),box-shadow .3s var(--mo-ease)}.bar:focus-within{scale:1.015;box-shadow:0 8px 28px rgba(8,102,255,.14)}
+/* sliding pill behind the selected item of a segmented control or the capture modes */
+[data-mp]{position:relative}
+[data-mp]>button{position:relative;z-index:1}
+.mpill{position:absolute;z-index:0;left:0;top:0;width:0;height:0;pointer-events:none;opacity:0;
+  transition:left .3s var(--mo-spring),top .3s var(--mo-ease),width .24s var(--mo-ease),height .24s var(--mo-ease),opacity .2s}
+.mpill.nt{transition:none}
+.seg .mpill{background:var(--bg);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+#ins .insseg .mpill{background:var(--g-card);box-shadow:var(--g-shadow)}
+.mseg .mpill,.modes .mpill{background:var(--blue)}
+.seg[data-mp]>button.on,.mseg[data-mp]>button.on,.modes[data-mp]>.mb.on,#ins .insseg[data-mp]>button.on{background:transparent;box-shadow:none}
+.seg[data-mp]>button,.mseg[data-mp]>button,#ins .insseg[data-mp]>button{transition:color .2s,scale .16s var(--mo-ease)}
+/* depth: the page behind a sheet or overlay recedes a few pixels, the foreground rises into place */
+#home{transition:scale .42s var(--mo-ease),opacity .42s var(--mo-ease);transform-origin:50% 35%}
+body.depth #home{scale:.965;opacity:.9}
+@keyframes mrise-in{from{opacity:0;translate:0 22px}to{opacity:1;translate:0 0}}
+.ov.on,.mp.on,.chat.on{animation:mrise-in .34s var(--mo-ease)}
+/* soft reveal: items fade in with a tiny upward move, a few ms apart */
+@keyframes mrv{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
+.mrv{animation:mrv .26s var(--mo-ease) both;animation-delay:calc(var(--i,0)*35ms)}
+/* shape-shifting save: the Keep button squeezes to a circle and shows a tick */
+.keepb{transition:width .26s var(--mo-ease),padding .26s var(--mo-ease),background .2s,color .2s,scale .16s var(--mo-ease);overflow:hidden;white-space:nowrap;position:relative}
+.keepb.ok{width:36px!important;padding:0;font-size:0;background:var(--blue)}
+.keepb.ok::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:11px;margin:-7px 0 0 -3px;border:solid #fff;border-width:0 2.4px 2.4px 0;rotate:45deg;scale:0;animation:mtick .28s .14s var(--mo-ease) forwards}
+@keyframes mtick{to{scale:1}}
+/* a thumbnail flying from the calendar into the day's sheet */
+.mfly{position:fixed;z-index:60;pointer-events:none;overflow:hidden;background-size:cover;background-position:center;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+@media (prefers-reduced-motion:reduce){.mrv,.ov.on,.mp.on,.chat.on{animation:none}.keepb.ok::after{animation:none;scale:1}}
