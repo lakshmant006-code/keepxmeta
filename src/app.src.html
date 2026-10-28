@@ -354,6 +354,7 @@ __AV_CSS__
 __FACE_CSS__
 __FR_CSS__
 __INS_CSS__
+__INTRO_CSS__
 __MOT_CSS__
 </style>
 
@@ -1224,6 +1225,7 @@ __AV_JS__
 __FACE_JS__
 __FR_JS__
 __INS_JS__
+__INTRO_JS__
 let yearMode=false;
 function refresh(){index();renderCal();renderYear();renderRv()}
 function refreshKeep(){const c=$('#cal'),st=c?c.scrollTop:0;refresh();if(c)c.scrollTop=st}
@@ -1243,7 +1245,7 @@ $('#chatX').onclick=closeChat;
 $('#cb').addEventListener('click',e=>{const s=e.target.closest('[data-s]');if(s){ask(s.dataset.s);return}const d=e.target.closest('[data-d]');if(d){blurAll();openDay(d.dataset.d)}});
 document.addEventListener('click',e=>{const t=e.target.closest('[data-lb]');if(t){e.stopPropagation();openLb(t.dataset.lb.split(','))}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#ins')&&$('#ins').classList.contains('on')){insClose();return}if(e.key==='Escape'&&$('#frp')){$('#frp').remove();return}if(e.key==='Escape'&&$('#fr').classList.contains('on')){frClose();return}if(e.key==='Escape'&&$('#tagp')){$('#tagp').remove();return}if($('#lb').classList.contains('on')){if(e.key==='ArrowRight')lbStep(1);if(e.key==='ArrowLeft')lbStep(-1)}if(e.key==='Escape'){if($('#lb').classList.contains('on'))closeLb();else if($('#ov').classList.contains('on'))closeAdd();else if($('#sh').classList.contains('on'))closeSheet();else closeChat()}});
-refresh();setYear(false);loadUser().then(()=>onbMaybe());
+refresh();setYear(false);loadUser().then(()=>{if(!introMaybe())onbMaybe()});
 /* a new day while the app sat open */
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!CFG.demo){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate());if(+t!==+TODAY){TODAY=t;refresh()}}});
 /* ---------- updates: tell the person when a new version is ready, apply it on a tap ---------- */
