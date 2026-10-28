@@ -113,7 +113,7 @@ Tap the chart icon in the header (or Profile → Insights) for a page that shows
 
 - **Headline:** how many memories you kept in the range and on how many days, then your current streak, longest streak and busiest day (streaks count every day with a memory, all time).
 - **Activity:** thin columns per day, week or month depending on the range. **What you keep:** by type. **Busiest weekday**, with the top day highlighted. **Time of day.** **People** in your photos (from your tags). **Places:** photos with a location and how many different places. **Words you use** in notes and captions. **A year ago today**, with a button to open that day.
-- Tap (or hover, or focus) a bar for its exact number, and switch any card to a **Table** view of the same numbers. Colors are one hue (the app's blue) for magnitude; names and words from your memories are shown as plain text.
+- Tap (or hover, or focus) a bar for its exact number, and switch any card to a **Table** view of the same numbers. The page has Meta's light insights look: a light gray background, white rounded cards, a soft pastel headline card, light-blue bars with the peak (busiest week, weekday, type and so on) in solid Meta blue, and pastel word chips; dark mode uses a muted equivalent. Names and words from your memories are shown as plain text.
 
 ## Friends
 

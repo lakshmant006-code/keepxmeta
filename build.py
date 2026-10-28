@@ -26,7 +26,8 @@ body=(r('src/app.src.html').replace('__IMGS__',imgs).replace('__AR_CSS__',r('src
   .replace('__AV_CSS__',r('src/avatars.css')).replace('__AV_JS__',r('src/avatars.js'))
   .replace('__FACE_CSS__',r('src/faces.css')).replace('__FACE_JS__',r('src/faces.js'))
   .replace('__FR_CSS__',r('src/friends.css')).replace('__FR_JS__',r('src/friends.js'))
-  .replace('__INS_CSS__',r('src/insights.css')).replace('__INS_JS__',r('src/insights.js')))
+  .replace('__INS_CSS__',r('src/insights.css')).replace('__INS_JS__',r('src/insights.js'))
+  .replace('__MOTION__',r('src/vendor/motion.min.js')).replace('__MOT_CSS__',r('src/motion.css')).replace('__MOT_JS__',r('src/motion.js')))
 ver=hashlib.sha1(body.encode()).hexdigest()[:10]
 def jget(k):
     v=get(k)
