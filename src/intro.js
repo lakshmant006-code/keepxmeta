@@ -16,13 +16,15 @@ function introBoom(x,y){
 const introCenter=el=>{const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}};
 const introTiles=[['img','#4F9BFF',-112,-96,.6,0],['mic','#FF5C8A',104,-104,.9,-1.2],['quote','#8E7CFF',-120,44,1.1,-2.1],['pin','#1F9D61',116,36,.7,-.6],['cube','#FFB020',-30,-134,.5,-3],['users','#0AA5C2',24,122,1,-1.7],['txt','#6B7280',-70,118,.8,-2.6]];
 const INTRO_AT='kept.introat';
+let introMust=false; /* first run: linking Instagram is required before the tour can go on; a later replay from Profile stays optional */
 const introSteps=[
- {h:'Start with Instagram',p:'Link it and Keep fills in your name, photo and bio for you. You can skip this.',hint:'',
+ {h:'Start with Instagram',get p(){return introMust?'Link your Instagram to get started. Keep fills in your name, photo and bio for you.':'Link it and Keep fills in your name, photo and bio for you. You can skip this.'},hint:'',
   art(){return`<div class="ig-tile">${ic.ig.replace('width="22" height="22"','width="64" height="64"')}</div><div class="ig-act" id="igAct"></div>`},
   run(root,done){
-    const act=$('#igAct'),linked=()=>{const h=root.querySelector('.ihint');h.textContent='Linked @'+meGet().ig+'. Nice.';h.classList.add('ok');act.innerHTML='';introBoom(...Object.values(introCenter($('.ig-tile'))));introBuzz(18);done(true,'Continue')};
+    invRefCard($('#igAct').parentNode);
+    const act=$('#igAct'),linked=()=>{const h=root.querySelector('.ihint');h.textContent='Linked @'+meGet().ig+'. Nice.';h.classList.add('ok');act.innerHTML='';introBoom(...Object.values(introCenter($('.ig-tile'))));introBuzz(18);done(true,'Continue');const sk=$('#iSk');if(sk)sk.style.visibility='visible'};
     if(meGet().ig){linked();return}
-    done(true,'Skip for now');
+    if(introMust)done(false,'Link Instagram to continue');else done(true,'Skip for now');
     const typed=()=>{act.innerHTML=`<div class="meat"><span>@</span><input id="igIn" placeholder="instagram username" autocapitalize="none" autocorrect="off"></div><button class="pill d" id="igSave" style="height:40px;padding:0 16px">Save</button>`;
       const sv=()=>{const v=igUser($('#igIn').value);if(!v){toast('Type your Instagram username');return}const o=meGet();o.ig=v;meSave(o);renderProf();linked()};
       $('#igSave').onclick=sv;$('#igIn').addEventListener('keydown',e=>{if(e.key==='Enter')sv()})};
@@ -84,9 +86,15 @@ const introSteps=[
       [...seg.children].forEach(x=>x.classList.toggle('on',x===b));fig.dataset.pose=b.dataset.p;introBuzz(10);used.add(b.dataset.p);
       if(b.dataset.p==='wave'){const c=introCenter(fig);introBoom(c.x+40,c.y-60)}
       if(used.size>=1){const h=root.querySelector('.ihint');h.textContent=used.size>=2?'Same spot, same pose, from your photo.':'Nice. Try another.';h.classList.add('ok');done(true)}})}},
+ {h:"You're all set",p:'Pick the little nudges you want. Change them any time in Profile.',hint:'',
+  art(){const c=ntGet();const r=(k,t,d)=>`<div class="ntr"><div><b>${t}</b><small>${d}</small></div><button class="ntsw ${c.on[k]?'on':''}" role="switch" aria-checked="${!!c.on[k]}" aria-label="${t}" data-k="${k}"><i></i></button></div>`;
+   return`<div class="ntset">${r('otd','On this day','Memories from past years')}${r('streak','Streaks','When you keep a few days in a row')}${r('week','Weekly recap','A quiet summary each Monday')}${r('nudge','Daily nudge','A gentle reminder to keep something')}</div>`},
+  run(root,done){
+    root.querySelectorAll('.ntsw').forEach(b=>b.onclick=()=>{const c=ntGet();c.on[b.dataset.k]=c.on[b.dataset.k]?0:1;ntPut(c);b.classList.toggle('on',!!c.on[b.dataset.k]);b.setAttribute('aria-checked',!!c.on[b.dataset.k]);introBuzz(8)});
+    done(true)}},
  {h:'Yours alone',p:'No account. No server. Nothing uploaded. Everything stays on this phone.',hint:'Press and hold to lock it in',
   art(){return`<div class="l-wrap"><div class="l-btn" id="lBtn" role="button" tabindex="0" aria-label="Press and hold to lock">
-   <svg class="rg" viewBox="0 0 168 168"><circle cx="84" cy="84" r="80" fill="none" stroke="var(--fill2)" stroke-width="6"/><circle id="lRg" cx="84" cy="84" r="80" fill="none" stroke="#1F9D61" stroke-width="6" stroke-linecap="round" stroke-dasharray="502.7" stroke-dashoffset="502.7"/></svg>
+   <svg class="lring" viewBox="0 0 168 168" width="168" height="168"><circle class="lt" cx="84" cy="84" r="80"/><circle class="lp" id="lRg" cx="84" cy="84" r="80"/></svg>
    <div class="core"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path class="sh" d="M8 11V8a4 4 0 018 0v3"/></svg></div></div>
    <div class="l-tags"><span>On this phone</span><span>No account</span><span>No upload</span></div></div>`},
   run(root,done){
@@ -111,8 +119,9 @@ function introOpen(){
   const d=document.createElement('div');d.id='intro';const n=introSteps.length;
   d.innerHTML=`<div class="itop"><div class="ibar">${introSteps.map(()=>'<i></i>').join('')}</div><button class="isk" id="iSk">Skip</button></div><div class="istage" id="iSt"></div><button class="pill d igo" id="iGo"></button>`;
   $('#app').appendChild(d);if(!introReduced())d.animate([{opacity:0},{opacity:1}],{duration:420,easing:'ease-out'});
+  introMust=!introDone()&&!meGet().ig;
   let i=-1,cur=null;const st=$('#iSt'),go=$('#iGo'),bars=[...d.querySelectorAll('.ibar i')];
-  const finish=()=>{try{localStorage.setItem(INTRO,'1')}catch(e){}if(cur&&cur._off)cur._off();d.animate([{opacity:1},{opacity:0}],{duration:introReduced()?1:260}).onfinish=()=>{d.remove();onbMaybe()}};
+  const finish=()=>{if(introMust&&!meGet().ig){show(0);return}try{localStorage.setItem(INTRO,'1')}catch(e){}if(cur&&cur._off)cur._off();d.animate([{opacity:1},{opacity:0}],{duration:introReduced()?1:260}).onfinish=()=>{d.remove();onbMaybe()}};
   const show=k=>{
     const s=introSteps[k],old=cur;i=k;
     const el=document.createElement('div');el.className='islide';
@@ -123,10 +132,10 @@ function introOpen(){
     st.appendChild(el);cur=el;
     bars.forEach((b,j)=>b.classList.toggle('on',j<=k));
     go.disabled=true;go.classList.remove('ready');go.textContent=k===n-1?'Open Keep':'Continue';
-    $('#iSk').style.visibility=k===n-1?'hidden':'visible';
+    $('#iSk').style.visibility=k===n-1||(k===0&&introMust)?'hidden':'visible';
     s.run(el,(ok,label)=>{go.disabled=!ok;if(label)go.textContent=label;if(ok&&label!=='Skip for now')go.classList.add('ready')});
   };
-  go.onclick=()=>{if(go.disabled)return;i===n-1?finish():show(i+1)};$('#iSk').onclick=finish;
+  go.onclick=()=>{if(go.disabled)return;i===n-1?finish():show(i+1)};$('#iSk').onclick=()=>{if(introMust&&!meGet().ig){toast('Link your Instagram to continue');return}finish()};
   let at=0;try{if(sessionStorage.getItem(INTRO_AT)){sessionStorage.removeItem(INTRO_AT);at=1}}catch(e){}
   show(at);
 }

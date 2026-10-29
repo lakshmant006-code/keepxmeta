@@ -355,6 +355,10 @@ __FACE_CSS__
 __FR_CSS__
 __INS_CSS__
 __INTRO_CSS__
+__NT_CSS__
+__INV_CSS__
+__CHAT_CSS__
+__TAG_CSS__
 __PROF_CSS__
 __MOT_CSS__
 </style>
@@ -380,6 +384,7 @@ __MOT_CSS__
   <div class="mp" id="mp"></div>
   <div class="mp" id="fr"></div>
   <div class="mp" id="ins"></div>
+  <div class="mp" id="nt"></div>
   <div class="ar" id="ar"></div>
   <div class="lb" id="lb"></div>
   <div class="kbd" id="kbd"></div>
@@ -403,7 +408,7 @@ const fullDay=d=>longDay(d)+', '+d.getFullYear();
 const tstr=ts=>{const d=new Date(ts);let h=d.getHours(),m=pad(d.getMinutes());const ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+m+' '+ap};
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ini=n=>n.split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
-/* Stylized 3D-avatar bust (Meta avatar reference): glossy shaded head, hair, jacket. Deterministic per name. */
+/* Stylized 3D-avatar bust glossy shaded head, hair, jacket. Deterministic per name. */
 const avKey=n=>{let h=0;for(const c of n||'?')h=(h*31+c.charCodeAt(0))>>>0;return h};
 /* palettes: the first entries are what a name picks by default (unchanged); the rest are there to choose from in the style editor */
 const SKINS=[['#FFD9BF','#E9A67F'],['#F3C09A','#C98558'],['#D9A27A','#A8693F'],['#B97D55','#7E4A2B'],['#8D5A3A','#5B3420'],['#FFE6D5','#F0B796'],['#C58E65','#92602F'],['#6E4328','#442612']];
@@ -716,13 +721,12 @@ function openTag(m){
   if(!m||m.type!=='photo')return;
   if(!user.includes(m)){toast('Sample memories cannot be edited');return}
   if($('#tagp'))return;
-  const names=[...new Set([...user.filter(x=>x.who).map(x=>x.who),...FR.map(f=>f.name),...all().filter(x=>x.type==='person').map(x=>x.name)])].filter(Boolean).slice(0,10);
   let pose=m.pose||'stand';
   const p=document.createElement('div');p.className='tagp';p.id='tagp';
   p.innerHTML=`<div class="tagc"><div class="tagh"><b>Who's in it?</b><button class="ib" id="tagX" aria-label="Close" style="width:34px;height:34px">${ic.x}</button></div>
    <img class="tagth" src="${src(m)}" alt="">
    <input id="tagIn" placeholder="Name" autocomplete="off" autocapitalize="words" maxlength="40" value="${esc(m.who||'')}">
-   ${names.length?`<div class="tagr" id="tagNames">${names.map(n=>`<button class="tagch" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div>`:''}
+   <div class="tgs" id="tagSug"></div>
    <div class="taglb">Pose</div><div class="tagr" id="tagPoses">${POSES.map(x=>`<button class="tagch ${x[0]===pose?'on':''}" data-p="${x[0]}">${x[1]}</button>`).join('')}</div>
    <div class="tagr" style="margin-top:14px"><button class="pill d" id="tagSave" style="flex:1;justify-content:center">Save</button>${m.who?'<button class="pill g" id="tagRm">Remove</button>':''}</div>
    ${typeof faceAfterTag==='function'?'<button class="tagch" id="tagFace" style="margin-top:12px">Pick their face in a group photo</button>':''}
@@ -734,17 +738,19 @@ function openTag(m){
   const put=()=>{idb.put(m).catch(()=>toast('Could not save that. Storage may be full.'))};
   p.addEventListener('click',e=>{if(e.target===p)close()});
   $('#tagX').onclick=close;
-  $('#tagNames')&&($('#tagNames').onclick=e=>{const b=e.target.closest('[data-n]');if(b){inp.value=b.dataset.n;inp.focus()}});
+  const sugg=tagSuggestInit(inp);
   $('#tagPoses').onclick=e=>{const b=e.target.closest('[data-p]');if(!b)return;pose=b.dataset.p;$('#tagPoses').querySelectorAll('.tagch').forEach(x=>x.classList.toggle('on',x===b))};
   let pickFace=false;
   const save=()=>{
     const v=inp.value.trim().slice(0,40);
     if(!v){inp.focus();toast('Type a name first');return}
+    const wantFriend=sugg.adding(); /* decided before this photo carries the name, or it would look already known */
     if(m.who&&v.toLowerCase()!==m.who.toLowerCase()){m.people=[...(m.people||[]).filter(n=>n.toLowerCase()!==v.toLowerCase()),v]} /* another person in the same photo */
     else{m.who=v;m.pose=pose;if(!m.at)m.at=[.5,.74]}
     m.reject=(m.reject||[]).filter(n=>n.toLowerCase()!==v.toLowerCase()); /* typing a name yourself overrides an earlier Remove */
     m.auto=(m.auto||[]).filter(n=>n.toLowerCase()!==v.toLowerCase());
-    put();close();refreshKeep();drawLb();lbArrive();toast('Tagged '+v+'. Find it in Re-live.');
+    const added=wantFriend&&tagAddFriend(v);
+    put();close();refreshKeep();drawLb();lbArrive();toast('Tagged '+v+(added?' and added to friends':'')+'. Find it in Re-live.');
     /* learning the face and tagging them elsewhere happens quietly in the background; only the optional picker shows anything */
     if(typeof faceKick==='function'){if(pickFace)setTimeout(()=>faceAfterTag(m,v),250);else faceKick(1500)}
   };
@@ -789,7 +795,7 @@ function openDay(k){
   ph.filter(p=>p.who&&src(p)).forEach(p=>{h+=`<div class="ev">${tlNode('person')}<button class="pill d arbtn" data-ar="${p.id}">${ic.cube} See ${esc(firstName(p.who))} there</button></div>`});
   let ti=0;h=h.replace(/<div class="ev"/g,()=>`<div class="ev" style="--i:${ti++}"`);
   openSheet(`<div class="dh"><h1>${longDay(dt)}</h1><p>${dt.getFullYear()} · ${L.length?L.length+' moment'+(L.length>1?'s':''):'quiet day'}</p></div><div class="pb" style="padding-top:16px"><div class="tl">${h}<div class="ev tadd" style="--i:${ti}"><span class="nd">${ic.plus.replace('width="22" height="22"','width="14" height="14"')}</span><button class="tbtn" id="dayAdd">${ic.plus.replace('width="22" height="22"','width="16" height="16"')} ${L.length?'Add to this day':'Keep something on this day'}</button></div></div></div>`,{full:true});
-  $('#dayAdd').onclick=e=>{tlRipple(e.currentTarget);setTimeout(()=>{closeSheet();openAdd(k)},180)};tlInit($('#pc .tl'));
+  $('#dayAdd').onclick=e=>{tlRipple(e.currentTarget);setTimeout(()=>{closeSheet();openAdd(k)},180)};tlInit($('#pc .tl'));if(typeof reflectChip==='function')reflectChip(k);
 }
 /* revisit */
 let rvDate=null;
@@ -860,26 +866,7 @@ function search(q){
   scored.sort((a,b)=>b[0]-a[0]||b[1].ts-a[1].ts);
   return scored.map(x=>x[1]);
 }
-function ask(q){
-  q=q.trim();if(!q)return;openChat(true);
-  const res=search(q);let h=`<div class="qb">${esc(q)}</div>`;
-  if(!res.length)h+=`<div class="ans">Nothing you kept matches that. I would rather say so than guess.</div><div class="empty">Try a name, a place, or a date such as “June 22”.</div>`;
-  else{
-    const top=res[0],list=res.slice(0,6);let line;
-    if(top.type==='person')line=`<b>${esc(top.name)}.</b> ${esc(top.text)}`;
-    else if(top.type==='quote')line=`<b>“${esc(top.text)}”</b> ${top.who?esc(top.who)+', ':''}${longDay(new Date(top.ts))}.`;
-    else line=`<b>${longDay(new Date(top.ts))}.</b> ${esc(top.text||top.name||'')}`;
-    h+=`<div class="ans">${line}</div><div class="lbl">From your memories · ${res.length} found</div><div class="res tl2">${list.map(m=>`<div class="rwrap"><div class="tm">${fullDay(new Date(m.ts))}</div>${item(m,false)}</div>`).join('')}</div>`;
-    const ds=[...new Set(res.map(m=>dk(new Date(m.ts))))].slice(0,8);
-    h+=`<div class="lbl">Where it sits in your life</div><div class="strip">${ds.map(k=>{const [y,mo,d]=k.split('-').map(Number);return `<button class="sd" data-d="${k}">${orb(byDay[k],46)}<span>${MS[mo-1]} ${d}</span></button>`}).join('')}</div>`;
-  }
-  const cb=$('#cb');cb.insertAdjacentHTML('beforeend',h);cb.scrollTop=cb.scrollHeight;
-}
-function openChat(keep){$('#chat').classList.add('on');if(!keep)sugg();$('#q2').focus({preventScroll:true})}
 function closeChat(){$('#chat').classList.remove('on');$('#q').value='';$('#q2').value='';blurAll()}
-function sugg(){
-  $('#cb').innerHTML=`<div class="empty" style="margin-top:6px">Ask in your own words. Answers come from what you kept, and show the original.</div><div class="sugg">${['Who is Jake?','Where did I have coffee?'].map(s=>`<button class="chip fb flat" data-s="${s}">${s}</button>`).join('')}</div>`;
-}
 /* ---------- add: full overlay, camera first ---------- */
 const MODES=[['photo','Photo','cam'],['video','Video','vid'],['voice','Voice','mic'],['text','Note','txt'],['more','More','dots']];
 const MORE=[['quote','Quote'],['person','Person'],['place','Place'],['file','File']];
@@ -1134,7 +1121,7 @@ function openProfile(){
    ${meCard()}
    <div class="grp">
     <div class="row"><span>Appearance</span>${seg('theme',[['light','Light'],['dark','Dark']],th)}</div>
-    ${rw('insightsOpen','Insights','','Open')}${rw('friendsOpen','Friends','','Open')}${rw('peopleOpen','People','','Open')}
+    ${rw('ntOpen','Notifications',ntUnread()?ntUnread()+' new':'Only things that need you','Open')}${rw('insightsOpen','Insights','','Open')}${rw('friendsOpen','Friends','','Open')}${rw('inviteOpen','Invite friends','Share Keep through Instagram','Invite')}${rw('peopleOpen','People','','Open')}
     ${rw('impOpen','Import photos','','Choose')}${rw('bak','Back up','','Download')}
     <div class="row"><span>Restore</span><label ${cb.replace('class="chip fb flat" style="','class="chip fb flat" style="display:grid;place-items:center;cursor:pointer;')}>Choose file<input type="file" id="rst" accept="application/json,.json" hidden></label></div>
    </div>
@@ -1159,7 +1146,9 @@ function openProfile(){
   $('#pfpIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{pfpSet(await pfpFrom(f));renderProf();openProfile();toast('Profile photo updated')}catch(err){toast('Could not read that photo')}};
   if($('#pfpRm'))$('#pfpRm').onclick=()=>{pfpSet('');renderProf();openProfile();toast('Photo removed')};
   $('#insightsOpen').onclick=()=>{closeSheet();insOpen()};
+  $('#ntOpen').onclick=()=>{closeSheet();setTimeout(ntOpen,320)};
   $('#friendsOpen').onclick=()=>{closeSheet();frOpen()};
+  $('#inviteOpen').onclick=()=>{closeSheet();setTimeout(openInvite,320)};
   $('#peopleOpen').onclick=()=>{closeSheet();faceOpenPeople()};
   $('#impOpen').onclick=()=>{closeSheet();onbOpen(true)};
   if($('#instOpen'))$('#instOpen').onclick=()=>{closeSheet();installApp()};
@@ -1232,7 +1221,11 @@ __FACE_JS__
 __FR_JS__
 __INS_JS__
 __INTRO_JS__
+__TAG_JS__
 __PROF_JS__
+__NT_JS__
+__INV_JS__
+__CHAT_JS__
 let yearMode=false;
 function refresh(){index();renderCal();renderYear();renderRv()}
 function refreshKeep(){const c=$('#cal'),st=c?c.scrollTop:0;refresh();if(c)c.scrollTop=st}
@@ -1260,7 +1253,7 @@ let swReg=null,updGo=false;
 function updBanner(){
   if($('#upd'))return;instHide();
   const b=document.createElement('div');b.className='inst';b.id='upd';
-  b.innerHTML=`<img src="icons/icon-192.png" alt=""><div><b>Update available</b><small>A newer version of Keep is ready</small></div><button class="pill d" id="updGo" style="height:36px;padding:0 16px;font-size:14px">Update</button><button class="ib" id="updX" aria-label="Later" style="width:32px;height:32px">${ic.x}</button>`;
+  b.innerHTML=`<img src="icons/icon-192.png" alt=""><div><b>Update available</b><small>New: notifications, invites, a smoother chat and faster tagging</small></div><button class="pill d" id="updGo" style="height:36px;padding:0 16px;font-size:14px">Update</button><button class="ib" id="updX" aria-label="Later" style="width:32px;height:32px">${ic.x}</button>`;
   $('#app').appendChild(b);
   $('#updGo').onclick=updApply;$('#updX').onclick=()=>b.remove();
 }
@@ -1286,7 +1279,7 @@ async function updCheck(){
   try{await swReg.update()}catch(e){toast('Could not check. Are you online?');return}
   const w=swReg.installing||swReg.waiting;
   if(w&&w.state!=='installed')await new Promise(r=>w.addEventListener('statechange',()=>{if(w.state==='installed'||w.state==='redundant')r()}));
-  if(swReg.waiting){closeSheet();updBanner()}else toast('You have the latest version · '+String(CFG.build).slice(0,6));
+  if(swReg.waiting){closeSheet();toast('Updating to the newest version…');setTimeout(updApply,500)}else toast('You have the latest version · '+String(CFG.build).slice(0,6));
 }
 /* drops the cached copy of the app and loads it fresh. Everything you kept (IndexedDB) stays. */
 async function hardRefresh(){
@@ -1544,6 +1537,7 @@ addEventListener('pointerup',()=>{if(rec&&rec.kind==='voice')stopRec()});addEven
 <script>__MOTION__</script>
 <script>
 __MOT_JS__
+__PAGES_JS__
 </script>
 <script type="text/plain" id="three-src">__THREE__</script>
 <script type="text/plain" id="gltf-src">__GLTF__</script>

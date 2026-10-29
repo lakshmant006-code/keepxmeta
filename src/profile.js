@@ -3,7 +3,12 @@
    "Import" reads the personal_information.json (and a photo) from Instagram's own download, on this phone. Nothing is uploaded. */
 const ME='kept.me';
 const meGet=()=>{try{const o=JSON.parse(localStorage.getItem(ME)||'{}');return o&&typeof o==='object'?o:{}}catch(e){return{}}};
-const meSave=o=>{try{localStorage.setItem(ME,JSON.stringify(o))}catch(e){toast('Could not save. Storage may be full.')}};
+/* usage counts go to the site's Google tag, never a handle or a name: only that someone linked, unlinked or used a feature */
+const useTrack=(n,p)=>{try{window.gtag&&gtag('event',n,p||{})}catch(e){}};
+const useIgFlag=l=>{try{window.gtag&&gtag('set','user_properties',{ig_linked:l?'yes':'no'})}catch(e){}};
+const meSave=o=>{const was=!!meGet().ig;try{localStorage.setItem(ME,JSON.stringify(o))}catch(e){toast('Could not save. Storage may be full.');return}
+  const now=!!(o&&o.ig);if(now!==was){useIgFlag(now);useTrack(now?'ig_link':'ig_unlink')}};
+useIgFlag(!!meGet().ig);
 const meInitial=()=>((meGet().name||'').trim()[0]||'K').toUpperCase();
 /* Instagram exports write UTF-8 as escaped latin-1; this puts accents and emoji back */
 const meFix=s=>{try{return decodeURIComponent(escape(s))}catch(e){return s}};

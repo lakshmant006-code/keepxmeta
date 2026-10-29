@@ -12,3 +12,12 @@ self.addEventListener('fetch',e=>{
     return hit||net;
   }));
 });
+
+/* home-screen alerts: tapping one opens Keep; a daily background check (Android, installed app) nudges when something is switched on */
+self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cs=>cs.length?cs[0].focus():self.clients.openWindow('./')))});
+self.addEventListener('periodicsync',e=>{if(e.tag!=='keep-daily')return;
+  e.waitUntil((async()=>{const hit=await (await caches.open('keep-nt')).match('snap');if(!hit)return;const o=await hit.json(),on=o.on||{};
+    if(!(on.otd||on.week||on.nudge))return;
+    const cs=await self.clients.matchAll({type:'window'});if(cs.some(c=>c.visibilityState==='visible'))return;
+    try{self.navigator.setAppBadge&&await self.navigator.setAppBadge(1)}catch(_){}
+    await self.registration.showNotification('Keep',{body:on.nudge?'Anything worth keeping today?':'Something from your past may be waiting.',tag:'keep-daily',icon:'icons/icon-192.png',data:{url:'./'}})})())});

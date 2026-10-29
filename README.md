@@ -91,7 +91,7 @@ Local or CI debugging: open the site with `?appcheck-debug` (the SDK prints a de
 
 ## Avatars
 
-Meta and Instagram avatars cannot be used outside Meta's own apps (the Meta Avatars SDK is Unity/VR only, and Instagram's consumer API is closed), so Keep has its own.
+Keep has its own avatars: a built-in figure per person and imported `.glb` files.
 
 - **Style editor.** In Re-live, tap **Style** to change a person's skin tone, hair style and colour, top (tee or hoodie) and colour, pants and glasses. The avatar updates as you tap. Looks are saved in this browser and included in Back up / Restore. People you never style keep the look their name gave them.
 - **Your own avatar file.** In the same panel, **Import .glb file** uses any `.glb` (or `.vrm`) avatar: VRoid Studio, Avaturn, Blender, or other exports **without Draco or Meshopt compression**, up to 40 MB. It is sized to a person, stood on the ground, and its arms are swung down from a T-pose. It stands in Re-live and Street View but does not sit or wave (that needs the built-in figure). The file stays on this phone, in its own storage, and is not part of Back up. Remove it any time to go back to the built-in figure.
@@ -117,6 +117,10 @@ Swipe left and right to move between a day's photos. Swipe down to close: the ph
 ## Tagging who is in a photo
 
 Tap a photo in the viewer to say who is in it: type a name (or tap one you have used before), pick the pose they were in, and Save. The photo then shows up in Re-live, where their avatar can stand in the same place, and its date line reads "with <name>". Tap again to change the name or Remove the tag. Videos and the demo sample memories cannot be tagged. A tap on empty space around a lone photo still closes the viewer.
+
+## Tagging suggestions
+
+The tag card suggests the people you tag: your friends first, then names you have tagged before, newest first. Type and the list narrows as you go (whole-name starts, then word starts, then Instagram handles), with the matching letters highlighted; arrow keys and Enter pick one. A name that is not in your list shows **Add “Name”**, with **Add to my friends** on by default so they are one tap next time. With nobody added yet the card offers **Add a friend** and **From Instagram**; once you have friends it keeps **Add friends from Instagram** and **Add a friend** underneath. A friend added from the card fills the name field.
 
 ## People: find someone in all your photos
 
@@ -146,6 +150,18 @@ Tap the people icon in the header (or Profile → Friends) for a page of the peo
 
 **Instagram.** Instagram closed its friends and followers access for apps like this one (the Basic Display API ended on December 4, 2024, and the replacement is for business accounts only), so Keep cannot sync with your account. Instead, **From Instagram** imports Instagram's own export: in Instagram go to Settings → Accounts Center → Your information and permissions → Download your information, choose Followers and following in JSON, then pick `followers_1.json` and `following.json` (the HTML files work too). Keep reads them on the phone, lists the accounts (mutuals first, with search), and adds the ones you tick. The export only has usernames, so rename people afterwards.
 
+## Invite friends
+
+Profile → **Invite friends**. **Share invite** opens the share sheet with a short message and link; each friend with an Instagram handle has an **Invite** button that copies the message and opens an Instagram chat with them. If you linked Instagram, the link carries `?ref=<your handle>` so whoever opens it can add you as a friend in one tap. Keep has no server, so it cannot see who has installed it or who is on Instagram right now.
+
+## Chat
+
+Tap the search bar to ask your memories. It reads like a conversation: your questions are bubbles, Keep types back, and answers appear word by word, followed by memory cards (pictures, when, what, a line about it) that open the day. Smart prompts come from what you have kept (people, places, voice notes, a year ago today) and follow-up chips suggest what to ask next. It understands times ("today", "last week", "in June", "a year ago"), kinds ("photos", "voice notes", "quotes"), names and words, plus "my busiest day" and "how many photos". This is rule-based matching on the phone, not a language model, so answers always come from what was kept and show the original; Keep says so when nothing matches.
+
+## Motion
+
+Pages slide in from the side and leave the same way (Friends, Insights, Places); the chat, Add and Re-live rise and sink. The home screen steps aside while a page is open. Photos animate too: the circles on the calendar pop in a few at a time as they scroll into view, a day's photo stack fans out from under its first photo, and opening a photo grows it out of the thumbnail you tapped. Insights bars grow up from the baseline. All of it is decoration, and it is off when the phone asks for reduced motion (`docs/videos/motion.mp4`).
+
 ## Deleting
 
 Press and hold a memory to delete it: a photo in the viewer (swipe to it, then hold), a single photo or a note in a day. A small menu offers a red **Delete** button and a cancel icon. There is no list of delete buttons in the day sheet any more.
@@ -156,3 +172,15 @@ Press and hold a memory to delete it: a photo in the viewer (swipe to it, then h
 - No sync across devices yet; use Back up and Restore.
 - Videos you record (or pick from your library, up to 300 MB) are kept as real video, with sound, next to a still. Videos play in the photo viewer, in the same swipe strip as the photos: swipe to one and it starts, tap to pause or play, and the speaker button turns sound on or off. A video looks like a kept photo: centered, sized to its own shape, soft faded edges, caption and date below. The speaker button sits on top of the picture (top right). Swiping away pauses it. A single-memory view, search answers, revisits and Re-live journals show the video the same way: soft faded edges and no black bars, tap to play or pause, speaker button for sound. Older videos that kept only a still show as a still. Back up saves the still and length but not the video file itself, so a restored video shows as a still. Voice notes keep their length but not the audio.
 - Search is keyword matching.
+
+## Notifications, reflection and Insights extras
+
+Chime-inspired, all on-device. Profile > Notifications is a quiet inbox (On this day, streaks, weekly recap, optional nudge) with per-type switches; the onboarding has a final "You're all set" step with the same switches. Old memories get a "How does it feel now?" reflection (smile / bittersweet / rather not revisit); "rather not" memories stop resurfacing. Insights gains a 30-day kept-days dot grid and a skyline.
+
+## Counting profiles and usage
+
+Keep has no server, so counts come from the site's Google tag (`GTAG_ID`, on in real builds only). Events, never carrying a handle, name or memory content: `ig_link` and `ig_unlink` (someone linked or unlinked Instagram, by any path), `memory_save` (with the kind: photo, voice, note...), `chat_ask`, `invite` (share method). Each person also gets a user property `ig_linked` = `yes`/`no`. In Google Analytics: Reports > Engagement > Events shows the counts and unique users per event; to segment by `ig_linked`, add it under Admin > Custom definitions > Custom dimensions (scope: User). Profiles are counted as people who linked, not as a list of accounts: Keep cannot see who they are, and sending handles to Google Analytics is not allowed.
+
+## Instagram is required to start
+
+On first run the first tour step needs an Instagram link before anything else: one-tap sign-in when `IG_APP_ID`/`IG_API` are set, otherwise typing the handle. Skip is hidden on that step and the final step cannot be reached without it. The tour replayed later from Profile stays optional, and people who already finished the tour are not asked. A typed handle is not verified (Instagram offers no way to check a personal account without a login); one-tap sign-in verifies Business and Creator accounts only.
