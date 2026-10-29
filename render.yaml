@@ -14,7 +14,7 @@ services:
       - key: IG_API
         value: https://keep-instagram.onrender.com
       - key: GTAG_ID
-        sync: false
+        value: G-LR0ZL46FF6
   - type: web
     name: keep-instagram
     runtime: node

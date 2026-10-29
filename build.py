@@ -5,7 +5,7 @@ Config comes from the environment or a local .env file (never committed):
   FIREBASE_CONFIG  optional, Firebase web app config as JSON (App Check)
   RECAPTCHA_KEY    optional, reCAPTCHA Enterprise site key (App Check)
   IG_APP_ID, IG_API  optional, one-tap Instagram sign-in (Meta app ID, and the URL of the deployed worker/instagram.js)
-  GTAG_ID    optional, a Google tag ID (G-XXXXXXXXXX) for page-view analytics; off when empty
+  GTAG_ID    Google tag ID for page-view analytics (default: the Keep site's own; "off" disables). Not added to the demo build or on localhost
   KEEP_DEMO  1 = sample memories, fixed demo date and a simulated keyboard (default: off, a real app)
 Usage: python3 build.py            real app
        KEEP_DEMO=1 python3 build.py   demo build
@@ -44,10 +44,12 @@ head=('<meta charset="utf-8"><meta name="viewport" content="width=device-width,i
  '<meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.webmanifest">'
  '<link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">'
  '<script>window.KEEP='+json.dumps(cfg)+'</script>')
-gt=get('GTAG_ID')
-if gt and not re.fullmatch(r'(G|GT|AW|DC)-[A-Za-z0-9]{4,20}',gt):raise SystemExit('GTAG_ID must look like G-XXXXXXXXXX')
-if gt:head+=('<script async src="https://www.googletagmanager.com/gtag/js?id='+gt+'"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}'
- "gtag('js',new Date());gtag('config','"+gt+"',{page_location:location.origin+location.pathname,page_referrer:'',allow_google_signals:false,allow_ad_personalization_signals:false})</script>")
+gt=get('GTAG_ID','' if demo else 'G-LR0ZL46FF6')  # a tag ID is public (it is in the page source); set GTAG_ID=off to build without it
+if gt=='off':gt=''
+if gt and not re.fullmatch(r'(G|GT|AW|DC)-[A-Za-z0-9]{4,20}',gt):raise SystemExit('GTAG_ID must look like G-XXXXXXXXXX (or "off")')
+if gt:head+=("<script>(function(){var h=location.hostname;if(h==='localhost'||h==='127.0.0.1')return;window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments)};"
+ "var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id="+gt+"';document.head.appendChild(s);"
+ "gtag('js',new Date());gtag('config','"+gt+"',{page_location:location.origin+location.pathname,page_referrer:'',allow_google_signals:false,allow_ad_personalization_signals:false})})()</script>")
 shutil.rmtree('dist',ignore_errors=True);shutil.copytree('public','dist')
 open('dist/index.html','w').write('<!doctype html><html lang="en"><head>'+head+'</head><body>'+body+'</body></html>')
 open('dist/sw.js','w').write(r('src/sw.js').replace('__VERSION__',ver))

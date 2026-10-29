@@ -39,9 +39,9 @@ Local build: `cp .env.example .env`, fill it in, `python3 build.py`, serve `dist
 
 A key saved in Profile → Google Maps (or opened once via `https://<site>/#gmkey=KEY`) overrides the built-in one on that device.
 
-## Google tag (optional)
+## Google tag
 
-Set `GTAG_ID` (a Google tag ID such as `G-XXXXXXXXXX`, from Google Analytics → Admin → Data streams) in the Render environment or `.env` and rebuild. It is off when empty. When on, the page loads Google's tag and reports page views only: the address is trimmed to the page path (no query or login codes), the referrer is blanked, and Google signals and ad personalization are off. Memories, names, photos and Instagram details are never sent. Because this means Google sees visits, the onboarding line "Nothing uploaded" still holds for your memories, but say so in your privacy policy if you publish the app.
+Real (non-demo) builds include Google's tag with the site's own ID, `G-LR0ZL46FF6` (a tag ID is public, like the page source it sits in). Set `GTAG_ID` to use a different one, or `GTAG_ID=off` to build without it. It is never added to the demo build, and it does nothing on `localhost`. The tag reports page views only: the address is trimmed to the page path (no query or login codes), the referrer is blanked, and Google signals and ad personalization are off. Memories, names, photos and Instagram details are never sent. Because Google sees visits, mention it in a privacy policy if you publish the app; the onboarding line "Nothing uploaded" still holds for memories.
 
 ## Local setup
 
