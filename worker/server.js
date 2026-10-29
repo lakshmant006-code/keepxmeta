@@ -1,11 +1,11 @@
 /* Runs the Keep server as a plain Node server (for Render, Fly, or any host with Node 18+).
-   Same code as the Cloudflare Worker: Instagram sign-in, plus (when FIREBASE_SERVICE_ACCOUNT and SESSION_SECRET are set) a small
-   account store. Env: IG_APP_ID, IG_APP_SECRET, ALLOWED_ORIGIN (comma-separated, e.g. https://keepxmeta.onrender.com)
+   Sign in with Google plus (when FIREBASE_SERVICE_ACCOUNT and SESSION_SECRET are set) a small
+   account store. Env: ALLOWED_ORIGIN (comma-separated, e.g. https://keepxmeta.onrender.com)
    SESSION_SECRET (long random string), GOOGLE_CLIENT_ID (for Google sign-in), FIREBASE_SERVICE_ACCOUNT (service account key JSON), PORT. */
 import http from 'node:http';
-import {handle} from './instagram.js';
+import {handle} from './api.js';
 import {makeStore,memoryStore} from './store.js';
-const env={IG_APP_ID:process.env.IG_APP_ID,IG_APP_SECRET:process.env.IG_APP_SECRET,ALLOWED_ORIGIN:process.env.ALLOWED_ORIGIN,SESSION_SECRET:process.env.SESSION_SECRET,GOOGLE_CLIENT_ID:process.env.GOOGLE_CLIENT_ID};
+const env={ALLOWED_ORIGIN:process.env.ALLOWED_ORIGIN,SESSION_SECRET:process.env.SESSION_SECRET,GOOGLE_CLIENT_ID:process.env.GOOGLE_CLIENT_ID};
 if(env.SESSION_SECRET){
   try{env.store=await makeStore(process.env);console.log('accounts on ('+env.store.kind+')')}
   catch(e){console.error('could not start the account store:',e.message);env.store=memoryStore();console.log('accounts on (memory fallback)')}

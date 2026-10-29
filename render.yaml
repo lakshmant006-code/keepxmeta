@@ -9,8 +9,6 @@ services:
     envVars:
       - key: GM_KEY
         sync: false
-      - key: IG_APP_ID
-        sync: false
       - key: IG_API
         value: https://keep-instagram.onrender.com
       - key: GOOGLE_CLIENT_ID
@@ -27,10 +25,6 @@ services:
     envVars:
       - key: ALLOWED_ORIGIN
         value: https://keepxmeta.onrender.com
-      - key: IG_APP_ID
-        sync: false
-      - key: IG_APP_SECRET
-        sync: false
       - key: SESSION_SECRET
         generateValue: true
       - key: FIREBASE_SERVICE_ACCOUNT

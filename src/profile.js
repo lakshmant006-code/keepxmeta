@@ -34,8 +34,7 @@ async function meImport(files){
   if(!got.length){toast('Nothing found. Choose personal_information.json and a profile photo from the download.');return}
   meSave(me);renderProf();openProfile();toast('Imported your '+[...new Set(got)].join(', '));
 }
-/* One-tap Instagram: only on when the build has IG_APP_ID and IG_API (a deployed worker/instagram.js). Works with Business and Creator accounts. */
-/* ---- account: a verified Instagram sign-in the Keep server remembers (identity only; memories stay on the phone) ---- */
+/* ---- account: a Google sign-in the Keep server remembers (identity only; memories stay on the phone) ---- */
 const SES='kept.session',acctOn=()=>!!CFG.igApi&&!CFG.demo,acctTok=()=>{try{return localStorage.getItem(SES)||''}catch(e){return''}};
 const acctApi=(path,o)=>fetch(CFG.igApi.replace(/\/$/,'')+path,Object.assign({cache:'no-store'},o,{headers:Object.assign({authorization:'Bearer '+acctTok()},(o||{}).headers)}));
 const acctClear=()=>{try{localStorage.removeItem(SES)}catch(e){}};
@@ -68,47 +67,21 @@ async function acctDelete(){
   try{const r=await acctApi('/me',{method:'DELETE'});if(!r.ok)throw 0}catch(e){toast('Could not reach Keep. Try again.');return}
   acctClear();useTrack('account_delete');toast('Your account was deleted');openProfile();
 }
-const IGS='kept.igstate',igSyncOn=()=>!!(CFG.igAppId&&CFG.igApi),igRedirect=()=>location.origin+location.pathname;
-function igSyncStart(){
-  let st='';try{st=[...crypto.getRandomValues(new Uint32Array(4))].join('-');sessionStorage.setItem(IGS,st)}catch(e){toast('Turn on site storage to sign in');return}
-  location.href='https://www.instagram.com/oauth/authorize?'+new URLSearchParams({client_id:CFG.igAppId,redirect_uri:igRedirect(),response_type:'code',scope:'instagram_business_basic',state:st});
-}
-const meSquare=url=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const s=Math.min(i.naturalWidth,i.naturalHeight),c=document.createElement('canvas');c.width=c.height=256;
-  c.getContext('2d').drawImage(i,(i.naturalWidth-s)/2,(i.naturalHeight-s)/2,s,s,0,0,256,256);res(c.toDataURL('image/jpeg',.88))};i.onerror=rej;i.src=url});
-async function igSyncFinish(){
-  const q=new URLSearchParams(location.search);if(!q.has('code')&&!q.has('error'))return;
-  const code=(q.get('code')||'').replace(/#_$/,''),state=q.get('state'),err=q.has('error');let same=false;
-  try{same=!!state&&state===sessionStorage.getItem(IGS);sessionStorage.removeItem(IGS)}catch(e){}
-  history.replaceState(null,'',location.pathname);
-  if(err){toast('Instagram sign-in was cancelled');return}
-  if(!code||!same||!igSyncOn()){toast('That Instagram sign-in could not be checked. Try again.');return}
-  toast('Getting your Instagram details…');
-  try{
-    const r=await fetch(CFG.igApi.replace(/\/$/,'')+'/exchange',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({code,redirect_uri:igRedirect()})});
-    if(!r.ok)throw 0;const d=await r.json(),me=meGet();
-    if(d.name)me.name=String(d.name).slice(0,40);if(d.username)me.ig=igUser(d.username);if(d.bio)me.bio=String(d.bio).slice(0,160);
-    if(d.session){try{localStorage.setItem(SES,d.session);localStorage.setItem(PRV,'instagram')}catch(e){}useTrack('ig_signin',{verified:'yes',new_account:d.created?'yes':'no'})}
-    meSave(me);if(/^data:image\//.test(d.picture||'')){try{pfpSet(await meSquare(d.picture))}catch(e){}}
-    renderProf();if($('#intro')){const ig=$('#igAct');if(ig&&me.ig)toast('Linked @'+me.ig)}else{openProfile();toast('Linked @'+(me.ig||'instagram')+'. Your details are saved.')}
-  }catch(e){toast('Could not reach Instagram just now. You can type your handle instead.')}
-}
-setTimeout(igSyncFinish,0);
 function acctRow(){
   if(!acctOn())return'';
-  if(acctTok())return`<p class="meb acct ok">Signed in with ${acctProv()==='google'?'Google':'Instagram'}${acctSince?' since '+new Date(acctSince).toLocaleDateString(undefined,{month:'short',year:'numeric'}):''}. <button class="mel" id="acctOut">Delete my account</button></p>`;
+  if(acctTok())return`<p class="meb acct ok">Signed in with Google${acctSince?' since '+new Date(acctSince).toLocaleDateString(undefined,{month:'short',year:'numeric'}):''}. <button class="mel" id="acctOut">Delete my account</button></p>`;
   return (googleOn()?'<div class="gbtn" id="gBtn"></div>':'')+me_ig_hint();
 }
-const me_ig_hint=()=>meGet().ig?'<p class="meb acct">Your Instagram handle is saved on this phone but not verified. Sign in with Instagram to make it count.</p>':'';
+const me_ig_hint=()=>'';
 function meCard(){
   const me=meGet(),u=pfp(),ig=me.ig;
   return`<div class="me"><label id="pfpLab" class="mep ${u?'':'nopic'}" style="${u?`background-image:url(${u})`:''}" aria-label="Choose a profile photo">${u?'':esc(meInitial())}<span class="cam">${ic.img.replace('width="22" height="22"','width="14" height="14"')}</span><input type="file" id="pfpIn" accept="image/*" hidden></label>
    <input class="mein" id="meName" placeholder="Your name" maxlength="40" value="${esc(me.name||'')}" autocomplete="off">
    ${me.bio?`<p class="meb">${esc(me.bio)}</p>`:''}
    ${acctRow()}
-   <div class="meig">${ig?`<a class="chip fb flat" href="${igLink(ig)}" target="_blank" rel="noopener">${ic.ig} @${esc(ig)}</a><button class="mel" id="meIgEdit">Change</button><button class="mel" id="meIgOff">Unlink</button>${igSyncOn()?'<button class="mel" id="meIgSync">Sync again</button>':''}`
-     :igSyncOn()?`<button class="pill d" id="meIgSync">${ic.ig} Continue with Instagram</button><button class="mel" id="meIgOn">Type my handle instead</button>`
-     :`<button class="pill d" id="meIgOn">${ic.ig} Link Instagram</button>`}</div>
-   ${igSyncOn()&&!ig?'<p class="meb" style="font-size:12px;color:var(--faint)">Fills in your name, photo and bio. Works with Business and Creator accounts. Keep keeps no copy of your login.</p>':''}
+   <div class="meig">${ig?`<a class="chip fb flat" href="${igLink(ig)}" target="_blank" rel="noopener">${ic.ig} @${esc(ig)}</a><button class="mel" id="meIgEdit">Change</button><button class="mel" id="meIgOff">Remove</button>`
+     :`<button class="pill d" id="meIgOn">${ic.ig} Add your Instagram username</button>`}</div>
+   ${ig?'':'<p class="meb" style="font-size:12px;color:var(--faint)">Optional. It stays on this phone and helps friends find you.</p>'}
    <div class="meup"><label class="mel">Import from your Instagram download<input type="file" id="meImp" accept=".json,image/*" multiple hidden></label>${u?'<button class="mel" id="pfpRm">Remove photo</button>':''}</div></div>`;
 }
 function meWire(){
@@ -119,7 +92,6 @@ function meWire(){
     $('#meIgIn').focus();const save=()=>{const v=igUser($('#meIgIn').value);if(!v){toast('Type your Instagram username');return}const o=me();o.ig=v;meSave(o);openProfile();toast('Instagram linked')};
     $('#meIgSave').onclick=save;$('#meIgIn').addEventListener('keydown',e=>{if(e.key==='Enter')save()});
   };
-  if($('#meIgSync'))$('#meIgSync').onclick=igSyncStart;
   if($('#acctOut'))$('#acctOut').onclick=acctDelete;
   if($('#gBtn'))googleButton($('#gBtn'),()=>{openProfile();toast('Signed in with Google')});
   if($('#meIgOn'))$('#meIgOn').onclick=askIg;if($('#meIgEdit'))$('#meIgEdit').onclick=askIg;

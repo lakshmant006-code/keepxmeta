@@ -181,20 +181,6 @@ Chime-inspired, all on-device. Profile > Notifications is a quiet inbox (On this
 
 Keep has no server, so counts come from the site's Google tag (`GTAG_ID`, on in real builds only). Events, never carrying a handle, name or memory content: `ig_link` and `ig_unlink` (someone linked or unlinked Instagram, by any path), `memory_save` (with the kind: photo, voice, note...), `chat_ask`, `invite` (share method). Each person also gets a user property `ig_linked` = `yes`/`no`. In Google Analytics: Reports > Engagement > Events shows the counts and unique users per event; to segment by `ig_linked`, add it under Admin > Custom definitions > Custom dimensions (scope: User). Profiles are counted as people who linked, not as a list of accounts: Keep cannot see who they are, and sending handles to Google Analytics is not allowed.
 
-## Instagram is required to start
+## Sign in is Google; Instagram is an optional username
 
-On first run the first tour step needs an Instagram link before anything else: one-tap sign-in when `IG_APP_ID`/`IG_API` are set, otherwise typing the handle. Skip is hidden on that step and the final step cannot be reached without it. The tour replayed later from Profile stays optional, and people who already finished the tour are not asked. A typed handle is not verified (Instagram offers no way to check a personal account without a login); one-tap sign-in verifies Business and Creator accounts only.
-
-## Accounts (Keep server)
-
-The Node helper in `worker/` is now a small account server. A person signs in with Instagram (the code is traded for a profile on the server, which holds the app secret), the server keeps **only** their identity (Instagram id, username, name, created and last-seen dates) in Firestore, and returns a signed 30-day session token that the app stores as `kept.session`. Memories, photos and voice notes never leave the phone.
-
-- `POST /exchange`: Instagram code in; profile plus `session` out. `GET /me`: the account (and refreshes last seen). `DELETE /me`: deletes the account (Profile > Delete my account). `GET /stats`: `{users}`, the number of accounts. `/health`: for Render.
-- Render env on `keep-instagram`: `IG_APP_ID`, `IG_APP_SECRET`, `ALLOWED_ORIGIN`, `SESSION_SECRET` (generated), and `FIREBASE_SERVICE_ACCOUNT` (the JSON of a Firebase service account key; create a Firestore database in Native mode first). Without `SESSION_SECRET` accounts are off and sign-in works as before; without `FIREBASE_SERVICE_ACCOUNT` accounts live in memory and vanish on restart (fine for trying it out only).
-- Firestore rules: leave the database closed to clients (default deny); only the server, using the service account, reads and writes the `keepUsers` collection.
-- Instagram's login only works for Business and Creator accounts. The first-run step also lets anyone type a handle instead; that is kept on the phone, marked "not verified", and does not create an account.
-- The Cloudflare Worker build (`wrangler.toml`) has no database, so accounts are Node/Render only.
-
-### Sign in with Google
-
-Set `GOOGLE_CLIENT_ID` (an OAuth *web* client ID, public) on **both** Render services: the site needs it to show Google's button, the server to check the token's audience. The button comes from Google Identity Services; the app sends the ID token to `POST /google`, the server verifies the RS256 signature against Google's published keys (and issuer, audience, expiry, verified email) and creates or finds the account `g<google id>`, storing only email and name, then returns the same session token as Instagram. Add your site's origin (e.g. `https://keepxmeta.onrender.com`) under Authorized JavaScript origins for that client. The first-run tour accepts Google **or** Instagram. Profile shows which one you used.
+Signing in with Google is required on first run (when `GOOGLE_CLIENT_ID` and `IG_API` are set; with neither, the tour has no sign-in step and Keep works as before). The tour then offers an optional "Add your Instagram" step: a typed username kept on the phone, used for invites and friends, not verified and not sent to the server. Profile has the same option (Add, Change, Remove). The earlier Instagram login (OAuth, `/exchange`, `IG_APP_ID`, `IG_APP_SECRET`) has been removed. The tour replayed later from Profile stays optional.
