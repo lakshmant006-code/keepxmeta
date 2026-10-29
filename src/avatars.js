@@ -1,5 +1,5 @@
 /* ---------- Avatars: style editor, and your own .glb avatar file ---------- */
-/* Meta's avatars cannot be used outside Meta's apps, so Keep has its own: change a person's look here, or import any .glb avatar
+/* Keep's own avatars: change a person's look here, or import any .glb avatar
    (VRoid, Avaturn, Blender, Ready Player Me exports without compression). Looks live in this browser and ride along in backups; imported files stay on this phone. */
 
 /* ---- imported files: one small IndexedDB per browser, keyed by the person's name ---- */
@@ -80,7 +80,7 @@ function avEdit(){
      <div class="edl">Extras</div><div class="edr"><button class="edc ${L.glasses?'on':''}" data-t="glasses" data-v="${L.glasses?0:1}">Glasses</button></div>
      <div class="edl">Your own avatar</div>
      <div class="edr"><label class="edc" style="cursor:pointer">${hasFile?'Replace file':'Import .glb file'}<input type="file" id="edFile" accept=".glb,.vrm,model/gltf-binary" hidden></label>${hasFile?'<button class="edc" id="edRm">Remove file</button>':''}<button class="edc" id="edReset">Reset look</button></div>
-     <div class="edn" id="edMsg">Meta avatars cannot be exported, but any .glb avatar file works. It stands in the scene in an arms-down pose; sit and wave need the built-in figure.</div>`;
+     <div class="edn" id="edMsg">Any .glb avatar file works. It stands in the scene in an arms-down pose; sit and wave need the built-in figure.</div>`;
     $('#edDone').onclick=close;
     $('#edReset').onclick=()=>{const g=LOOKS[key];if(g&&g.glb)LOOKS[key]={glb:true};else delete LOOKS[key];saveLooks();draw();arRestyle()};
     if($('#edRm'))$('#edRm').onclick=async()=>{try{await avDB.del(key)}catch(e){}const g=LOOKS[key]||{};delete g.glb;LOOKS[key]=g;saveLooks();draw();arRestyle();toast('Avatar file removed')};

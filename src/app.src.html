@@ -408,7 +408,7 @@ const fullDay=d=>longDay(d)+', '+d.getFullYear();
 const tstr=ts=>{const d=new Date(ts);let h=d.getHours(),m=pad(d.getMinutes());const ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+m+' '+ap};
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ini=n=>n.split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
-/* Stylized 3D-avatar bust (Meta avatar reference): glossy shaded head, hair, jacket. Deterministic per name. */
+/* Stylized 3D-avatar bust glossy shaded head, hair, jacket. Deterministic per name. */
 const avKey=n=>{let h=0;for(const c of n||'?')h=(h*31+c.charCodeAt(0))>>>0;return h};
 /* palettes: the first entries are what a name picks by default (unchanged); the rest are there to choose from in the style editor */
 const SKINS=[['#FFD9BF','#E9A67F'],['#F3C09A','#C98558'],['#D9A27A','#A8693F'],['#B97D55','#7E4A2B'],['#8D5A3A','#5B3420'],['#FFE6D5','#F0B796'],['#C58E65','#92602F'],['#6E4328','#442612']];
