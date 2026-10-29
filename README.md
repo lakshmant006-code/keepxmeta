@@ -180,3 +180,7 @@ Chime-inspired, all on-device. Profile > Notifications is a quiet inbox (On this
 ## Counting profiles and usage
 
 Keep has no server, so counts come from the site's Google tag (`GTAG_ID`, on in real builds only). Events, never carrying a handle, name or memory content: `ig_link` and `ig_unlink` (someone linked or unlinked Instagram, by any path), `memory_save` (with the kind: photo, voice, note...), `chat_ask`, `invite` (share method). Each person also gets a user property `ig_linked` = `yes`/`no`. In Google Analytics: Reports > Engagement > Events shows the counts and unique users per event; to segment by `ig_linked`, add it under Admin > Custom definitions > Custom dimensions (scope: User). Profiles are counted as people who linked, not as a list of accounts: Keep cannot see who they are, and sending handles to Google Analytics is not allowed.
+
+## Instagram is required to start
+
+On first run the first tour step needs an Instagram link before anything else: one-tap sign-in when `IG_APP_ID`/`IG_API` are set, otherwise typing the handle. Skip is hidden on that step and the final step cannot be reached without it. The tour replayed later from Profile stays optional, and people who already finished the tour are not asked. A typed handle is not verified (Instagram offers no way to check a personal account without a login); one-tap sign-in verifies Business and Creator accounts only.

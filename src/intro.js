@@ -16,14 +16,15 @@ function introBoom(x,y){
 const introCenter=el=>{const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}};
 const introTiles=[['img','#4F9BFF',-112,-96,.6,0],['mic','#FF5C8A',104,-104,.9,-1.2],['quote','#8E7CFF',-120,44,1.1,-2.1],['pin','#1F9D61',116,36,.7,-.6],['cube','#FFB020',-30,-134,.5,-3],['users','#0AA5C2',24,122,1,-1.7],['txt','#6B7280',-70,118,.8,-2.6]];
 const INTRO_AT='kept.introat';
+let introMust=false; /* first run: linking Instagram is required before the tour can go on; a later replay from Profile stays optional */
 const introSteps=[
- {h:'Start with Instagram',p:'Link it and Keep fills in your name, photo and bio for you. You can skip this.',hint:'',
+ {h:'Start with Instagram',get p(){return introMust?'Link your Instagram to get started. Keep fills in your name, photo and bio for you.':'Link it and Keep fills in your name, photo and bio for you. You can skip this.'},hint:'',
   art(){return`<div class="ig-tile">${ic.ig.replace('width="22" height="22"','width="64" height="64"')}</div><div class="ig-act" id="igAct"></div>`},
   run(root,done){
     invRefCard($('#igAct').parentNode);
-    const act=$('#igAct'),linked=()=>{const h=root.querySelector('.ihint');h.textContent='Linked @'+meGet().ig+'. Nice.';h.classList.add('ok');act.innerHTML='';introBoom(...Object.values(introCenter($('.ig-tile'))));introBuzz(18);done(true,'Continue')};
+    const act=$('#igAct'),linked=()=>{const h=root.querySelector('.ihint');h.textContent='Linked @'+meGet().ig+'. Nice.';h.classList.add('ok');act.innerHTML='';introBoom(...Object.values(introCenter($('.ig-tile'))));introBuzz(18);done(true,'Continue');const sk=$('#iSk');if(sk)sk.style.visibility='visible'};
     if(meGet().ig){linked();return}
-    done(true,'Skip for now');
+    if(introMust)done(false,'Link Instagram to continue');else done(true,'Skip for now');
     const typed=()=>{act.innerHTML=`<div class="meat"><span>@</span><input id="igIn" placeholder="instagram username" autocapitalize="none" autocorrect="off"></div><button class="pill d" id="igSave" style="height:40px;padding:0 16px">Save</button>`;
       const sv=()=>{const v=igUser($('#igIn').value);if(!v){toast('Type your Instagram username');return}const o=meGet();o.ig=v;meSave(o);renderProf();linked()};
       $('#igSave').onclick=sv;$('#igIn').addEventListener('keydown',e=>{if(e.key==='Enter')sv()})};
@@ -118,8 +119,9 @@ function introOpen(){
   const d=document.createElement('div');d.id='intro';const n=introSteps.length;
   d.innerHTML=`<div class="itop"><div class="ibar">${introSteps.map(()=>'<i></i>').join('')}</div><button class="isk" id="iSk">Skip</button></div><div class="istage" id="iSt"></div><button class="pill d igo" id="iGo"></button>`;
   $('#app').appendChild(d);if(!introReduced())d.animate([{opacity:0},{opacity:1}],{duration:420,easing:'ease-out'});
+  introMust=!introDone()&&!meGet().ig;
   let i=-1,cur=null;const st=$('#iSt'),go=$('#iGo'),bars=[...d.querySelectorAll('.ibar i')];
-  const finish=()=>{try{localStorage.setItem(INTRO,'1')}catch(e){}if(cur&&cur._off)cur._off();d.animate([{opacity:1},{opacity:0}],{duration:introReduced()?1:260}).onfinish=()=>{d.remove();onbMaybe()}};
+  const finish=()=>{if(introMust&&!meGet().ig){show(0);return}try{localStorage.setItem(INTRO,'1')}catch(e){}if(cur&&cur._off)cur._off();d.animate([{opacity:1},{opacity:0}],{duration:introReduced()?1:260}).onfinish=()=>{d.remove();onbMaybe()}};
   const show=k=>{
     const s=introSteps[k],old=cur;i=k;
     const el=document.createElement('div');el.className='islide';
@@ -130,10 +132,10 @@ function introOpen(){
     st.appendChild(el);cur=el;
     bars.forEach((b,j)=>b.classList.toggle('on',j<=k));
     go.disabled=true;go.classList.remove('ready');go.textContent=k===n-1?'Open Keep':'Continue';
-    $('#iSk').style.visibility=k===n-1?'hidden':'visible';
+    $('#iSk').style.visibility=k===n-1||(k===0&&introMust)?'hidden':'visible';
     s.run(el,(ok,label)=>{go.disabled=!ok;if(label)go.textContent=label;if(ok&&label!=='Skip for now')go.classList.add('ready')});
   };
-  go.onclick=()=>{if(go.disabled)return;i===n-1?finish():show(i+1)};$('#iSk').onclick=finish;
+  go.onclick=()=>{if(go.disabled)return;i===n-1?finish():show(i+1)};$('#iSk').onclick=()=>{if(introMust&&!meGet().ig){toast('Link your Instagram to continue');return}finish()};
   let at=0;try{if(sessionStorage.getItem(INTRO_AT)){sessionStorage.removeItem(INTRO_AT);at=1}}catch(e){}
   show(at);
 }
