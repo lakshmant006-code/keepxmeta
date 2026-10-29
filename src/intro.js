@@ -98,7 +98,7 @@ const introSteps=[
     done(true)}},
  {h:'Yours alone',p:'No account. No server. Nothing uploaded. Everything stays on this phone.',hint:'Press and hold to lock it in',
   art(){return`<div class="l-wrap"><div class="l-btn" id="lBtn" role="button" tabindex="0" aria-label="Press and hold to lock">
-   <svg class="rg" viewBox="0 0 168 168"><circle cx="84" cy="84" r="80" fill="none" stroke="var(--fill2)" stroke-width="6"/><circle id="lRg" cx="84" cy="84" r="80" fill="none" stroke="#1F9D61" stroke-width="6" stroke-linecap="round" stroke-dasharray="502.7" stroke-dashoffset="502.7"/></svg>
+   <svg class="lring" viewBox="0 0 168 168" width="168" height="168"><circle class="lt" cx="84" cy="84" r="80"/><circle class="lp" id="lRg" cx="84" cy="84" r="80"/></svg>
    <div class="core"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path class="sh" d="M8 11V8a4 4 0 018 0v3"/></svg></div></div>
    <div class="l-tags"><span>On this phone</span><span>No account</span><span>No upload</span></div></div>`},
   run(root,done){
