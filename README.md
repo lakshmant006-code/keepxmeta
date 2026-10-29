@@ -183,6 +183,12 @@ Keep's server keeps no usage data, so counts come from the site's Google tag (`G
 
 ## Sign in is Google; Instagram is an optional username
 
+On first run the first tour step needs an Instagram link before anything else: one-tap sign-in when `IG_APP_ID`/`IG_API` are set, otherwise typing the handle. Skip is hidden on that step and the final step cannot be reached without it. The tour replayed later from Profile stays optional, and people who already finished the tour are not asked. A typed handle is not verified (Instagram offers no way to check a personal account without a login); one-tap sign-in verifies Business and Creator accounts only.
+
+## Keeping the Instagram helper awake
+
+Render's free web services sleep after about 15 minutes idle (the static Keep site does not). Two things keep `keep-instagram` warm: the app pings its `/health` when opened or brought to the front and every 10 minutes while open (at most every 8 minutes), and `.github/workflows/keepalive.yml` pings it every 10 minutes from GitHub Actions (set the `IG_API` repo secret to override the default URL). Free instances also have a monthly hour allowance, so keep it to this one service.
+
 Signing in with Google is required on first run (when `GOOGLE_CLIENT_ID` and `IG_API` are set; with neither, the tour has no sign-in step and Keep works as before). The tour then offers an optional "Add your Instagram" step: a typed username kept on the phone, used for invites and friends, not verified and not sent to the server. Profile has the same option (Add, Change, Remove). The earlier Instagram login (OAuth, `/exchange`, `IG_APP_ID`, `IG_APP_SECRET`) has been removed. The tour replayed later from Profile stays optional.
 
 ## Accounts (Keep server)
