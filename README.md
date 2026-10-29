@@ -15,6 +15,8 @@ A single static web app, installable on a phone (PWA). Everything you keep is st
 
 ## First launch
 
+A hands-on intro shows once, then the photo import below: confetti from the logo, drag a photo onto the calendar, tap a question and watch Keep answer (or say nothing matches), pick a pose for an avatar, and press and hold to lock it in. Phones buzz on each step. Open the site with `?intro` to see it again. Screen recordings: `docs/videos/onboarding.mp4` (the first-time experience: opening the app, the intro, importing a month of photos, the first calendar and day) and `docs/videos/screens.mp4` (calendar, a day, search, Insights, Places, Profile).
+
 The first time Keep opens with nothing in it, it asks you to bring in a month of memories: **Choose photos** opens the phone's own photo picker (a web app cannot read the library silently). Each photo is filed on the day it was taken (EXIF date, falling back to the file's date) and keeps its location if the photo carries one, so it shows up on the map. Up to 300 photos per go; photos already kept are skipped. Profile → Import photos runs the same flow again. On iPhone, location is only included if you allow it in the picker's Options.
 
 ## Updates
@@ -36,6 +38,23 @@ All configuration is read at build time from environment variables or a local `.
 Local build: `cp .env.example .env`, fill it in, `python3 build.py`, serve `dist/` over HTTPS or localhost (camera, location and the service worker need a secure origin).
 
 A key saved in Profile → Google Maps (or opened once via `https://<site>/#gmkey=KEY`) overrides the built-in one on that device.
+
+## Google tag
+
+Real (non-demo) builds include Google's tag with the site's own ID, `G-LR0ZL46FF6` (a tag ID is public, like the page source it sits in). Set `GTAG_ID` to use a different one, or `GTAG_ID=off` to build without it. It is never added to the demo build, and it does nothing on `localhost`. The tag reports page views only: the address is trimmed to the page path (no query or login codes), the referrer is blanked, and Google signals and ad personalization are off. Memories, names, photos and Instagram details are never sent. Because Google sees visits, mention it in a privacy policy if you publish the app; the onboarding line "Nothing uploaded" still holds for memories.
+
+## Local setup
+
+```bash
+cp .env.example .env   # fill in what you have; .env is git-ignored
+KEEP_DEMO=1 python3 build.py && python3 -m http.server -d dist 8000
+```
+
+Open `http://localhost:8000/` (add `?intro` to replay the intro). `LLM_API_KEY` is read by nothing in the web app on purpose: anything built into a static site is public, so a key like that belongs in a worker secret (`wrangler secret put`), not in `.env` for the client build.
+
+## Deploying on Render
+
+`render.yaml` describes two services: the static site and `keep-instagram` (the sign-in helper, `worker/server.js`). Create them from the Blueprint, then in the Render dashboard set `IG_APP_ID` on both and `IG_APP_SECRET` on the helper (both come from your Meta app: Instagram API with Instagram Login; add `https://keepxmeta.onrender.com/` as the OAuth redirect URI). Until they are set, onboarding offers to type an Instagram handle instead. Rebuild the site after setting `IG_APP_ID`.
 
 ## What's inside
 
@@ -77,9 +96,15 @@ Meta and Instagram avatars cannot be used outside Meta's own apps (the Meta Avat
 - **Style editor.** In Re-live, tap **Style** to change a person's skin tone, hair style and colour, top (tee or hoodie) and colour, pants and glasses. The avatar updates as you tap. Looks are saved in this browser and included in Back up / Restore. People you never style keep the look their name gave them.
 - **Your own avatar file.** In the same panel, **Import .glb file** uses any `.glb` (or `.vrm`) avatar: VRoid Studio, Avaturn, Blender, or other exports **without Draco or Meshopt compression**, up to 40 MB. It is sized to a person, stood on the ground, and its arms are swung down from a T-pose. It stands in Re-live and Street View but does not sit or wave (that needs the built-in figure). The file stays on this phone, in its own storage, and is not part of Back up. Remove it any time to go back to the built-in figure.
 
-## Profile photo
+## Profile
 
-Profile → tap the circle at the top to choose a photo. It is cropped to a square, kept on this phone, and shown in the header button in place of the letter. Remove photo brings the letter back. Back up carries it and Restore puts it back if you have none.
+Profile → tap the circle to choose a photo (cropped to a square, kept on this phone, shown in the header button), and type your name; the header shows your initial until you add a photo. Everyday items are up top (Appearance, Insights, Friends, People, Import photos, Back up, Restore); Revisits, Updates, Hard refresh, Install app and Google Maps are under **More settings**.
+
+**Instagram.** Instagram does not let apps sign in to an account and read it, so Keep cannot pull your details automatically. **Link Instagram** saves your handle and shows a button to your profile. **Import from your Instagram download** reads `personal_information.json` (name, username, bio) and a profile photo from Instagram's own download, on the phone, and fills the profile in one go. Your details are included in Back up and Restore.
+
+## Day journal
+
+A day opens as a timeline: a line down the left with a dot for each moment, and **Add to this day** at the end of the line. Whatever you keep from there lands on that day and appears on the line when you return.
 
 ## Camera
 

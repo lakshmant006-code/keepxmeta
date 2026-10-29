@@ -4,6 +4,8 @@ Config comes from the environment or a local .env file (never committed):
   GM_KEY     Google Maps JavaScript API key (restrict it to your site's referrer in Google Cloud)
   FIREBASE_CONFIG  optional, Firebase web app config as JSON (App Check)
   RECAPTCHA_KEY    optional, reCAPTCHA Enterprise site key (App Check)
+  IG_APP_ID, IG_API  optional, one-tap Instagram sign-in (Meta app ID, and the URL of the deployed worker/instagram.js)
+  GTAG_ID    Google tag ID for page-view analytics (default: the Keep site's own; "off" disables). Not added to the demo build or on localhost
   KEEP_DEMO  1 = sample memories, fixed demo date and a simulated keyboard (default: off, a real app)
 Usage: python3 build.py            real app
        KEEP_DEMO=1 python3 build.py   demo build
@@ -27,19 +29,27 @@ body=(r('src/app.src.html').replace('__IMGS__',imgs).replace('__AR_CSS__',r('src
   .replace('__FACE_CSS__',r('src/faces.css')).replace('__FACE_JS__',r('src/faces.js'))
   .replace('__FR_CSS__',r('src/friends.css')).replace('__FR_JS__',r('src/friends.js'))
   .replace('__INS_CSS__',r('src/insights.css')).replace('__INS_JS__',r('src/insights.js'))
+  .replace('__INTRO_CSS__',r('src/intro.css')).replace('__INTRO_JS__',r('src/intro.js'))
+  .replace('__PROF_CSS__',r('src/profile.css')).replace('__PROF_JS__',r('src/profile.js'))
   .replace('__MOTION__',r('src/vendor/motion.min.js')).replace('__MOT_CSS__',r('src/motion.css')).replace('__MOT_JS__',r('src/motion.js')))
 ver=hashlib.sha1(body.encode()).hexdigest()[:10]
 def jget(k):
     v=get(k)
     try:return json.loads(v) if v else None
     except ValueError:raise SystemExit(k+' must be valid JSON (the Firebase web app config object)')
-cfg={'demo':demo,'gmKey':get('GM_KEY'),'firebase':jget('FIREBASE_CONFIG'),'recaptcha':get('RECAPTCHA_KEY'),'build':ver}
-head=('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
+cfg={'demo':demo,'gmKey':get('GM_KEY'),'firebase':jget('FIREBASE_CONFIG'),'recaptcha':get('RECAPTCHA_KEY'),'igAppId':get('IG_APP_ID'),'igApi':get('IG_API'),'build':ver}
+head=('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">'
  '<title>Keep</title><meta name="theme-color" content="#ffffff"><meta name="mobile-web-app-capable" content="yes">'
  '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Keep">'
  '<meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.webmanifest">'
  '<link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">'
  '<script>window.KEEP='+json.dumps(cfg)+'</script>')
+gt=get('GTAG_ID','' if demo else 'G-LR0ZL46FF6')  # a tag ID is public (it is in the page source); set GTAG_ID=off to build without it
+if gt=='off':gt=''
+if gt and not re.fullmatch(r'(G|GT|AW|DC)-[A-Za-z0-9]{4,20}',gt):raise SystemExit('GTAG_ID must look like G-XXXXXXXXXX (or "off")')
+if gt:head+=("<script>(function(){var h=location.hostname;if(h==='localhost'||h==='127.0.0.1')return;window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments)};"
+ "var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id="+gt+"';document.head.appendChild(s);"
+ "gtag('js',new Date());gtag('config','"+gt+"',{page_location:location.origin+location.pathname,page_referrer:'',allow_google_signals:false,allow_ad_personalization_signals:false})})()</script>")
 shutil.rmtree('dist',ignore_errors=True);shutil.copytree('public','dist')
 open('dist/index.html','w').write('<!doctype html><html lang="en"><head>'+head+'</head><body>'+body+'</body></html>')
 open('dist/sw.js','w').write(r('src/sw.js').replace('__VERSION__',ver))
