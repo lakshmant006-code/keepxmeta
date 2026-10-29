@@ -30,3 +30,7 @@
 #intro .stp-art{width:200px;height:200px;border-radius:100px;overflow:hidden;background:var(--fill2) center/cover;display:grid;place-items:center;margin:0 auto 18px;box-shadow:0 10px 30px rgba(8,102,255,.18);animation:ntpop .6s var(--spring)}
 #intro .stp-art svg{width:96px;height:96px;opacity:.5}
 .avdot{display:inline-block;width:26px;height:26px;border-radius:13px;background:center/cover;vertical-align:middle;margin-right:8px;box-shadow:0 0 0 1px var(--bd)}
+.stnote{font-size:13px;color:var(--mute);margin:2px 0 10px;line-height:1.4}
+.stu.real .stts,.stu.real .sttools .stc:not(#stRl){display:none}
+.stav{position:absolute;inset:0;z-index:5;background:var(--bg);display:flex;flex-direction:column}
+.stavc{flex:1;min-height:0}.stavc iframe{width:100%;height:100%;border:0}

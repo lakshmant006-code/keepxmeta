@@ -26,8 +26,8 @@ const stMax={skin:11,face:4,eyes:3,eyec:5,brows:3,nose:2,mouth:2,cheeks:1,freckl
 const stDefault=()=>({v:1,skin:3,face:0,eyes:0,eyec:1,brows:0,nose:1,mouth:1,cheeks:1,freckles:0,beard:0,hair:1,hairc:1,outfit:1,outc:0,body:1,glasses:0,head:0,hatc:3,ears:0,bg:0,idle:0});
 /* every value is checked against the catalog, so an old or damaged recipe can never break the avatar */
 function stClean(c){const d=stDefault(),o={v:1};for(const k in d){if(k==='v')continue;const n=+((c||{})[k]);o[k]=Number.isFinite(n)&&n>=0&&n<=stMax[k]?Math.floor(n):d[k]}return o}
-const stLoad=()=>{try{const o=JSON.parse(localStorage.getItem(STK)||'null');return o&&o.cfg?{cfg:stClean(o.cfg),snap:/^data:image\//.test(o.snap||'')?o.snap:''}:null}catch(e){return null}};
-const stPut=(cfg,snap)=>{try{localStorage.setItem(STK,JSON.stringify({v:1,cfg,snap}));return true}catch(e){toast('Could not save. Storage may be full.');return false}};
+const stLoad=()=>{try{const o=JSON.parse(localStorage.getItem(STK)||'null');return o&&o.cfg?{cfg:stClean(o.cfg),snap:/^data:image\//.test(o.snap||'')?o.snap:'',real:!!o.real}:null}catch(e){return null}};
+const stPut=(cfg,snap,real)=>{try{localStorage.setItem(STK,JSON.stringify({v:1,cfg,snap,real:real?1:0}));return true}catch(e){toast('Could not save. Storage may be full.');return false}};
 const stSnap=()=>{const o=stLoad();return o?o.snap:''};
 
 /* ---- the character ---- */
@@ -118,7 +118,7 @@ function stBuild(cfg){
 /* ---- the studio ---- */
 let stS=null;
 const stTabs=[['face','Face'],['hair','Hair'],['body','Body'],['style','Style'],['motion','Motion']];
-const stCam={face:[1.6,1.55,1.58],hair:[1.68,1.95,1.62],body:[1.3,3.4,1.3],style:[1.6,1.6,1.58],motion:[1.42,2.9,1.38]};
+const stCam={real:[1.55,1.75,1.5],face:[1.6,1.55,1.58],hair:[1.68,1.95,1.62],body:[1.3,3.4,1.3],style:[1.6,1.6,1.58],motion:[1.42,2.9,1.38]};
 const stClamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 async function studioOpen(opts){
   const el=$('#studio');if(!el||el.classList.contains('on'))return;
@@ -128,7 +128,7 @@ async function studioOpen(opts){
   el.innerHTML=`<div class="stt"><button class="stb" id="stX" aria-label="Close">${ic.x}</button><div class="stn"><small>Keep Studio</small><b>Make it yours.</b></div><span class="stsp"></span></div>
    <div class="stv" id="stV"><canvas id="stC" aria-label="Your avatar. Drag to rotate."></canvas><div class="sth" id="stH">Drag to rotate · Pinch to zoom</div>
     <div class="stz"><button id="stL" aria-label="Rotate left">‹</button><button id="stMn" aria-label="Zoom out">−</button><button id="stPl" aria-label="Zoom in">+</button><button id="stR" aria-label="Rotate right">›</button></div></div>
-   <div class="stp"><div class="sttools"><button class="stc" id="stUn" aria-label="Undo">Undo</button><button class="stc" id="stRe" aria-label="Redo">Redo</button><button class="stc" id="stRn">Surprise me</button></div>
+   <div class="stp"><div class="sttools"><button class="stc" id="stUn" aria-label="Undo">Undo</button><button class="stc" id="stRe" aria-label="Redo">Redo</button><button class="stc" id="stRn">Surprise me</button><button class="stc" id="stRl">Realistic</button></div>
     <div class="stts" role="tablist">${stTabs.map(t=>`<button role="tab" data-t="${t[0]}" class="${t[0]==='face'?'on':''}">${t[1]}</button>`).join('')}</div>
     <div class="stbd" id="stBd"></div><button class="pill d stsv" id="stSv">Save my avatar</button></div>`;
   el.classList.add('on');
@@ -137,7 +137,7 @@ async function studioOpen(opts){
   const sc=S.sc=new THREE.Scene(),cam=S.cm=new THREE.PerspectiveCamera(30,1,.1,30);
   const fit=()=>{const v=$('#stV');if(!v)return;const w=v.clientWidth,h=v.clientHeight;if(!w||!h)return;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()};
   S.ro=new ResizeObserver(fit);S.ro.observe($('#stV'));fit();
-  const rebuild=()=>{if(S.av){sc.remove(S.av.group);S.av.dispose()}S.av=stBuild(S.cfg);sc.add(S.av.group);$('#stV').style.background=bgOf()};
+  const rebuild=()=>{if(S.real){$('#stV').style.background=bgOf();return}if(S.av){sc.remove(S.av.group);S.av.dispose()}S.av=stBuild(S.cfg);sc.add(S.av.group);$('#stV').style.background=bgOf()};
   const bgOf=()=>{const c=ST.bg[S.cfg.bg];return `radial-gradient(120% 90% at 50% 20%,${c},color-mix(in srgb,${c} 70%,#000 10%))`};
   S.rebuild=rebuild;rebuild();
   /* tabs and options */
@@ -146,6 +146,8 @@ async function studioOpen(opts){
   const tg=(k,label)=>`<div class="stch"><button class="stc ${S.cfg[k]?'on':''}" data-k="${k}" data-v="${S.cfg[k]?0:1}" aria-pressed="${!!S.cfg[k]}">${label}</button></div>`;
   const L=t=>`<div class="stl">${t}</div>`;
   const panel={
+    real:()=>S.real?`<div class="stl">Your realistic avatar</div><p class="stnote">Hair, clothes and face come from the avatar you imported. Save to use it everywhere in Keep.</p><div class="stch"><button class="stc" data-rl="avaturn">Make a new one</button><button class="stc" data-rl="file">Import a .glb</button><button class="stc" data-rl="cartoon">Back to the cartoon</button></div>`
+      :`<div class="stl">Realistic avatar</div><p class="stnote">Build a lifelike 3D version of you from a selfie with Avaturn, or bring any rigged .glb avatar. It stays on this phone.</p><div class="stch"><button class="stc on" data-rl="avaturn">Create with Avaturn</button><button class="stc" data-rl="file">Import a .glb</button></div>`,
     face:()=>L('Face shape')+ch('face',ST.face)+L('Skin tone')+sw('skin',ST.skin)+L('Eyes')+ch('eyes',ST.eyes)+sw('eyec',ST.eyec)+L('Eyebrows')+ch('brows',ST.brows)+L('Nose')+ch('nose',ST.nose)+L('Mouth')+ch('mouth',ST.mouth)+L('Details')+`<div class="stch"><button class="stc ${S.cfg.cheeks?'on':''}" data-k="cheeks" data-v="${S.cfg.cheeks?0:1}">Rosy cheeks</button><button class="stc ${S.cfg.freckles?'on':''}" data-k="freckles" data-v="${S.cfg.freckles?0:1}">Freckles</button></div>`+L('Facial hair')+ch('beard',ST.beard),
     hair:()=>L('Style')+ch('hair',ST.hair)+L('Colour')+sw('hairc',ST.hairc),
     body:()=>L('Outfit')+ch('outfit',ST.outfit)+L('Colour')+sw('outc',ST.outc)+L('Build')+ch('body',ST.body),
@@ -153,6 +155,7 @@ async function studioOpen(opts){
     motion:()=>L('Expression')+`<div class="stch">${ST.expr.map((x,n)=>`<button class="stc ${S.exI===n?'on':''}" data-x="${n}">${x[0]}</button>`).join('')}</div>`+L('Gestures')+`<div class="stch"><button class="stc" data-g="wave">Wave</button><button class="stc" data-g="nod">Nod</button><button class="stc" data-g="look">Look around</button></div>`+L('Idle')+ch('idle',['Relaxed','Lively'])
   };
   const draw=()=>{const b=$('#stBd');b.innerHTML=panel[S.tab]();
+    el.classList.toggle('real',!!S.real);
     $('#stUn').disabled=!S.undo.length;$('#stRe').disabled=!S.redo.length;
     el.querySelectorAll('.stts button').forEach(x=>x.classList.toggle('on',x.dataset.t===S.tab));
     const c=stCam[S.tab];S.cam.ty=c[0];S.cam.tz=c[1];S.cam.tly=c[2]};
@@ -161,7 +164,11 @@ async function studioOpen(opts){
   $('#stBd').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
     if(b.dataset.k)change(b.dataset.k,+b.dataset.v);
     else if(b.dataset.x){S.exI=+b.dataset.x;S.tex=Object.assign({smile:0},ST.expr[S.exI][1]);draw()}
-    else if(b.dataset.g)S.gest={t:b.dataset.g,t0:S.t||0,start:true}});
+    else if(b.dataset.g)S.gest={t:b.dataset.g,t0:S.t||0,start:true}
+    else if(b.dataset.rl==='avaturn')stAvaturn(S);
+    else if(b.dataset.rl==='file')stPickFile(S);
+    else if(b.dataset.rl==='cartoon')stLeaveReal(S)});
+  $('#stRl').onclick=()=>{S.tab='real';draw()};
   el.querySelector('.stts').addEventListener('click',e=>{const b=e.target.closest('button');if(b){S.tab=b.dataset.t;draw()}});
   $('#stUn').onclick=()=>{if(!S.undo.length)return;S.redo.push(JSON.stringify(S.cfg));S.cfg=stClean(JSON.parse(S.undo.pop()));rebuild();draw()};
   $('#stRe').onclick=()=>{if(!S.redo.length)return;S.undo.push(JSON.stringify(S.cfg));S.cfg=stClean(JSON.parse(S.redo.pop()));rebuild();draw()};
@@ -186,6 +193,7 @@ async function studioOpen(opts){
     S.cam.y=d(S.cam.y,S.cam.ty,4.5);S.cam.z=d(S.cam.z,S.cam.tz,4.5);S.cam.ly=d(S.cam.ly,S.cam.tly,4.5);
     cam.position.set(0,S.cam.y,S.cam.z*S.zoom);cam.lookAt(0,S.cam.ly,0);
     if(!A)return;
+    if(S.real){A.group.rotation.y=S.yaw+Math.sin(t*.5)*.03;A.update(t,dt);R.render(sc,cam);return}
     const idle=S.cfg.idle?1.7:1,calm=reduce?.25:1;
     A.group.rotation.y=S.yaw+Math.sin(t*.5)*.04*idle*calm;
     S.squish=d(S.squish,0,6);A.group.scale.setScalar(1+S.squish*.035);
@@ -213,6 +221,7 @@ async function studioOpen(opts){
     R.render(sc,cam);
   };
   S.raf=requestAnimationFrame(tick);
+  S.draw=draw;if(saved&&saved.real)avDB.get('me').then(b=>b&&stS===S&&stUseGLB(S,b,false)).catch(()=>{});
 }
 /* a still of the avatar for profile, journal and chat: head and shoulders on the chosen colour */
 function stSnapshot(S){
@@ -225,10 +234,11 @@ function stSnapshot(S){
   S.cur.smile=keep.smile;A.group.rotation.y=sv.rot;R.setPixelRatio(old.pr);R.setSize(old.w/old.pr,old.h/old.pr,false);cam.aspect=sv.asp;cam.updateProjectionMatrix();
   return out.toDataURL('image/jpeg',.9);
 }
-function studioSave(){
+async function studioSave(){
   const S=stS;if(!S)return;
+  if(S.real){try{await avDB.put('me',S.real.buf)}catch(e){toast('Could not store the avatar file');return}}
   let snap='';try{snap=stSnapshot(S)}catch(e){console.warn('avatar picture failed',e)}
-  if(!stPut(S.cfg,snap))return;
+  if(!stPut(S.cfg,snap,!!S.real))return;
   const done=S.opts.onSave;studioClose(true);renderProf&&renderProf();toast('Your avatar is saved');if(done)done(snap);
   if($('#pfpLab')&&$('#sh').classList.contains('on'))openProfile();
 }
@@ -236,4 +246,42 @@ function studioClose(){
   const S=stS,el=$('#studio');if(!S)return;S.on=false;cancelAnimationFrame(S.raf);
   try{S.ro.disconnect();if(S.av){S.sc.remove(S.av.group);S.av.dispose()}S.r.dispose();S.r.forceContextLoss&&S.r.forceContextLoss()}catch(e){}
   stS=null;el.classList.remove('on');el.innerHTML='';
+}
+
+/* ---- realistic avatar: a rigged .glb from Avaturn or a file, shown in the same studio ---- */
+const stLights=()=>{const T=THREE,g=new T.Group();g.add(new T.HemisphereLight(0xffffff,0xd8c8b8,1.1));const a=new T.DirectionalLight(0xffffff,1.2);a.position.set(1.2,2.4,2.6);g.add(a);const b=new T.DirectionalLight(0xffd3a8,.5);b.position.set(-2,1.6,-1.4);g.add(b);return g};
+async function stUseGLB(S,buf,announce){
+  try{
+    const av=glbAvatar(await parseGLB(buf));if(stS!==S){av.dispose();return}
+    if(S.av){S.sc.remove(S.av.group);S.av.dispose()}
+    if(!S.rl){S.rl=stLights();S.sc.add(S.rl)}
+    S.real={buf,av};S.av=av;S.sc.add(av.group);av.pop();S.squish=0;S.tab='real';S.draw();
+    if(announce)toast('Your avatar is ready. Save to keep it.');
+  }catch(e){console.warn('avatar file',e);toast('That file could not be shown. Use a rigged .glb avatar.')}
+}
+function stLeaveReal(S){
+  if(S.real){S.sc.remove(S.av.group);S.av.dispose();S.real=null;S.av=null}
+  if(S.rl){S.sc.remove(S.rl);S.rl=null}
+  S.tab='face';S.rebuild();S.draw();
+}
+function stPickFile(S){
+  const i=document.createElement('input');i.type='file';i.accept='.glb,model/gltf-binary';
+  i.onchange=async()=>{const f=i.files[0];if(!f)return;if(f.size>48e6){toast('That file is over 48 MB');return}stUseGLB(S,await f.arrayBuffer(),true)};
+  i.click();
+}
+async function stAvaturn(S){
+  const el=$('#studio'),sub=(window.KEEP&&window.KEEP.avaturn)||'demo';
+  let box=$('#stAv');if(box)box.remove();
+  box=document.createElement('div');box.id='stAv';box.className='stav';
+  box.innerHTML=`<div class="stt"><button class="stb" id="stAvX" aria-label="Close">${ic.x}</button><div class="stn"><small>Avaturn</small><b>Scan your face</b></div><span class="stsp"></span></div><div id="stAvC" class="stavc"><p class="stnote" style="padding:24px">Loading Avaturn…</p></div>`;
+  el.appendChild(box);$('#stAvX').onclick=()=>box.remove();
+  try{
+    const {AvaturnSDK}=await import('https://cdn.jsdelivr.net/npm/@avaturn/sdk@1.1.4/dist/index.js');
+    const c=$('#stAvC');c.innerHTML='';const sdk=new AvaturnSDK();
+    await sdk.init(c,{url:`https://${sub}.avaturn.dev`});
+    sdk.on('export',async d=>{
+      try{const r=await fetch(d.url||d.data||d.avatarUrl);if(!r.ok)throw 0;const buf=await r.arrayBuffer();box.remove();stUseGLB(S,buf,true)}
+      catch(e){toast('Could not download your avatar. Try again.')}
+    });
+  }catch(e){console.warn('avaturn',e);box.remove();toast('Avaturn could not load. Check your connection, or import a .glb file.')}
 }

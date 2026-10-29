@@ -37,7 +37,7 @@ def jget(k):
     v=get(k)
     try:return json.loads(v) if v else None
     except ValueError:raise SystemExit(k+' must be valid JSON (the Firebase web app config object)')
-cfg={'demo':demo,'gmKey':get('GM_KEY'),'firebase':jget('FIREBASE_CONFIG'),'recaptcha':get('RECAPTCHA_KEY'),'igAppId':get('IG_APP_ID'),'igApi':get('IG_API'),'build':ver}
+cfg={'demo':demo,'gmKey':get('GM_KEY'),'firebase':jget('FIREBASE_CONFIG'),'recaptcha':get('RECAPTCHA_KEY'),'igAppId':get('IG_APP_ID'),'igApi':get('IG_API'),'avaturn':get('AVATURN_SUBDOMAIN') or 'demo','build':ver}
 head=('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">'
  '<title>Keep</title><meta name="theme-color" content="#ffffff"><meta name="mobile-web-app-capable" content="yes">'
  '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Keep">'

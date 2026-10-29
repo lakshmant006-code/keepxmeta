@@ -15,6 +15,8 @@ services:
         value: https://keep-instagram.onrender.com
       - key: GTAG_ID
         value: G-LR0ZL46FF6
+      - key: AVATURN_SUBDOMAIN
+        value: demo
   - type: web
     name: keep-instagram
     runtime: node

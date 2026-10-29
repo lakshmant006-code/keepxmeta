@@ -168,3 +168,7 @@ Chime-inspired, all on-device. Profile > Notifications is a quiet inbox (On this
 ## Keep Studio (3D avatar)
 
 Profile > Your avatar (and a step in the welcome tour) opens a procedural 3D character maker: face, hair, body, style and motion tabs, expressions, gestures (wave, nod, look), undo/redo, "Surprise me", drag/pinch to turn and zoom. It is built with the bundled Three.js, needs no account and no network, and the recipe is stored in `kept.studio` (also saved in backups). Saving makes a head-and-shoulders picture; it becomes your profile photo if you have none, or via "Use my avatar". Meta's own avatars are not available to third-party apps, so this is Keep's own maker.
+
+### Realistic avatar
+
+In Keep Studio, "Realistic" lets you create a lifelike avatar from a selfie with Avaturn (embedded from `https://<AVATURN_SUBDOMAIN>.avaturn.dev`, default `demo`, which Avaturn limits; make your own subdomain at developer.avaturn.me and set `AVATURN_SUBDOMAIN` on Render), or import any rigged `.glb`. The file is stored on the phone only (IndexedDB), and a head-and-shoulders picture becomes your profile photo. Backups include the recipe and picture, not the 3D file.
