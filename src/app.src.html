@@ -355,6 +355,7 @@ __FACE_CSS__
 __FR_CSS__
 __INS_CSS__
 __INTRO_CSS__
+__PROF_CSS__
 __MOT_CSS__
 </style>
 
@@ -786,8 +787,9 @@ function openDay(k){
     }else h+=`<div class="ev"${user.includes(x)?` data-mid="${x.id}"`:''}>${item(x)}</div>`;
   });
   ph.filter(p=>p.who&&src(p)).forEach(p=>{h+=`<div class="ev"><button class="pill d arbtn" data-ar="${p.id}">${ic.cube} See ${esc(firstName(p.who))} there</button></div>`});
-  if(!L.length)h=`<div class="empty">Nothing kept on this day.</div>`;
-  openSheet(`<div class="dh"><h1>${longDay(dt)}</h1><p>${dt.getFullYear()} · ${L.length?L.length+' moment'+(L.length>1?'s':''):'quiet day'}</p></div><div class="pb" style="padding-top:16px">${h}</div>`,{full:true});
+  let ti=0;h=h.replace(/<div class="ev"/g,()=>`<div class="ev" style="--i:${ti++}"`);
+  openSheet(`<div class="dh"><h1>${longDay(dt)}</h1><p>${dt.getFullYear()} · ${L.length?L.length+' moment'+(L.length>1?'s':''):'quiet day'}</p></div><div class="pb" style="padding-top:16px"><div class="tl">${h}<div class="ev tadd" style="--i:${ti}"><button class="tbtn" id="dayAdd">${ic.plus.replace('width="22" height="22"','width="16" height="16"')} ${L.length?'Add to this day':'Keep something on this day'}</button></div></div></div>`,{full:true});
+  $('#dayAdd').onclick=()=>{closeSheet();openAdd(k)};
 }
 /* revisit */
 let rvDate=null;
@@ -1090,7 +1092,7 @@ function save(){
 }
 /* ---------- profile ---------- */
 function backup(){
-  const lk={};Object.keys(LOOKS).forEach(k=>{lk[k]=Object.assign({},LOOKS[k]);delete lk[k].glb});const d={app:'keep',v:1,saved:new Date().toISOString(),memories:user.map(o=>{if(!o.vid)return o;const c=Object.assign({},o);delete c.vid;return c}),looks:lk,profile:pfp()||undefined,friends:FR.length?FR:undefined},a=document.createElement('a');
+  const lk={};Object.keys(LOOKS).forEach(k=>{lk[k]=Object.assign({},LOOKS[k]);delete lk[k].glb});const d={app:'keep',v:1,saved:new Date().toISOString(),memories:user.map(o=>{if(!o.vid)return o;const c=Object.assign({},o);delete c.vid;return c}),looks:lk,profile:pfp()||undefined,me:Object.keys(meGet()).length?meGet():undefined,friends:FR.length?FR:undefined},a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='keep-backup-'+dk(new Date())+'.json';
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast(user.length+(user.length===1?' memory':' memories')+' saved to a file');
 }
@@ -1100,6 +1102,7 @@ function restore(e){
     const d=JSON.parse(t),L=Array.isArray(d)?d:d.memories;if(!Array.isArray(L))throw 0;
     if(d&&d.looks&&typeof d.looks==='object'&&!Array.isArray(d)){Object.keys(d.looks).forEach(k=>{if(!LOOKS[k]){LOOKS[k]=d.looks[k];delete LOOKS[k].glb}});saveLooks()}
     if(d&&typeof d.profile==='string'&&/^data:image\//.test(d.profile)&&d.profile.length<400000&&!pfp()){pfpSet(d.profile);renderProf()}
+    if(d&&d.me&&typeof d.me==='object'&&!Object.keys(meGet()).length){meSave({name:String(d.me.name||'').slice(0,40),ig:igUser(d.me.ig),bio:String(d.me.bio||'').slice(0,160)});renderProf()}
     if(d&&Array.isArray(d.friends)){const hv=new Set(FR.map(f=>pkey(f.name)));d.friends.forEach(f=>{if(f&&f.name&&!hv.has(pkey(f.name))){FR.push({id:f.id||Date.now()+FR.length,name:String(f.name).slice(0,40),ig:igUser(f.ig),photo:/^data:image\//.test(f.photo||'')?f.photo:''})}});frSave()}
     const have=new Set(user.map(o=>o.id));let n=0;
     L.forEach(o=>{if(o&&o.id&&o.ts&&o.type&&!have.has(o.id)){user.push(o);have.add(o.id);n++}});
@@ -1112,7 +1115,7 @@ const pfp=()=>{try{return localStorage.getItem(PFP)||''}catch(e){return''}};
 const pfpSet=v=>{try{v?localStorage.setItem(PFP,v):localStorage.removeItem(PFP)}catch(e){toast('Could not save the photo. Storage may be full.')}};
 function renderProf(){
   const b=$('#profBtn');if(!b)return;const u=pfp();
-  b.innerHTML=u?`<span class="av0 img" style="background-image:url(${u})"></span>`:'<span class="av0">K</span>';
+  b.innerHTML=u?`<span class="av0 img" style="background-image:url(${u})"></span>`:`<span class="av0">${esc(meInitial())}</span>`;
 }
 /* centre-square crop to 256 px so it stays tiny in storage and sharp at any size it is shown */
 const pfpFrom=file=>new Promise((res,rej)=>{
@@ -1124,32 +1127,33 @@ const pfpFrom=file=>new Promise((res,rej)=>{
 function openProfile(){
   const n=all().length,first=n?new Date(Math.min(...all().map(m=>m.ts))):null;
   const th=document.documentElement.getAttribute('data-theme')||'light';
+  const sm=t=>`<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">${t}</small>`,cb='class="chip fb flat" style="height:32px;font-size:14px;padding:0 12px"';
+  const rw=(id,t,sub,btn)=>`<div class="row"><span>${t}${sub?sm(sub):''}</span><button ${cb} id="${id}">${btn}</button></div>`;
+  const seg=(k,opts,cur)=>`<div class="seg" data-k="${k}">${opts.map(x=>`<button data-v="${x[0]}" class="${cur===x[0]?'on':''}">${x[1]}</button>`).join('')}</div>`;
   openSheet(`<div class="dh"><h1>Profile</h1><p>${n} kept${first?' · since '+MS[first.getMonth()]+' '+first.getFullYear():''}</p></div><div class="pb" style="padding-top:0">
-   <div class="pfp"><label id="pfpLab" class="${pfp()?'':'nopic'}" style="${pfp()?`background-image:url(${pfp()})`:''}" aria-label="Choose a profile photo">${pfp()?'':'K'}<span class="cam">${ic.img.replace('width="22" height="22"','width="15" height="15"')}</span><input type="file" id="pfpIn" accept="image/*" hidden></label>
-    <small>${pfp()?'Your profile photo':'Add a profile photo'}</small>${pfp()?'<button class="rm" id="pfpRm">Remove photo</button>':''}</div>
+   ${meCard()}
    <div class="grp">
-    <div class="row"><span>Appearance</span><div class="seg" data-k="theme">${['light','dark'].map(x=>`<button data-v="${x}" class="${th===x?'on':''}">${x[0].toUpperCase()+x.slice(1)}</button>`).join('')}</div></div>
-    <div class="row"><span>Revisits</span><div class="seg" data-k="rev">${[['off','Off'],['monthly','Monthly'],['weekly','Weekly']].map(x=>`<button data-v="${x[0]}" class="${revOn===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>
-    ${CFG.demo?`<div class="row"><span>Preview empty state</span><div class="seg" data-k="empty">${[['0','Off'],['1','On']].map(x=>`<button data-v="${x[0]}" class="${(emptyMode?'1':'0')===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>`:''}
-    ${CFG.demo?'':`<div class="row"><span>Updates<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">Version ${String(CFG.build).slice(0,6)}</small></span><button class="chip fb flat" id="updChk" style="height:32px;font-size:14px;padding:0 12px">Check</button></div>
-    <div class="row"><span>Hard refresh<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">Reload the newest app. Your memories stay.</small></span><button class="chip fb flat" id="hardRf" style="height:32px;font-size:14px;padding:0 12px">Refresh</button></div>`}
-    <div class="row"><span>Insights<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">Streaks, charts and your busiest days</small></span><button class="chip fb flat" id="insightsOpen" style="height:32px;font-size:14px;padding:0 12px">Open</button></div>
-    <div class="row"><span>Friends<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">Names and Instagram handles</small></span><button class="chip fb flat" id="friendsOpen" style="height:32px;font-size:14px;padding:0 12px">Open</button></div>
-    <div class="row"><span>People<small style="display:block;font-size:12px;color:var(--faint);font-weight:400">Find a person in all your photos</small></span><button class="chip fb flat" id="peopleOpen" style="height:32px;font-size:14px;padding:0 12px">Open</button></div>
-    <div class="row"><span>Import photos</span><button class="chip fb flat" id="impOpen" style="height:32px;font-size:14px;padding:0 12px">Choose</button></div>
-    ${isStandalone()?'':`<div class="row"><span>Install app</span><button class="chip fb flat" id="instOpen" style="height:32px;font-size:14px;padding:0 12px">Install</button></div>`}
-    <div class="row"><span>Google Maps</span><button class="chip fb flat" id="gmOpen" style="height:32px;font-size:14px;padding:0 12px">${gmKey()?'On':'Add key'}</button></div>
-    <div class="row"><span>Back up</span><button class="chip fb flat" id="bak" style="height:32px;font-size:14px;padding:0 12px">Download</button></div>
-    <div class="row"><span>Restore</span><label class="chip fb flat" style="height:32px;font-size:14px;padding:0 12px;display:grid;place-items:center;cursor:pointer">Choose file<input type="file" id="rst" accept="application/json,.json" hidden></label></div>
+    <div class="row"><span>Appearance</span>${seg('theme',[['light','Light'],['dark','Dark']],th)}</div>
+    ${rw('insightsOpen','Insights','','Open')}${rw('friendsOpen','Friends','','Open')}${rw('peopleOpen','People','','Open')}
+    ${rw('impOpen','Import photos','','Choose')}${rw('bak','Back up','','Download')}
+    <div class="row"><span>Restore</span><label ${cb.replace('class="chip fb flat" style="','class="chip fb flat" style="display:grid;place-items:center;cursor:pointer;')}>Choose file<input type="file" id="rst" accept="application/json,.json" hidden></label></div>
    </div>
-   <p class="note">${CFG.demo?'Demo build. ':''}What you keep is saved on this device only. Download a backup now and then, and restore it on a new phone. Revisits only look backward. Keep never asks you to add anything.</p></div>`);
+   <details class="more"><summary>More settings</summary><div class="grp" style="margin-top:0">
+    <div class="row"><span>Revisits</span>${seg('rev',[['off','Off'],['monthly','Monthly'],['weekly','Weekly']],revOn)}</div>
+    ${CFG.demo?`<div class="row"><span>Preview empty state</span>${seg('empty',[['0','Off'],['1','On']],emptyMode?'1':'0')}</div>`:rw('updChk','Updates','Version '+String(CFG.build).slice(0,6),'Check')}
+    ${rw('hardRf','Hard refresh','Reload the newest app. Your memories stay.','Refresh')}
+    ${isStandalone()?'':rw('instOpen','Install app','','Install')}
+    ${rw('gmOpen','Google Maps','',gmKey()?'On':'Add key')}
+   </div></details>
+   <p class="note">${CFG.demo?'Demo build. ':''}Everything is saved on this device only. Download a backup now and then, and restore it on a new phone.</p></div>`);
   document.querySelectorAll('.seg').forEach(sg=>sg.onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=sg.dataset.k,v=b.dataset.v;
     if(k==='theme'){v==='light'?document.documentElement.removeAttribute('data-theme'):document.documentElement.setAttribute('data-theme',v)}
     if(k==='rev'){revOn=v;renderRv()}
     if(k==='empty'){emptyMode=v==='1';refresh()}
     sg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});
+  meWire();
   $('#gmOpen').onclick=()=>{closeSheet();openMap()};
-  if($('#updChk')){$('#updChk').onclick=updCheck;$('#hardRf').onclick=hardRefresh}
+  if($('#updChk'))$('#updChk').onclick=updCheck;$('#hardRf').onclick=hardRefresh;
   $('#pfpIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{pfpSet(await pfpFrom(f));renderProf();openProfile();toast('Profile photo updated')}catch(err){toast('Could not read that photo')}};
   if($('#pfpRm'))$('#pfpRm').onclick=()=>{pfpSet('');renderProf();openProfile();toast('Photo removed')};
   $('#insightsOpen').onclick=()=>{closeSheet();insOpen()};
@@ -1226,6 +1230,7 @@ __FACE_JS__
 __FR_JS__
 __INS_JS__
 __INTRO_JS__
+__PROF_JS__
 let yearMode=false;
 function refresh(){index();renderCal();renderYear();renderRv()}
 function refreshKeep(){const c=$('#cal'),st=c?c.scrollTop:0;refresh();if(c)c.scrollTop=st}

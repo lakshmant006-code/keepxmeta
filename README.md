@@ -79,9 +79,15 @@ Meta and Instagram avatars cannot be used outside Meta's own apps (the Meta Avat
 - **Style editor.** In Re-live, tap **Style** to change a person's skin tone, hair style and colour, top (tee or hoodie) and colour, pants and glasses. The avatar updates as you tap. Looks are saved in this browser and included in Back up / Restore. People you never style keep the look their name gave them.
 - **Your own avatar file.** In the same panel, **Import .glb file** uses any `.glb` (or `.vrm`) avatar: VRoid Studio, Avaturn, Blender, or other exports **without Draco or Meshopt compression**, up to 40 MB. It is sized to a person, stood on the ground, and its arms are swung down from a T-pose. It stands in Re-live and Street View but does not sit or wave (that needs the built-in figure). The file stays on this phone, in its own storage, and is not part of Back up. Remove it any time to go back to the built-in figure.
 
-## Profile photo
+## Profile
 
-Profile → tap the circle at the top to choose a photo. It is cropped to a square, kept on this phone, and shown in the header button in place of the letter. Remove photo brings the letter back. Back up carries it and Restore puts it back if you have none.
+Profile → tap the circle to choose a photo (cropped to a square, kept on this phone, shown in the header button), and type your name; the header shows your initial until you add a photo. Everyday items are up top (Appearance, Insights, Friends, People, Import photos, Back up, Restore); Revisits, Updates, Hard refresh, Install app and Google Maps are under **More settings**.
+
+**Instagram.** Instagram does not let apps sign in to an account and read it, so Keep cannot pull your details automatically. **Link Instagram** saves your handle and shows a button to your profile. **Import from your Instagram download** reads `personal_information.json` (name, username, bio) and a profile photo from Instagram's own download, on the phone, and fills the profile in one go. Your details are included in Back up and Restore.
+
+## Day journal
+
+A day opens as a timeline: a line down the left with a dot for each moment, and **Add to this day** at the end of the line. Whatever you keep from there lands on that day and appears on the line when you return.
 
 ## Camera
 
