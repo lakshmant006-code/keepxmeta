@@ -29,13 +29,40 @@ async function meImport(files){
   if(!got.length){toast('Nothing found. Choose personal_information.json and a profile photo from the download.');return}
   meSave(me);renderProf();openProfile();toast('Imported your '+[...new Set(got)].join(', '));
 }
+/* One-tap Instagram: only on when the build has IG_APP_ID and IG_API (a deployed worker/instagram.js). Works with Business and Creator accounts. */
+const IGS='kept.igstate',igSyncOn=()=>!!(CFG.igAppId&&CFG.igApi),igRedirect=()=>location.origin+location.pathname;
+function igSyncStart(){
+  let st='';try{st=[...crypto.getRandomValues(new Uint32Array(4))].join('-');sessionStorage.setItem(IGS,st)}catch(e){toast('Turn on site storage to sign in');return}
+  location.href='https://www.instagram.com/oauth/authorize?'+new URLSearchParams({client_id:CFG.igAppId,redirect_uri:igRedirect(),response_type:'code',scope:'instagram_business_basic',state:st});
+}
+const meSquare=url=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const s=Math.min(i.naturalWidth,i.naturalHeight),c=document.createElement('canvas');c.width=c.height=256;
+  c.getContext('2d').drawImage(i,(i.naturalWidth-s)/2,(i.naturalHeight-s)/2,s,s,0,0,256,256);res(c.toDataURL('image/jpeg',.88))};i.onerror=rej;i.src=url});
+async function igSyncFinish(){
+  const q=new URLSearchParams(location.search);if(!q.has('code')&&!q.has('error'))return;
+  const code=(q.get('code')||'').replace(/#_$/,''),state=q.get('state'),err=q.has('error');let same=false;
+  try{same=!!state&&state===sessionStorage.getItem(IGS);sessionStorage.removeItem(IGS)}catch(e){}
+  history.replaceState(null,'',location.pathname);
+  if(err){toast('Instagram sign-in was cancelled');return}
+  if(!code||!same||!igSyncOn()){toast('That Instagram sign-in could not be checked. Try again.');return}
+  toast('Getting your Instagram details…');
+  try{
+    const r=await fetch(CFG.igApi.replace(/\/$/,'')+'/exchange',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({code,redirect_uri:igRedirect()})});
+    if(!r.ok)throw 0;const d=await r.json(),me=meGet();
+    if(d.name)me.name=String(d.name).slice(0,40);if(d.username)me.ig=igUser(d.username);if(d.bio)me.bio=String(d.bio).slice(0,160);
+    meSave(me);if(/^data:image\//.test(d.picture||'')){try{pfpSet(await meSquare(d.picture))}catch(e){}}
+    renderProf();openProfile();toast('Linked @'+(me.ig||'instagram')+'. Your details are saved.');
+  }catch(e){toast('Could not reach Instagram just now. You can type your handle instead.')}
+}
+setTimeout(igSyncFinish,0);
 function meCard(){
   const me=meGet(),u=pfp(),ig=me.ig;
   return`<div class="me"><label id="pfpLab" class="mep ${u?'':'nopic'}" style="${u?`background-image:url(${u})`:''}" aria-label="Choose a profile photo">${u?'':esc(meInitial())}<span class="cam">${ic.img.replace('width="22" height="22"','width="14" height="14"')}</span><input type="file" id="pfpIn" accept="image/*" hidden></label>
    <input class="mein" id="meName" placeholder="Your name" maxlength="40" value="${esc(me.name||'')}" autocomplete="off">
    ${me.bio?`<p class="meb">${esc(me.bio)}</p>`:''}
-   <div class="meig">${ig?`<a class="chip fb flat" href="${igLink(ig)}" target="_blank" rel="noopener">${ic.ig} @${esc(ig)}</a><button class="mel" id="meIgEdit">Change</button><button class="mel" id="meIgOff">Unlink</button>`
+   <div class="meig">${ig?`<a class="chip fb flat" href="${igLink(ig)}" target="_blank" rel="noopener">${ic.ig} @${esc(ig)}</a><button class="mel" id="meIgEdit">Change</button><button class="mel" id="meIgOff">Unlink</button>${igSyncOn()?'<button class="mel" id="meIgSync">Sync again</button>':''}`
+     :igSyncOn()?`<button class="pill d" id="meIgSync">${ic.ig} Continue with Instagram</button><button class="mel" id="meIgOn">Type my handle instead</button>`
      :`<button class="pill d" id="meIgOn">${ic.ig} Link Instagram</button>`}</div>
+   ${igSyncOn()&&!ig?'<p class="meb" style="font-size:12px;color:var(--faint)">Fills in your name, photo and bio. Works with Business and Creator accounts. Keep keeps no copy of your login.</p>':''}
    <div class="meup"><label class="mel">Import from your Instagram download<input type="file" id="meImp" accept=".json,image/*" multiple hidden></label>${u?'<button class="mel" id="pfpRm">Remove photo</button>':''}</div></div>`;
 }
 function meWire(){
@@ -46,7 +73,21 @@ function meWire(){
     $('#meIgIn').focus();const save=()=>{const v=igUser($('#meIgIn').value);if(!v){toast('Type your Instagram username');return}const o=me();o.ig=v;meSave(o);openProfile();toast('Instagram linked')};
     $('#meIgSave').onclick=save;$('#meIgIn').addEventListener('keydown',e=>{if(e.key==='Enter')save()});
   };
+  if($('#meIgSync'))$('#meIgSync').onclick=igSyncStart;
   if($('#meIgOn'))$('#meIgOn').onclick=askIg;if($('#meIgEdit'))$('#meIgEdit').onclick=askIg;
   if($('#meIgOff'))$('#meIgOff').onclick=()=>{const o=me();delete o.ig;meSave(o);openProfile()};
   if($('#meImp'))$('#meImp').onchange=e=>{const f=[...e.target.files];e.target.value='';if(f.length)meImport(f)};
 }
+
+/* ---------- day timeline helpers ---------- */
+const tlIcon={photo:'img',video:'vid',voice:'mic',text:'txt',quote:'quote',person:'user',place:'pin',file:'doc'};
+const tlNode=t=>`<span class="nd">${(ic[tlIcon[t]]||ic.txt).replace('width="22" height="22"','width="14" height="14"')}</span>`;
+/* moments reveal as they scroll into view, and the rail fills down to the latest one revealed */
+function tlInit(tl){
+  if(!tl)return;const evs=[...tl.querySelectorAll('.ev')],reduced=introReduced();
+  const fill=()=>{const on=evs.filter(e=>e.classList.contains('in')),l=on[on.length-1];if(l)tl.style.setProperty('--fh',(l.offsetTop+14)+'px')};
+  if(reduced||!('IntersectionObserver' in window)){evs.forEach(e=>e.classList.add('in'));fill();return}
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}});fill()},{threshold:.15});
+  requestAnimationFrame(()=>evs.forEach(e=>io.observe(e)));
+}
+function tlRipple(b){const r=b.getBoundingClientRect(),d=Math.max(r.width,r.height)*2,s=document.createElement('span');s.className='rip';s.style.cssText=`width:${d}px;height:${d}px;left:${r.width/2-d/2}px;top:${r.height/2-d/2}px`;b.appendChild(s);setTimeout(()=>s.remove(),600)}

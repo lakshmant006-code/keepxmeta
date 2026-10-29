@@ -4,6 +4,7 @@ Config comes from the environment or a local .env file (never committed):
   GM_KEY     Google Maps JavaScript API key (restrict it to your site's referrer in Google Cloud)
   FIREBASE_CONFIG  optional, Firebase web app config as JSON (App Check)
   RECAPTCHA_KEY    optional, reCAPTCHA Enterprise site key (App Check)
+  IG_APP_ID, IG_API  optional, one-tap Instagram sign-in (Meta app ID, and the URL of the deployed worker/instagram.js)
   KEEP_DEMO  1 = sample memories, fixed demo date and a simulated keyboard (default: off, a real app)
 Usage: python3 build.py            real app
        KEEP_DEMO=1 python3 build.py   demo build
@@ -35,7 +36,7 @@ def jget(k):
     v=get(k)
     try:return json.loads(v) if v else None
     except ValueError:raise SystemExit(k+' must be valid JSON (the Firebase web app config object)')
-cfg={'demo':demo,'gmKey':get('GM_KEY'),'firebase':jget('FIREBASE_CONFIG'),'recaptcha':get('RECAPTCHA_KEY'),'build':ver}
+cfg={'demo':demo,'gmKey':get('GM_KEY'),'firebase':jget('FIREBASE_CONFIG'),'recaptcha':get('RECAPTCHA_KEY'),'igAppId':get('IG_APP_ID'),'igApi':get('IG_API'),'build':ver}
 head=('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
  '<title>Keep</title><meta name="theme-color" content="#ffffff"><meta name="mobile-web-app-capable" content="yes">'
  '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Keep">'

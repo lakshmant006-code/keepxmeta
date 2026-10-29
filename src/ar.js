@@ -303,7 +303,7 @@ function arCard(p){
   c.className='arcard';
   c.innerHTML=`<button class="arch" id="arCh"><div class="pa">${avatar(p.who)}</div><div><b>${esc(p.who)}</b><small>${fullDay(new Date(p.ts))} · ${ago(p.ts)}</small></div><span class="cv2">${ic.chevd}</span></button>
    <div class="arbody"><div class="arorig"><img src="${src(p)}" alt=""><div><p>${esc(p.text||'The photo you kept')}</p><em>The original · ${esc(arPose(p))}</em></div></div>
-   <div class="arlab">${J.length} journal${J.length===1?'':'s'}</div><div id="arJ">${J.map(row).join('')||'<div class="jb" style="opacity:.8;padding:6px 2px">Nothing written yet. Add the first line below.</div>'}</div></div>
+   <div class="arlab">${J.length} journal${J.length===1?'':'s'}</div><div id="arJ" class="tl2">${J.map(row).join('')||'<div class="jb" style="opacity:.8;padding:6px 2px">Nothing written yet. Add the first line below.</div>'}</div></div>
    <div class="arad"><input id="arNote" placeholder="Add to this memory" autocomplete="off" aria-label="Add to this memory"><button id="arAdd" aria-label="Add">${ic.up.replace('width="22" height="22"','width="18" height="18"')}</button></div>`;
   $('#arCh').onclick=()=>c.classList.toggle('min');
   const add=()=>{

@@ -218,8 +218,8 @@ svg{display:block}
 /* sheets */
 .sheet{position:absolute;left:0;right:0;top:0;bottom:var(--kbh);z-index:20;display:flex;flex-direction:column;justify-content:flex-end;visibility:hidden}
 .sheet.on{visibility:visible}
-.scrim{position:absolute;inset:0;background:var(--scrim);opacity:0;transition:opacity .3s}.sheet.on .scrim{opacity:1}
-.panel{position:relative;background:var(--bg);border-radius:24px 24px 0 0;max-height:calc(100% - 24px);display:flex;flex-direction:column;transform:translateY(102%);transition:transform .38s cubic-bezier(.2,.85,.25,1);border:1px solid var(--bd);border-bottom:0}
+.scrim{position:absolute;inset:0;background:var(--scrim);opacity:0;transition:opacity .45s cubic-bezier(.32,.72,0,1);-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0)}.sheet.on .scrim{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}.sheet.on .scrim{opacity:1}
+.panel{position:relative;background:var(--bg);border-radius:24px 24px 0 0;max-height:calc(100% - 24px);display:flex;flex-direction:column;transform:translateY(102%);transition:transform .55s cubic-bezier(.32,.72,0,1);border:1px solid var(--bd);border-bottom:0}
 .sheet.on .panel{transform:none}
 /* frosted glass: the screen behind the sheet shows through, blurred, instead of a flat white tab */
 @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
@@ -783,13 +783,13 @@ function openDay(k){
   L.forEach(x=>{
     if(x.type==='photo'||x.type==='video'){
       if(done)return;done=true;const caps=st.map(p=>p.text).filter(Boolean),np=st.filter(p=>p.type==='photo').length,nv=st.filter(p=>p.type==='video').length;
-      h+=`<div class="ev"${st.length===1&&user.includes(st[0])?` data-mid="${st[0].id}"`:''}>${stackHTML(st)}<div class="tm">${tstr(st[0].ts)}${st.length>1?' to '+tstr(st[st.length-1].ts):''} <em>· ${[np&&np+' photo'+(np>1?'s':''),nv&&nv+' video'+(nv>1?'s':'')].filter(Boolean).join(' · ')}</em></div>${caps[0]?`<div class="tx">${esc(caps[0])}</div>`:''}</div>`;
-    }else h+=`<div class="ev"${user.includes(x)?` data-mid="${x.id}"`:''}>${item(x)}</div>`;
+      h+=`<div class="ev"${st.length===1&&user.includes(st[0])?` data-mid="${st[0].id}"`:''}>${tlNode(x.type)}${stackHTML(st)}<div class="tm">${tstr(st[0].ts)}${st.length>1?' to '+tstr(st[st.length-1].ts):''} <em>· ${[np&&np+' photo'+(np>1?'s':''),nv&&nv+' video'+(nv>1?'s':'')].filter(Boolean).join(' · ')}</em></div>${caps[0]?`<div class="tx">${esc(caps[0])}</div>`:''}</div>`;
+    }else h+=`<div class="ev"${user.includes(x)?` data-mid="${x.id}"`:''}>${tlNode(x.type)}${item(x)}</div>`;
   });
-  ph.filter(p=>p.who&&src(p)).forEach(p=>{h+=`<div class="ev"><button class="pill d arbtn" data-ar="${p.id}">${ic.cube} See ${esc(firstName(p.who))} there</button></div>`});
+  ph.filter(p=>p.who&&src(p)).forEach(p=>{h+=`<div class="ev">${tlNode('person')}<button class="pill d arbtn" data-ar="${p.id}">${ic.cube} See ${esc(firstName(p.who))} there</button></div>`});
   let ti=0;h=h.replace(/<div class="ev"/g,()=>`<div class="ev" style="--i:${ti++}"`);
-  openSheet(`<div class="dh"><h1>${longDay(dt)}</h1><p>${dt.getFullYear()} · ${L.length?L.length+' moment'+(L.length>1?'s':''):'quiet day'}</p></div><div class="pb" style="padding-top:16px"><div class="tl">${h}<div class="ev tadd" style="--i:${ti}"><button class="tbtn" id="dayAdd">${ic.plus.replace('width="22" height="22"','width="16" height="16"')} ${L.length?'Add to this day':'Keep something on this day'}</button></div></div></div>`,{full:true});
-  $('#dayAdd').onclick=()=>{closeSheet();openAdd(k)};
+  openSheet(`<div class="dh"><h1>${longDay(dt)}</h1><p>${dt.getFullYear()} · ${L.length?L.length+' moment'+(L.length>1?'s':''):'quiet day'}</p></div><div class="pb" style="padding-top:16px"><div class="tl">${h}<div class="ev tadd" style="--i:${ti}"><span class="nd">${ic.plus.replace('width="22" height="22"','width="14" height="14"')}</span><button class="tbtn" id="dayAdd">${ic.plus.replace('width="22" height="22"','width="16" height="16"')} ${L.length?'Add to this day':'Keep something on this day'}</button></div></div></div>`,{full:true});
+  $('#dayAdd').onclick=e=>{tlRipple(e.currentTarget);setTimeout(()=>{closeSheet();openAdd(k)},180)};tlInit($('#pc .tl'));
 }
 /* revisit */
 let rvDate=null;
@@ -869,7 +869,7 @@ function ask(q){
     if(top.type==='person')line=`<b>${esc(top.name)}.</b> ${esc(top.text)}`;
     else if(top.type==='quote')line=`<b>“${esc(top.text)}”</b> ${top.who?esc(top.who)+', ':''}${longDay(new Date(top.ts))}.`;
     else line=`<b>${longDay(new Date(top.ts))}.</b> ${esc(top.text||top.name||'')}`;
-    h+=`<div class="ans">${line}</div><div class="lbl">From your memories · ${res.length} found</div><div class="res">${list.map(m=>`<div class="rwrap"><div class="tm">${fullDay(new Date(m.ts))}</div>${item(m,false)}</div>`).join('')}</div>`;
+    h+=`<div class="ans">${line}</div><div class="lbl">From your memories · ${res.length} found</div><div class="res tl2">${list.map(m=>`<div class="rwrap"><div class="tm">${fullDay(new Date(m.ts))}</div>${item(m,false)}</div>`).join('')}</div>`;
     const ds=[...new Set(res.map(m=>dk(new Date(m.ts))))].slice(0,8);
     h+=`<div class="lbl">Where it sits in your life</div><div class="strip">${ds.map(k=>{const [y,mo,d]=k.split('-').map(Number);return `<button class="sd" data-d="${k}">${orb(byDay[k],46)}<span>${MS[mo-1]} ${d}</span></button>`}).join('')}</div>`;
   }

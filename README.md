@@ -39,6 +39,15 @@ Local build: `cp .env.example .env`, fill it in, `python3 build.py`, serve `dist
 
 A key saved in Profile → Google Maps (or opened once via `https://<site>/#gmkey=KEY`) overrides the built-in one on that device.
 
+## Local setup
+
+```bash
+cp .env.example .env   # fill in what you have; .env is git-ignored
+KEEP_DEMO=1 python3 build.py && python3 -m http.server -d dist 8000
+```
+
+Open `http://localhost:8000/` (add `?intro` to replay the intro). `LLM_API_KEY` is read by nothing in the web app on purpose: anything built into a static site is public, so a key like that belongs in a worker secret (`wrangler secret put`), not in `.env` for the client build.
+
 ## What's inside
 
 - `src/app.src.html` the app; `src/ar.js` + `src/ar.css` Re-live; `src/maps.js` + `src/maps.css` Places; `src/vendor/three.min.js` three.js r160; `src/sw.js` offline service worker.

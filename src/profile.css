@@ -14,13 +14,32 @@
 .mel{font-size:13px;font-weight:500;color:var(--mute);height:32px;padding:0 8px;display:inline-grid;place-items:center;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line2)}
 .more{margin-top:14px}.more summary{list-style:none;cursor:pointer;font-size:14px;font-weight:500;color:var(--mute);padding:10px 4px;display:flex;align-items:center;gap:6px}.more summary::-webkit-details-marker{display:none}
 .more summary::after{content:"";width:7px;height:7px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(45deg);margin-left:2px;transition:transform .2s}.more[open] summary::after{transform:rotate(-135deg)}
-/* Day journal: a line down the left with a dot for each moment */
-.tl{position:relative;padding-left:28px}
-.tl::before{content:"";position:absolute;left:5px;top:10px;bottom:34px;width:2px;border-radius:1px;background:linear-gradient(var(--blue),var(--s2))}
-.tl .ev{position:relative;animation:tlin .45s cubic-bezier(.22,.8,.24,1) both;animation-delay:calc(var(--i,0)*70ms)}
-.tl .ev::before{display:block;content:"";position:absolute;left:-28px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px color-mix(in srgb,var(--blue) 18%,transparent)}
-.tl .ev.tadd::before{background:var(--bg);border:2px solid var(--blue);box-shadow:none}
-.tl .tbtn{height:40px;padding:0 16px;border-radius:20px;border:1.5px dashed var(--blue);color:var(--blue);font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
-.tl .tbtn:active{background:color-mix(in srgb,var(--blue) 10%,transparent)}
-@keyframes tlin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.tl .ev{animation:none}}
+/* Day journal: a rail down the left. Each moment gets a node with its own icon, the rail fills as you scroll, and moments rise in as they arrive. */
+:root{--spring:cubic-bezier(.32,.72,0,1)}
+.tl{--fh:0px;position:relative;padding-left:46px}
+.tl::before,.tl::after{content:"";position:absolute;left:13px;top:14px;width:2px;border-radius:1px}
+.tl::before{bottom:34px;background:var(--line2)}
+.tl::after{height:var(--fh);max-height:calc(100% - 48px);background:linear-gradient(var(--s2),var(--blue));transition:height .6s var(--spring)}
+.tl .ev{position:relative;opacity:0;transform:translateY(18px) scale(.985);filter:blur(5px);transition:opacity .6s var(--spring),transform .7s var(--spring),filter .6s var(--spring);transition-delay:calc(var(--i,0)*60ms)}
+.tl .ev.in{opacity:1;transform:none;filter:none}
+.tl .ev::before{display:none}
+.tl .nd{position:absolute;left:-46px;top:0;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--bg);border:2px solid var(--line2);color:var(--mute);transform:scale(.4);transition:transform .7s var(--spring),background .4s,border-color .4s,color .4s,box-shadow .6s;transition-delay:calc(var(--i,0)*60ms + 120ms)}
+.tl .nd svg{width:14px;height:14px}
+.tl .ev.in .nd{transform:none;background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 0 5px color-mix(in srgb,var(--blue) 16%,transparent)}
+.tl .ev.tadd .nd{background:var(--bg);border:2px dashed var(--blue);color:var(--blue);box-shadow:none}
+.tl .ev.tadd.in .nd{background:var(--bg);color:var(--blue);animation:ipulseN 2.4s ease-out 1s infinite}
+@keyframes ipulseN{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--blue) 40%,transparent)}70%,100%{box-shadow:0 0 0 10px transparent}}
+.tl .ev>:not(.nd){transition:transform .35s var(--spring)}
+.tl .ev:not(.tadd):active>:not(.nd){transform:scale(.985)}
+.tl .tbtn{position:relative;overflow:hidden;height:42px;padding:0 18px;border-radius:21px;border:1.5px dashed var(--blue);color:var(--blue);font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:background .25s,transform .35s var(--spring)}
+.tl .tbtn:active{background:color-mix(in srgb,var(--blue) 10%,transparent);transform:scale(.97)}
+.tl .rip{position:absolute;border-radius:50%;background:color-mix(in srgb,var(--blue) 28%,transparent);transform:scale(0);animation:irip .55s ease-out forwards;pointer-events:none}
+@keyframes irip{to{transform:scale(1);opacity:0}}
+@media (prefers-reduced-motion:reduce){.tl .ev,.tl .nd{opacity:1;transform:none;filter:none;transition:none}.tl .ev.tadd.in .nd{animation:none}.tl::after{transition:none}}
+/* the same line-and-dots look for Re-live journals and search results */
+.tl2{position:relative;padding-left:22px}
+.tl2::before{content:"";position:absolute;left:4px;top:8px;bottom:8px;width:2px;border-radius:1px;background:linear-gradient(var(--blue),var(--s2))}
+.tl2>.jr,.tl2>.rwrap{position:relative;animation:tlin .55s var(--spring) both;animation-delay:calc(var(--i,0)*70ms)}
+@keyframes tlin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.tl2>.jr::before,.tl2>.rwrap::before{content:"";position:absolute;left:-22px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 18%,transparent);animation:ipopn .6s var(--spring) both;animation-delay:calc(var(--i,0)*70ms + 100ms)}
+@keyframes ipopn{from{transform:scale(0)}to{transform:none}}

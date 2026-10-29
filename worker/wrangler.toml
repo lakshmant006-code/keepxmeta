@@ -1,0 +1,8 @@
+name = "keep-instagram"
+main = "instagram.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+IG_APP_ID = ""          # your Meta app's Instagram app ID
+ALLOWED_ORIGIN = ""     # e.g. https://<user>.github.io
+# secret: wrangler secret put IG_APP_SECRET
