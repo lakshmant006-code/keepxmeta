@@ -118,6 +118,10 @@ Swipe left and right to move between a day's photos. Swipe down to close: the ph
 
 Tap a photo in the viewer to say who is in it: type a name (or tap one you have used before), pick the pose they were in, and Save. The photo then shows up in Re-live, where their avatar can stand in the same place, and its date line reads "with <name>". Tap again to change the name or Remove the tag. Videos and the demo sample memories cannot be tagged. A tap on empty space around a lone photo still closes the viewer.
 
+## Tagging suggestions
+
+The tag card suggests the people you tag: your friends first, then names you have tagged before, newest first. Type and the list narrows as you go (whole-name starts, then word starts, then Instagram handles), with the matching letters highlighted; arrow keys and Enter pick one. A name that is not in your list shows **Add “Name”**, with **Add to my friends** on by default so they are one tap next time. With nobody added yet the card offers **Add a friend** and **From Instagram**; once you have friends it keeps **Add friends from Instagram** and **Add a friend** underneath. A friend added from the card fills the name field.
+
 ## People: find someone in all your photos
 
 Name someone and Keep quietly does the rest. There is nothing to confirm and no message about it.

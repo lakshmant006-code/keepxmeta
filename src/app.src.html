@@ -359,6 +359,7 @@ __NT_CSS__
 __ST_CSS__
 __INV_CSS__
 __CHAT_CSS__
+__TAG_CSS__
 __PROF_CSS__
 __MOT_CSS__
 </style>
@@ -722,13 +723,12 @@ function openTag(m){
   if(!m||m.type!=='photo')return;
   if(!user.includes(m)){toast('Sample memories cannot be edited');return}
   if($('#tagp'))return;
-  const names=[...new Set([...user.filter(x=>x.who).map(x=>x.who),...FR.map(f=>f.name),...all().filter(x=>x.type==='person').map(x=>x.name)])].filter(Boolean).slice(0,10);
   let pose=m.pose||'stand';
   const p=document.createElement('div');p.className='tagp';p.id='tagp';
   p.innerHTML=`<div class="tagc"><div class="tagh"><b>Who's in it?</b><button class="ib" id="tagX" aria-label="Close" style="width:34px;height:34px">${ic.x}</button></div>
    <img class="tagth" src="${src(m)}" alt="">
    <input id="tagIn" placeholder="Name" autocomplete="off" autocapitalize="words" maxlength="40" value="${esc(m.who||'')}">
-   ${names.length?`<div class="tagr" id="tagNames">${names.map(n=>`<button class="tagch" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div>`:''}
+   <div class="tgs" id="tagSug"></div>
    <div class="taglb">Pose</div><div class="tagr" id="tagPoses">${POSES.map(x=>`<button class="tagch ${x[0]===pose?'on':''}" data-p="${x[0]}">${x[1]}</button>`).join('')}</div>
    <div class="tagr" style="margin-top:14px"><button class="pill d" id="tagSave" style="flex:1;justify-content:center">Save</button>${m.who?'<button class="pill g" id="tagRm">Remove</button>':''}</div>
    ${typeof faceAfterTag==='function'?'<button class="tagch" id="tagFace" style="margin-top:12px">Pick their face in a group photo</button>':''}
@@ -740,17 +740,19 @@ function openTag(m){
   const put=()=>{idb.put(m).catch(()=>toast('Could not save that. Storage may be full.'))};
   p.addEventListener('click',e=>{if(e.target===p)close()});
   $('#tagX').onclick=close;
-  $('#tagNames')&&($('#tagNames').onclick=e=>{const b=e.target.closest('[data-n]');if(b){inp.value=b.dataset.n;inp.focus()}});
+  const sugg=tagSuggestInit(inp);
   $('#tagPoses').onclick=e=>{const b=e.target.closest('[data-p]');if(!b)return;pose=b.dataset.p;$('#tagPoses').querySelectorAll('.tagch').forEach(x=>x.classList.toggle('on',x===b))};
   let pickFace=false;
   const save=()=>{
     const v=inp.value.trim().slice(0,40);
     if(!v){inp.focus();toast('Type a name first');return}
+    const wantFriend=sugg.adding(); /* decided before this photo carries the name, or it would look already known */
     if(m.who&&v.toLowerCase()!==m.who.toLowerCase()){m.people=[...(m.people||[]).filter(n=>n.toLowerCase()!==v.toLowerCase()),v]} /* another person in the same photo */
     else{m.who=v;m.pose=pose;if(!m.at)m.at=[.5,.74]}
     m.reject=(m.reject||[]).filter(n=>n.toLowerCase()!==v.toLowerCase()); /* typing a name yourself overrides an earlier Remove */
     m.auto=(m.auto||[]).filter(n=>n.toLowerCase()!==v.toLowerCase());
-    put();close();refreshKeep();drawLb();lbArrive();toast('Tagged '+v+'. Find it in Re-live.');
+    const added=wantFriend&&tagAddFriend(v);
+    put();close();refreshKeep();drawLb();lbArrive();toast('Tagged '+v+(added?' and added to friends':'')+'. Find it in Re-live.');
     /* learning the face and tagging them elsewhere happens quietly in the background; only the optional picker shows anything */
     if(typeof faceKick==='function'){if(pickFace)setTimeout(()=>faceAfterTag(m,v),250);else faceKick(1500)}
   };
@@ -1223,6 +1225,7 @@ __FACE_JS__
 __FR_JS__
 __INS_JS__
 __INTRO_JS__
+__TAG_JS__
 __PROF_JS__
 __NT_JS__
 __ST_JS__
