@@ -218,7 +218,7 @@ async function studioOpen(opts){
 function stSnapshot(S){
   const R=S.r,cam=S.cm,A=S.av,old={w:R.domElement.width,h:R.domElement.height,pr:R.getPixelRatio()};
   const n=320,sv={y:cam.position.y,z:cam.position.z,rot:A.group.rotation.y,asp:cam.aspect};
-  R.setPixelRatio(1);R.setSize(n,n,false);cam.aspect=1;cam.updateProjectionMatrix();cam.position.set(0,1.58,1.75);cam.lookAt(0,1.5,0);A.group.rotation.y=0;
+  R.setPixelRatio(1);R.setSize(n,n,false);cam.aspect=1;cam.updateProjectionMatrix();cam.position.set(0,1.56,1.95);cam.lookAt(0,1.5,0);A.group.rotation.y=0;
   const keep={smile:S.cur.smile};S.cur.smile=Math.max(S.cur.smile,.6);R.render(S.sc,cam);
   const out=document.createElement('canvas');out.width=out.height=n;const c=out.getContext('2d'),col=ST.bg[S.cfg.bg],g=c.createLinearGradient(0,0,0,n);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');
   c.fillStyle=col;c.fillRect(0,0,n,n);c.drawImage(R.domElement,0,0,n,n);

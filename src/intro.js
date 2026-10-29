@@ -85,6 +85,11 @@ const introSteps=[
       [...seg.children].forEach(x=>x.classList.toggle('on',x===b));fig.dataset.pose=b.dataset.p;introBuzz(10);used.add(b.dataset.p);
       if(b.dataset.p==='wave'){const c=introCenter(fig);introBoom(c.x+40,c.y-60)}
       if(used.size>=1){const h=root.querySelector('.ihint');h.textContent=used.size>=2?'Same spot, same pose, from your photo.':'Nice. Try another.';h.classList.add('ok');done(true)}})}},
+ {h:'Meet your little self',p:'Build a 3D version of you in under a minute. Skip it and do it later in Profile.',hint:'',
+  art(){const sn=stSnap();return`<div class="stp-art" id="stArt" style="${sn?`background-image:url(${sn})`:''}">${sn?'':ic.users||''}</div><div class="ig-act"><button class="pill d" id="stGo" style="width:100%;justify-content:center">${sn?'Edit my avatar':'Make my avatar'}</button></div>`},
+  run(root,done){
+    const go=$('#stGo');done(true,stSnap()?'Continue':'Skip for now');
+    go.onclick=()=>studioOpen({onSave:snap=>{const a=$('#stArt');if(a&&snap){a.style.backgroundImage=`url(${snap})`;a.textContent='';a.classList.remove('stp-art');void a.offsetWidth;a.classList.add('stp-art')}if(snap&&!pfp())pfpSet(snap);go.textContent='Edit my avatar';const h=root.querySelector('.ihint');if(h){h.textContent='Looking good.';h.classList.add('ok')}introBoom(...Object.values(introCenter(a||go)));done(true,'Continue')}})}},
  {h:"You're all set",p:'Pick the little nudges you want. Change them any time in Profile.',hint:'',
   art(){const c=ntGet();const r=(k,t,d)=>`<div class="ntr"><div><b>${t}</b><small>${d}</small></div><button class="ntsw ${c.on[k]?'on':''}" role="switch" aria-checked="${!!c.on[k]}" aria-label="${t}" data-k="${k}"><i></i></button></div>`;
    return`<div class="ntset">${r('otd','On this day','Memories from past years')}${r('streak','Streaks','When you keep a few days in a row')}${r('week','Weekly recap','A quiet summary each Monday')}${r('nudge','Daily nudge','A gentle reminder to keep something')}</div>`},

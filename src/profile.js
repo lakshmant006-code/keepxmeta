@@ -63,10 +63,11 @@ function meCard(){
      :igSyncOn()?`<button class="pill d" id="meIgSync">${ic.ig} Continue with Instagram</button><button class="mel" id="meIgOn">Type my handle instead</button>`
      :`<button class="pill d" id="meIgOn">${ic.ig} Link Instagram</button>`}</div>
    ${igSyncOn()&&!ig?'<p class="meb" style="font-size:12px;color:var(--faint)">Fills in your name, photo and bio. Works with Business and Creator accounts. Keep keeps no copy of your login.</p>':''}
-   <div class="meup"><label class="mel">Import from your Instagram download<input type="file" id="meImp" accept=".json,image/*" multiple hidden></label>${u?'<button class="mel" id="pfpRm">Remove photo</button>':''}</div></div>`;
+   <div class="meup"><label class="mel">Import from your Instagram download<input type="file" id="meImp" accept=".json,image/*" multiple hidden></label>${u?'<button class="mel" id="pfpRm">Remove photo</button>':''}${stSnap()&&u!==stSnap()?'<button class="mel" id="meAv">Use my avatar</button>':''}</div></div>`;
 }
 function meWire(){
   const me=()=>meGet();
+  if($('#meAv'))$('#meAv').onclick=()=>{pfpSet(stSnap());renderProf();openProfile()};
   if($('#meName'))$('#meName').addEventListener('change',e=>{const o=me();o.name=e.target.value.trim().slice(0,40);meSave(o);renderProf()});
   const askIg=()=>{
     const el=$('.meig');el.innerHTML=`<div class="meat"><span>@</span><input id="meIgIn" placeholder="instagram username" autocapitalize="none" autocorrect="off" value="${esc(me().ig||'')}"></div><button class="pill d" id="meIgSave" style="height:40px;padding:0 16px">Save</button>`;

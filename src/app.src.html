@@ -1097,7 +1097,7 @@ function save(){
 }
 /* ---------- profile ---------- */
 function backup(){
-  const lk={};Object.keys(LOOKS).forEach(k=>{lk[k]=Object.assign({},LOOKS[k]);delete lk[k].glb});const d={app:'keep',v:1,saved:new Date().toISOString(),memories:user.map(o=>{if(!o.vid)return o;const c=Object.assign({},o);delete c.vid;return c}),looks:lk,profile:pfp()||undefined,me:Object.keys(meGet()).length?meGet():undefined,friends:FR.length?FR:undefined},a=document.createElement('a');
+  const lk={};Object.keys(LOOKS).forEach(k=>{lk[k]=Object.assign({},LOOKS[k]);delete lk[k].glb});const d={app:'keep',v:1,saved:new Date().toISOString(),memories:user.map(o=>{if(!o.vid)return o;const c=Object.assign({},o);delete c.vid;return c}),looks:lk,profile:pfp()||undefined,studio:stLoad()||undefined,me:Object.keys(meGet()).length?meGet():undefined,friends:FR.length?FR:undefined},a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='keep-backup-'+dk(new Date())+'.json';
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast(user.length+(user.length===1?' memory':' memories')+' saved to a file');
 }
@@ -1106,6 +1106,7 @@ function restore(e){
   f.text().then(t=>{
     const d=JSON.parse(t),L=Array.isArray(d)?d:d.memories;if(!Array.isArray(L))throw 0;
     if(d&&d.looks&&typeof d.looks==='object'&&!Array.isArray(d)){Object.keys(d.looks).forEach(k=>{if(!LOOKS[k]){LOOKS[k]=d.looks[k];delete LOOKS[k].glb}});saveLooks()}
+    if(d&&d.studio&&d.studio.cfg&&!stLoad()){const sn=typeof d.studio.snap==='string'&&/^data:image\//.test(d.studio.snap)&&d.studio.snap.length<200000?d.studio.snap:'';stPut(stClean(d.studio.cfg),sn)}
     if(d&&typeof d.profile==='string'&&/^data:image\//.test(d.profile)&&d.profile.length<400000&&!pfp()){pfpSet(d.profile);renderProf()}
     if(d&&d.me&&typeof d.me==='object'&&!Object.keys(meGet()).length){meSave({name:String(d.me.name||'').slice(0,40),ig:igUser(d.me.ig),bio:String(d.me.bio||'').slice(0,160)});renderProf()}
     if(d&&Array.isArray(d.friends)){const hv=new Set(FR.map(f=>pkey(f.name)));d.friends.forEach(f=>{if(f&&f.name&&!hv.has(pkey(f.name))){FR.push({id:f.id||Date.now()+FR.length,name:String(f.name).slice(0,40),ig:igUser(f.ig),photo:/^data:image\//.test(f.photo||'')?f.photo:''})}});frSave()}
