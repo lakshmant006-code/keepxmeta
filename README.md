@@ -146,6 +146,10 @@ Tap the people icon in the header (or Profile → Friends) for a page of the peo
 
 **Instagram.** Instagram closed its friends and followers access for apps like this one (the Basic Display API ended on December 4, 2024, and the replacement is for business accounts only), so Keep cannot sync with your account. Instead, **From Instagram** imports Instagram's own export: in Instagram go to Settings → Accounts Center → Your information and permissions → Download your information, choose Followers and following in JSON, then pick `followers_1.json` and `following.json` (the HTML files work too). Keep reads them on the phone, lists the accounts (mutuals first, with search), and adds the ones you tick. The export only has usernames, so rename people afterwards.
 
+## Motion
+
+Pages slide in from the side and leave the same way (Friends, Insights, Places); the chat, Add and Re-live rise and sink. The home screen steps aside while a page is open. Photos animate too: the circles on the calendar pop in a few at a time as they scroll into view, a day's photo stack fans out from under its first photo, and opening a photo grows it out of the thumbnail you tapped. Insights bars grow up from the baseline. All of it is decoration, and it is off when the phone asks for reduced motion (`docs/videos/motion.mp4`).
+
 ## Deleting
 
 Press and hold a memory to delete it: a photo in the viewer (swipe to it, then hold), a single photo or a note in a day. A small menu offers a red **Delete** button and a cancel icon. There is no list of delete buttons in the day sheet any more.
