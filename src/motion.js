@@ -46,7 +46,7 @@ function pill(c){
 }
 
 /* soft reveal: whatever a sheet or page has just drawn rises a few pixels, one after another */
-const REV='.pb>.ev,.dh,#ins .insc,#ins .inshero,#ins .inst2,#fr .frr,#mp .pcard,#fr .grp,.gsetup>*';
+const REV='.pb>.ev,.dh,#ins .insc,#ins .inshero,#ins .inst2,#fr .frr,#nt .ntc,#mp .pcard,#fr .grp,.gsetup>*';
 const seen=new WeakSet();
 function reveal(root){
   const els=[...root.querySelectorAll(REV)].filter(e=>!seen.has(e)).slice(0,10);
@@ -59,7 +59,7 @@ new MutationObserver(scan).observe(document.body,{childList:true,subtree:true});
 scan();
 
 /* depth: the home screen steps back a few pixels while anything is open on top, and the new layer rises in */
-const home=$('#home'),tops=['#sh','#ov','#mp','#fr','#ins','#chat'].map($).filter(Boolean);
+const home=$('#home'),tops=['#sh','#ov','#mp','#fr','#ins','#nt','#chat'].map($).filter(Boolean);
 let deep=false,dc=null;
 const depth=()=>{
   const d=tops.some(e=>e.classList.contains('on'));if(d===deep||!home)return;deep=d;

@@ -355,6 +355,7 @@ __FACE_CSS__
 __FR_CSS__
 __INS_CSS__
 __INTRO_CSS__
+__NT_CSS__
 __INV_CSS__
 __PROF_CSS__
 __MOT_CSS__
@@ -381,6 +382,7 @@ __MOT_CSS__
   <div class="mp" id="mp"></div>
   <div class="mp" id="fr"></div>
   <div class="mp" id="ins"></div>
+  <div class="mp" id="nt"></div>
   <div class="ar" id="ar"></div>
   <div class="lb" id="lb"></div>
   <div class="kbd" id="kbd"></div>
@@ -790,7 +792,7 @@ function openDay(k){
   ph.filter(p=>p.who&&src(p)).forEach(p=>{h+=`<div class="ev">${tlNode('person')}<button class="pill d arbtn" data-ar="${p.id}">${ic.cube} See ${esc(firstName(p.who))} there</button></div>`});
   let ti=0;h=h.replace(/<div class="ev"/g,()=>`<div class="ev" style="--i:${ti++}"`);
   openSheet(`<div class="dh"><h1>${longDay(dt)}</h1><p>${dt.getFullYear()} · ${L.length?L.length+' moment'+(L.length>1?'s':''):'quiet day'}</p></div><div class="pb" style="padding-top:16px"><div class="tl">${h}<div class="ev tadd" style="--i:${ti}"><span class="nd">${ic.plus.replace('width="22" height="22"','width="14" height="14"')}</span><button class="tbtn" id="dayAdd">${ic.plus.replace('width="22" height="22"','width="16" height="16"')} ${L.length?'Add to this day':'Keep something on this day'}</button></div></div></div>`,{full:true});
-  $('#dayAdd').onclick=e=>{tlRipple(e.currentTarget);setTimeout(()=>{closeSheet();openAdd(k)},180)};tlInit($('#pc .tl'));
+  $('#dayAdd').onclick=e=>{tlRipple(e.currentTarget);setTimeout(()=>{closeSheet();openAdd(k)},180)};tlInit($('#pc .tl'));if(typeof reflectChip==='function')reflectChip(k);
 }
 /* revisit */
 let rvDate=null;
@@ -1135,7 +1137,7 @@ function openProfile(){
    ${meCard()}
    <div class="grp">
     <div class="row"><span>Appearance</span>${seg('theme',[['light','Light'],['dark','Dark']],th)}</div>
-    ${rw('insightsOpen','Insights','','Open')}${rw('friendsOpen','Friends','','Open')}${rw('inviteOpen','Invite friends','Share Keep through Instagram','Invite')}${rw('peopleOpen','People','','Open')}
+    ${rw('ntOpen','Notifications',ntUnread()?ntUnread()+' new':'Only things that need you','Open')}${rw('insightsOpen','Insights','','Open')}${rw('friendsOpen','Friends','','Open')}${rw('inviteOpen','Invite friends','Share Keep through Instagram','Invite')}${rw('peopleOpen','People','','Open')}
     ${rw('impOpen','Import photos','','Choose')}${rw('bak','Back up','','Download')}
     <div class="row"><span>Restore</span><label ${cb.replace('class="chip fb flat" style="','class="chip fb flat" style="display:grid;place-items:center;cursor:pointer;')}>Choose file<input type="file" id="rst" accept="application/json,.json" hidden></label></div>
    </div>
@@ -1160,6 +1162,7 @@ function openProfile(){
   $('#pfpIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{pfpSet(await pfpFrom(f));renderProf();openProfile();toast('Profile photo updated')}catch(err){toast('Could not read that photo')}};
   if($('#pfpRm'))$('#pfpRm').onclick=()=>{pfpSet('');renderProf();openProfile();toast('Photo removed')};
   $('#insightsOpen').onclick=()=>{closeSheet();insOpen()};
+  $('#ntOpen').onclick=()=>{closeSheet();setTimeout(ntOpen,320)};
   $('#friendsOpen').onclick=()=>{closeSheet();frOpen()};
   $('#inviteOpen').onclick=()=>{closeSheet();setTimeout(openInvite,320)};
   $('#peopleOpen').onclick=()=>{closeSheet();faceOpenPeople()};
@@ -1235,6 +1238,7 @@ __FR_JS__
 __INS_JS__
 __INTRO_JS__
 __PROF_JS__
+__NT_JS__
 __INV_JS__
 let yearMode=false;
 function refresh(){index();renderCal();renderYear();renderRv()}

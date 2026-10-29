@@ -160,3 +160,7 @@ Press and hold a memory to delete it: a photo in the viewer (swipe to it, then h
 - No sync across devices yet; use Back up and Restore.
 - Videos you record (or pick from your library, up to 300 MB) are kept as real video, with sound, next to a still. Videos play in the photo viewer, in the same swipe strip as the photos: swipe to one and it starts, tap to pause or play, and the speaker button turns sound on or off. A video looks like a kept photo: centered, sized to its own shape, soft faded edges, caption and date below. The speaker button sits on top of the picture (top right). Swiping away pauses it. A single-memory view, search answers, revisits and Re-live journals show the video the same way: soft faded edges and no black bars, tap to play or pause, speaker button for sound. Older videos that kept only a still show as a still. Back up saves the still and length but not the video file itself, so a restored video shows as a still. Voice notes keep their length but not the audio.
 - Search is keyword matching.
+
+## Notifications, reflection and Insights extras
+
+Chime-inspired, all on-device. Profile > Notifications is a quiet inbox (On this day, streaks, weekly recap, optional nudge) with per-type switches; the onboarding has a final "You're all set" step with the same switches. Old memories get a "How does it feel now?" reflection (smile / bittersweet / rather not revisit); "rather not" memories stop resurfacing. Insights gains a 30-day kept-days dot grid and a skyline.
