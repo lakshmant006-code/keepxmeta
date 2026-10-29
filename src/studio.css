@@ -1,0 +1,32 @@
+/* Keep Studio: the avatar maker */
+.stu{position:absolute;inset:0;z-index:80;background:var(--bg);display:none;flex-direction:column;overflow:hidden}
+.stu.on{display:flex;animation:stIn .42s var(--spring)}
+@keyframes stIn{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.stt{display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 4px;flex:none}
+.stb{width:40px;height:40px;border-radius:20px;display:grid;place-items:center;color:var(--ink)}
+.stsp{width:40px}
+.stn{text-align:center;line-height:1.15}.stn small{display:block;font-size:12px;color:var(--mute)}.stn b{font-size:17px;font-weight:600}
+.stv{position:relative;flex:1 1 auto;min-height:220px;margin:4px 12px 0;border-radius:26px;overflow:hidden;touch-action:none;transition:background .4s}
+.stv canvas{width:100%;height:100%;display:block;touch-action:none}
+.sth{position:absolute;left:0;right:0;bottom:14px;text-align:center;font-size:12px;color:rgba(0,0,0,.45);pointer-events:none;transition:opacity .4s}.sth.gone{opacity:0}
+.stz{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+.stz button{width:34px;height:34px;border-radius:17px;background:rgba(255,255,255,.78);backdrop-filter:blur(8px);color:#111;font-size:18px;line-height:1;display:grid;place-items:center}
+.stp{flex:none;padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 10px);display:flex;flex-direction:column;gap:8px;max-height:46%}
+.sttools{display:flex;gap:8px;padding:0 14px}
+.stc{height:34px;padding:0 14px;border-radius:17px;background:var(--fill2);color:var(--ink);font-size:14px;font-weight:500;white-space:nowrap;transition:transform .2s var(--spring),background .2s}
+.stc:active{transform:scale(.95)}.stc:disabled{opacity:.35}
+.stc.on{background:var(--blue);color:#fff}
+.stts{display:flex;gap:4px;padding:0 10px;border-bottom:1px solid var(--bd)}
+.stts button{flex:1;height:38px;font-size:14px;font-weight:500;color:var(--mute);border-bottom:2px solid transparent}
+.stts button.on{color:var(--ink);border-color:var(--blue)}
+.stbd{overflow-y:auto;padding:4px 14px;min-height:96px;-webkit-overflow-scrolling:touch}
+.stl{font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 6px}
+.stch{display:flex;flex-wrap:wrap;gap:6px}
+.stsw{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.sws{width:32px;height:32px;border-radius:16px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);transition:transform .2s var(--spring)}
+.sws.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--blue);transform:scale(1.08)}
+.stsv{margin:2px 14px 0;width:calc(100% - 28px);justify-content:center}
+/* onboarding step */
+#intro .stp-art{width:200px;height:200px;border-radius:100px;overflow:hidden;background:var(--fill2) center/cover;display:grid;place-items:center;margin:0 auto 18px;box-shadow:0 10px 30px rgba(8,102,255,.18);animation:ntpop .6s var(--spring)}
+#intro .stp-art svg{width:96px;height:96px;opacity:.5}
+.avdot{display:inline-block;width:26px;height:26px;border-radius:13px;background:center/cover;vertical-align:middle;margin-right:8px;box-shadow:0 0 0 1px var(--bd)}

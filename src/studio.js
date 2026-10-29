@@ -38,7 +38,7 @@ function stBuild(cfg){
     ink=new T.MeshBasicMaterial({color:'#1b1414'}),white=new T.MeshBasicMaterial({color:'#fffdf8'}),lip=mat('#B5525A',{roughness:.5});
   const add=(p,g,m,x,y,z)=>{const o=new T.Mesh(g,m);o.position.set(x||0,y||0,z||0);p.add(o);return o};
   const grp=(p,x,y,z)=>{const g=new T.Group();g.position.set(x||0,y||0,z||0);p.add(g);return g};
-  const S=(r,ws,hs)=>new T.SphereGeometry(r,ws||32,hs||24),C=(r,l)=>new T.CapsuleGeometry(r,l,8,16);
+  const S=(r,ws,hs,a,b,c,d)=>new T.SphereGeometry(r,ws||32,hs||24,a,b,c,d),C=(r,l)=>new T.CapsuleGeometry(r,l,8,16);
   /* body */
   const body=grp(G,0,0,0),torso=grp(body,0,1.02,0);
   add(torso,C(.2,.34),outM,0,0,0).scale.set(1.12*bs,1,.7);
@@ -56,7 +56,7 @@ function stBuild(cfg){
   /* head */
   const head=grp(G,0,1.6,0),face=grp(head,0,0,0);
   add(face,S(.24,48,36),skin,0,0,0).scale.set(F.w,F.h,.98);
-  add(face,S(.2,40,28),skin,0,F.jy,.02).scale.set(F.jw,.8,.9);
+  add(face,S(.2,40,28),skin,0,F.jy,-.035).scale.set(F.jw,.8,.88);
   [-1,1].forEach(s=>add(face,S(.045,16,12),skin,s*.238*F.w,0,-.01).scale.set(.55,1,.8));
   /* eyes */
   const eyes=[],X=.088;
@@ -83,13 +83,13 @@ function stBuild(cfg){
   if(cfg.beard===3){add(face,S(.2495,40,28,0,Math.PI*2,Math.PI*.52,Math.PI*.46),hairM,0,0,0).scale.set(F.w,F.h,.98);add(face,C(.016,.07),hairM,0,-.068,.226).rotation.z=Math.PI/2}
   /* hair */
   const hairG=grp(head,0,0,0);
-  const cap=(fr,r,y,z)=>{const m=add(hairG,S(r||.255,48,32,0,Math.PI*2,0,Math.PI*fr),hairM,0,y==null?.02:y,z==null?-.012:z);m.rotation.x=-.22;m.scale.set(F.w,F.h,1);return m};
+  const cap=(fr,r,y,z)=>{const m=add(hairG,S(r||.255,48,32,0,Math.PI*2,0,Math.PI*fr),hairM,0,y==null?.02:y,z==null?-.012:z);m.rotation.x=-.5;m.scale.set(F.w,F.h,1);return m};
   const hs=ST.hair[cfg.hair];
-  if(hs==='Buzz')cap(.5,.247);
+  if(hs==='Buzz')cap(.47,.247);
   if(hs==='Short'){cap(.56);add(hairG,S(.12,20,14),hairM,.04,.205,.14).scale.set(1.6,.5,.6)}
   if(hs==='Swept'){cap(.58);const f=add(hairG,S(.15,24,16),hairM,-.07,.2,.14);f.scale.set(1.5,.55,.7);f.rotation.z=.3}
-  if(hs==='Curly'){cap(.5,.245);for(let i=0;i<26;i++){const t=Math.acos(1-1.05*(i+.5)/26),p=i*2.399963,r=.245;add(hairG,S(.066,12,10),hairM,Math.sin(t)*Math.cos(p)*r*F.w,Math.cos(t)*r*F.h+.03,Math.sin(t)*Math.sin(p)*r-.02)}}
-  if(hs==='Afro'){add(hairG,S(.36,40,30),hairM,0,.07,-.035).scale.set(1,.96,.9);add(hairG,S(.2,24,16),skin,0,-.02,.1).visible=false}
+  if(hs==='Curly'){cap(.5,.245);for(let i=0;i<26;i++){const t=Math.acos(1-1.05*(i+.5)/26),p=i*2.399963,r=.245;if(Math.sin(t)*Math.sin(p)>.3&&Math.cos(t)<.62)continue;add(hairG,S(.066,12,10),hairM,Math.sin(t)*Math.cos(p)*r*F.w,Math.cos(t)*r*F.h+.03,Math.sin(t)*Math.sin(p)*r-.02)}}
+  if(hs==='Afro'){add(hairG,S(.34,40,30),hairM,0,.09,-.13).scale.set(1,.96,.9);add(hairG,S(.2,24,16),skin,0,-.02,.1).visible=false}
   if(hs==='Long'){cap(.58);add(hairG,C(.2,.42),hairM,0,-.2,-.1).scale.set(1.18,1,.6);[-1,1].forEach(s=>add(hairG,C(.05,.3),hairM,s*.215*F.w,-.12,.02))}
   if(hs==='Bob'){cap(.6);add(hairG,C(.19,.1),hairM,0,-.08,-.07).scale.set(1.28,1,.8);[-1,1].forEach(s=>add(hairG,C(.07,.14),hairM,s*.215*F.w,-.06,0))}
   if(hs==='Bun'){cap(.55);add(hairG,S(.095,24,18),hairM,0,.275,-.055)}
@@ -118,7 +118,7 @@ function stBuild(cfg){
 /* ---- the studio ---- */
 let stS=null;
 const stTabs=[['face','Face'],['hair','Hair'],['body','Body'],['style','Style'],['motion','Motion']];
-const stCam={face:[1.58,.95,1.56],hair:[1.66,1.25,1.62],body:[1.28,2.35,1.2],style:[1.58,1.15,1.56],motion:[1.4,1.9,1.3]};
+const stCam={face:[1.6,1.55,1.58],hair:[1.68,1.95,1.62],body:[1.3,3.4,1.3],style:[1.6,1.6,1.58],motion:[1.42,2.9,1.38]};
 const stClamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 async function studioOpen(opts){
   const el=$('#studio');if(!el||el.classList.contains('on'))return;
@@ -165,7 +165,7 @@ async function studioOpen(opts){
   el.querySelector('.stts').addEventListener('click',e=>{const b=e.target.closest('button');if(b){S.tab=b.dataset.t;draw()}});
   $('#stUn').onclick=()=>{if(!S.undo.length)return;S.redo.push(JSON.stringify(S.cfg));S.cfg=stClean(JSON.parse(S.undo.pop()));rebuild();draw()};
   $('#stRe').onclick=()=>{if(!S.redo.length)return;S.undo.push(JSON.stringify(S.cfg));S.cfg=stClean(JSON.parse(S.redo.pop()));rebuild();draw()};
-  $('#stRn').onclick=()=>{S.undo.push(JSON.stringify(S.cfg));const r=()=>Math.floor(Math.random()*1e6),c=stDefault();for(const k in c){if(k==='v'||k==='idle')continue;c[k]=r()%(stMax[k]+1)}S.cfg=stClean(c);S.redo=[];rebuild();S.squish=1;draw();buzz&&0};
+  $('#stRn').onclick=()=>{S.undo.push(JSON.stringify(S.cfg));const r=()=>Math.floor(Math.random()*1e6),c=stDefault();for(const k in c){if(k==='v'||k==='idle')continue;c[k]=r()%(stMax[k]+1)}S.cfg=stClean(c);S.redo=[];rebuild();S.squish=1;draw()};
   /* camera: drag to turn, pinch to zoom, double-tap to reset, buttons for everyone */
   const ptr=new Map();let lastTap=0,pd=0;
   cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptr.size===2){const [a,b]=[...ptr.values()];pd=Math.hypot(a.x-b.x,a.y-b.y)}
@@ -218,7 +218,7 @@ async function studioOpen(opts){
 function stSnapshot(S){
   const R=S.r,cam=S.cm,A=S.av,old={w:R.domElement.width,h:R.domElement.height,pr:R.getPixelRatio()};
   const n=320,sv={y:cam.position.y,z:cam.position.z,rot:A.group.rotation.y,asp:cam.aspect};
-  R.setPixelRatio(1);R.setSize(n,n,false);cam.aspect=1;cam.updateProjectionMatrix();cam.position.set(0,1.55,1.45);cam.lookAt(0,1.5,0);A.group.rotation.y=0;
+  R.setPixelRatio(1);R.setSize(n,n,false);cam.aspect=1;cam.updateProjectionMatrix();cam.position.set(0,1.58,1.75);cam.lookAt(0,1.5,0);A.group.rotation.y=0;
   const keep={smile:S.cur.smile};S.cur.smile=Math.max(S.cur.smile,.6);R.render(S.sc,cam);
   const out=document.createElement('canvas');out.width=out.height=n;const c=out.getContext('2d'),col=ST.bg[S.cfg.bg],g=c.createLinearGradient(0,0,0,n);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');
   c.fillStyle=col;c.fillRect(0,0,n,n);c.drawImage(R.domElement,0,0,n,n);
