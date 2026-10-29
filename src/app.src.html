@@ -1510,13 +1510,28 @@ function instBanner(){
   $('#instX').onclick=()=>{instHide();try{localStorage.setItem(INST,'1')}catch(e){}};
 }
 function instHide(){const b=$('#inst');if(b)b.remove()}
+/* Social apps open links in their own browser, which cannot install anything. Android can hand the page to Chrome; iPhone cannot be told to open Safari, so we explain the one tap that does it. */
+const inAppBrowser=/Instagram|FBAN|FBAV|FB_IAB|Snapchat|TikTok|musical_ly|LinkedInApp|Twitter|\bLine\//i.test(navigator.userAgent);
+const isAndroid=/android/i.test(navigator.userAgent);
+const pageUrl=()=>location.href.split('#')[0].replace(/[?&]intro\b/,'');
+async function copyLink(){try{await navigator.clipboard.writeText(pageUrl());toast('Link copied. Paste it in Safari.')}catch(e){const t=document.createElement('textarea');t.value=pageUrl();document.body.appendChild(t);t.select();try{document.execCommand('copy');toast('Link copied. Paste it in Safari.')}catch(_){toast(pageUrl())}t.remove()}}
+const stepsHTML=a=>`<div class="grp">${a.map((t,i)=>`<div class="row" style="align-items:flex-start;gap:12px;justify-content:flex-start"><span style="flex:none;width:24px;height:24px;border-radius:12px;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:600">${i+1}</span><span style="font-size:15px;line-height:1.4">${t}</span></div>`).join('')}</div>`;
 async function installApp(){
   if(isStandalone()){toast('Keep is already installed');return}
   if(instEv){const e=instEv;instEv=null;e.prompt();try{const r=await e.userChoice;if(r.outcome==='accepted')toast('Installing Keep…')}catch(_){}return}
+  if(inAppBrowser){
+    const u=location.host+location.pathname+location.search.replace(/[?&]intro\b/,'');
+    openSheet(`<div class="dh"><h1>Open Keep in your browser</h1><p>${isIOS?'This in-app browser can’t install apps':'Chrome can install it in one tap'}</p></div><div class="pb" style="padding-top:0">
+     ${isAndroid?`<a class="pill d" style="width:100%;justify-content:center;text-decoration:none;margin-top:6px" href="intent://${u}#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome</a>`
+      :`<button class="pill d" id="cpLink" style="width:100%;justify-content:center;margin-top:6px">Copy link</button>`}
+     ${stepsHTML(isIOS?['Tap the <b>⋯</b> button at the top right','Tap <b>Open in Browser</b> (or paste the copied link into <b>Safari</b>)','Tap <b>Install</b> in Keep, then <b>Add to Home Screen</b>']:['Tap the <b>⋮</b> menu at the top right','Tap <b>Open in browser</b>','Tap <b>Install</b> in Keep'])}</div>`);
+    if($('#cpLink'))$('#cpLink').onclick=copyLink;return;
+  }
+  if(isIOS&&navigator.share){toast('Tap “Add to Home Screen”');try{await navigator.share({title:'Keep',url:pageUrl()})}catch(_){}return}
   const steps=isIOS
     ?['Tap the <b>Share</b> button at the bottom (or top right) of this page','Scroll down and tap <b>Add to Home Screen</b>','Tap <b>Add</b>. Keep now opens from your home screen, full screen, with no browser bars']
     :['Tap the <b>⋮ menu</b> in your browser','Tap <b>Install app</b> (or <b>Add to Home screen</b>)','Tap <b>Install</b>. Keep now opens from your home screen, full screen'];
-  openSheet(`<div class="dh"><h1>Install Keep</h1><p>${isIOS?'On iPhone, Apple only allows this from the Share menu':'Add it to your home screen'}</p></div><div class="pb" style="padding-top:0"><div class="grp">${steps.map((t,i)=>`<div class="row" style="align-items:flex-start;gap:12px"><b style="flex:none;width:24px;height:24px;border-radius:12px;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:13px">${i+1}</b><span style="flex:1;line-height:1.4">${t}</span></div>`).join('')}</div>
+  openSheet(`<div class="dh"><h1>Install Keep</h1><p>${isIOS?'On iPhone, Apple only allows this from the Share menu':'Add it to your home screen'}</p></div><div class="pb" style="padding-top:0">${stepsHTML(steps)}
    <p class="note">Needs the site to be opened over https. Everything you keep stays on this phone.</p></div>`);
 }
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();instEv=e;instBanner()});
