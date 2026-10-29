@@ -17,15 +17,15 @@
 /* Day journal: a rail down the left. Each moment gets a node with its own icon, the rail fills as you scroll, and moments rise in as they arrive. */
 :root{--spring:cubic-bezier(.32,.72,0,1)}
 .tl{--fh:0px;position:relative;padding-left:46px}
-.tl::before,.tl::after{content:"";position:absolute;left:13px;top:14px;width:2px;border-radius:1px}
-.tl::before{bottom:34px;background:var(--line2)}
-.tl::after{height:var(--fh);max-height:calc(100% - 48px);background:linear-gradient(var(--s2),var(--blue));transition:height .6s var(--spring)}
+.tl::before,.tl::after{content:"";position:absolute;left:13.25px;top:14px;width:1.5px;border-radius:1px}
+.tl::before{bottom:34px;background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.tl::after{height:var(--fh);max-height:calc(100% - 48px);background:linear-gradient(color-mix(in srgb,var(--blue) 20%,transparent),color-mix(in srgb,var(--blue) 42%,transparent));transition:height .6s var(--spring)}
 .tl .ev{position:relative;opacity:0;transform:translateY(18px) scale(.985);filter:blur(5px);transition:opacity .6s var(--spring),transform .7s var(--spring),filter .6s var(--spring);transition-delay:calc(var(--i,0)*60ms)}
 .tl .ev.in{opacity:1;transform:none;filter:none}
 .tl .ev::before{display:none}
 .tl .nd{position:absolute;left:-46px;top:0;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--bg);border:2px solid var(--line2);color:var(--mute);transform:scale(.4);transition:transform .7s var(--spring),background .4s,border-color .4s,color .4s,box-shadow .6s;transition-delay:calc(var(--i,0)*60ms + 120ms)}
 .tl .nd svg{width:14px;height:14px}
-.tl .ev.in .nd{transform:none;background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 0 5px color-mix(in srgb,var(--blue) 16%,transparent)}
+.tl .ev.in .nd{transform:none;background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--blue) 9%,transparent)}
 .tl .ev.tadd .nd{background:var(--bg);border:2px dashed var(--blue);color:var(--blue);box-shadow:none}
 .tl .ev.tadd.in .nd{background:var(--bg);color:var(--blue);animation:ipulseN 2.4s ease-out 1s infinite}
 @keyframes ipulseN{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--blue) 40%,transparent)}70%,100%{box-shadow:0 0 0 10px transparent}}
