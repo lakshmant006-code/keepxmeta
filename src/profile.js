@@ -50,7 +50,7 @@ async function igSyncFinish(){
     if(!r.ok)throw 0;const d=await r.json(),me=meGet();
     if(d.name)me.name=String(d.name).slice(0,40);if(d.username)me.ig=igUser(d.username);if(d.bio)me.bio=String(d.bio).slice(0,160);
     meSave(me);if(/^data:image\//.test(d.picture||'')){try{pfpSet(await meSquare(d.picture))}catch(e){}}
-    renderProf();openProfile();toast('Linked @'+(me.ig||'instagram')+'. Your details are saved.');
+    renderProf();if($('#intro')){const ig=$('#igAct');if(ig&&me.ig)toast('Linked @'+me.ig)}else{openProfile();toast('Linked @'+(me.ig||'instagram')+'. Your details are saved.')}
   }catch(e){toast('Could not reach Instagram just now. You can type your handle instead.')}
 }
 setTimeout(igSyncFinish,0);
@@ -91,3 +91,7 @@ function tlInit(tl){
   requestAnimationFrame(()=>evs.forEach(e=>io.observe(e)));
 }
 function tlRipple(b){const r=b.getBoundingClientRect(),d=Math.max(r.width,r.height)*2,s=document.createElement('span');s.className='rip';s.style.cssText=`width:${d}px;height:${d}px;left:${r.width/2-d/2}px;top:${r.height/2-d/2}px`;b.appendChild(s);setTimeout(()=>s.remove(),600)}
+
+/* Safari still pinches the page on iOS even with a locked viewport; stop the gesture */
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+let tlLastTap=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-tlLastTap<320&&!e.target.closest('input,textarea'))e.preventDefault();tlLastTap=n},{passive:false});

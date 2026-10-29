@@ -48,6 +48,10 @@ KEEP_DEMO=1 python3 build.py && python3 -m http.server -d dist 8000
 
 Open `http://localhost:8000/` (add `?intro` to replay the intro). `LLM_API_KEY` is read by nothing in the web app on purpose: anything built into a static site is public, so a key like that belongs in a worker secret (`wrangler secret put`), not in `.env` for the client build.
 
+## Deploying on Render
+
+`render.yaml` describes two services: the static site and `keep-instagram` (the sign-in helper, `worker/server.js`). Create them from the Blueprint, then in the Render dashboard set `IG_APP_ID` on both and `IG_APP_SECRET` on the helper (both come from your Meta app: Instagram API with Instagram Login; add `https://keepxmeta.onrender.com/` as the OAuth redirect URI). Until they are set, onboarding offers to type an Instagram handle instead. Rebuild the site after setting `IG_APP_ID`.
+
 ## What's inside
 
 - `src/app.src.html` the app; `src/ar.js` + `src/ar.css` Re-live; `src/maps.js` + `src/maps.css` Places; `src/vendor/three.min.js` three.js r160; `src/sw.js` offline service worker.

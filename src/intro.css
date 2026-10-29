@@ -88,3 +88,6 @@
 #intro .l-tags span{padding:6px 12px;border-radius:14px;background:var(--fill);font-size:13px;font-weight:500;color:var(--mute);transition:background .3s,color .3s}
 #intro .l-btn.shut ~ .l-tags span{background:#E4F6EC;color:#1F7A4D}
 @media (prefers-reduced-motion:reduce){#intro *{animation:none!important;transition:none!important}}
+#intro .ig-tile{width:112px;height:112px;border-radius:34px;display:grid;place-items:center;color:#fff;background:linear-gradient(45deg,#FEDA75,#FA7E1E 30%,#D62976 60%,#962FBF 80%,#4F5BD5);box-shadow:0 16px 40px rgba(214,41,118,.35);animation:ibreath 3.2s ease-in-out infinite}
+#intro .ig-act{margin-top:26px;width:100%;max-width:300px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:96px}
+#intro .iart:has(.ig-tile){height:auto;flex-direction:column}
