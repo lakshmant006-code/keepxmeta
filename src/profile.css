@@ -50,5 +50,10 @@ input,textarea,select{font-size:16px!important;touch-action:manipulation}
 
 .meb.acct{font-size:12px;color:var(--mute);margin:6px 0 0}.meb.acct.ok::before{content:'';display:inline-block;width:7px;height:7px;border-radius:4px;background:#1F9D61;margin-right:6px}
 .meb.acct .mel{display:inline;height:auto;padding:0;font-size:12px}
+.gate{position:absolute;inset:0;z-index:200;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;transition:opacity .3s}
+.gate.on{opacity:1}
+.gcard{width:100%;max-width:340px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.gcard .gk{width:72px;height:72px;border-radius:22px;background:var(--blue);color:#fff;font:700 34px/72px var(--font);margin-bottom:6px}
+.gcard h1{font-size:26px;margin:0}.gcard p{font-size:15px;color:var(--mute);margin:0 0 6px;line-height:1.4}.gcard small{font-size:12px;color:var(--faint)}
 .gbtn{display:flex;justify-content:center;margin:10px 0 2px;min-height:44px}
 #intro .gbtn{margin:18px 0 6px}

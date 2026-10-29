@@ -117,23 +117,25 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)ntBadge()}
 setTimeout(ntSnap,2500);
 
 /* ---------- what's new: shown once to people who already had Keep when this version arrives ---------- */
-const WNK='kept.whatsnew',WNV='2';
+const WNK='kept.whatsnew',WNV='3';
 function wnShow(){
   if($('#wn'))return;
   const d=document.createElement('div');d.id='wn';d.className='wn';
   const li=(t,s)=>`<li><b>${t}</b><span>${s}</span></li>`;
-  d.innerHTML=`<div class="wnc" role="dialog" aria-label="What's new"><small>What's new in Keep</small><h2>A few new things</h2><ul>${li('Notifications','On this day, streaks and a weekly recap, with a badge on your icon')}${li('Invite friends','Share Keep through Instagram or any chat')}${li('Smarter chat','Ask your memories like a conversation')}${li('Tag friends faster','Names suggested as you type, or add them from Instagram')}</ul><button class="pill d" id="wnX" style="width:100%;justify-content:center">Got it</button></div>`;
+  d.innerHTML=`<div class="wnc" role="dialog" aria-label="What's new"><small>What's new in Keep</small><h2>A few new things</h2><ul>${li('Google sign-in','Your account now lives behind a Google sign-in; memories stay on this phone')}${li('Notifications','On this day, streaks and a weekly recap, with a badge on your icon')}${li('Invite friends','Share Keep through Instagram or any chat')}${li('Smarter chat','Ask your memories like a conversation')}${li('Tag friends faster','Names suggested as you type, or add them from Instagram')}</ul><button class="pill d" id="wnX" style="width:100%;justify-content:center">Got it</button></div>`;
   $('#app').appendChild(d);requestAnimationFrame(()=>d.classList.add('on'));
   const end=cb=>{d.classList.remove('on');setTimeout(()=>{d.remove();cb&&cb()},300)};
   $('#wnX').onclick=()=>end();
 }
-setTimeout(()=>{try{
+function wnMaybe(){try{
+  if(typeof gateNeeded==='function'&&gateNeeded())return; /* sign in first; the card follows */
   const seen=localStorage.getItem(WNK);if(seen===WNV)return;
   localStorage.setItem(WNK,WNV);
   /* a first-time person has just been through the tour; only people who already had Keep see this */
   if(seen===null&&!introDone())return;
   if(!document.getElementById('intro'))wnShow();
-}catch(e){}},2200);
+}catch(e){}}
+setTimeout(wnMaybe,2200);
 
 /* usage: one event per memory saved, with its kind only */
 try{const _put=idb.put.bind(idb);idb.put=function(m){useTrack('memory_save',{type:String(m&&m.type||'')});return _put.apply(null,arguments)}}catch(e){}
