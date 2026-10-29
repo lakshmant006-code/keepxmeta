@@ -20,6 +20,7 @@ const introSteps=[
  {h:'Start with Instagram',p:'Link it and Keep fills in your name, photo and bio for you. You can skip this.',hint:'',
   art(){return`<div class="ig-tile">${ic.ig.replace('width="22" height="22"','width="64" height="64"')}</div><div class="ig-act" id="igAct"></div>`},
   run(root,done){
+    invRefCard($('#igAct').parentNode);
     const act=$('#igAct'),linked=()=>{const h=root.querySelector('.ihint');h.textContent='Linked @'+meGet().ig+'. Nice.';h.classList.add('ok');act.innerHTML='';introBoom(...Object.values(introCenter($('.ig-tile'))));introBuzz(18);done(true,'Continue')};
     if(meGet().ig){linked();return}
     done(true,'Skip for now');
@@ -84,6 +85,12 @@ const introSteps=[
       [...seg.children].forEach(x=>x.classList.toggle('on',x===b));fig.dataset.pose=b.dataset.p;introBuzz(10);used.add(b.dataset.p);
       if(b.dataset.p==='wave'){const c=introCenter(fig);introBoom(c.x+40,c.y-60)}
       if(used.size>=1){const h=root.querySelector('.ihint');h.textContent=used.size>=2?'Same spot, same pose, from your photo.':'Nice. Try another.';h.classList.add('ok');done(true)}})}},
+ {h:"You're all set",p:'Pick the little nudges you want. Change them any time in Profile.',hint:'',
+  art(){const c=ntGet();const r=(k,t,d)=>`<div class="ntr"><div><b>${t}</b><small>${d}</small></div><button class="ntsw ${c.on[k]?'on':''}" role="switch" aria-checked="${!!c.on[k]}" aria-label="${t}" data-k="${k}"><i></i></button></div>`;
+   return`<div class="ntset">${r('otd','On this day','Memories from past years')}${r('streak','Streaks','When you keep a few days in a row')}${r('week','Weekly recap','A quiet summary each Monday')}${r('nudge','Daily nudge','A gentle reminder to keep something')}</div>`},
+  run(root,done){
+    root.querySelectorAll('.ntsw').forEach(b=>b.onclick=()=>{const c=ntGet();c.on[b.dataset.k]=c.on[b.dataset.k]?0:1;ntPut(c);b.classList.toggle('on',!!c.on[b.dataset.k]);b.setAttribute('aria-checked',!!c.on[b.dataset.k]);introBuzz(8)});
+    done(true)}},
  {h:'Yours alone',p:'No account. No server. Nothing uploaded. Everything stays on this phone.',hint:'Press and hold to lock it in',
   art(){return`<div class="l-wrap"><div class="l-btn" id="lBtn" role="button" tabindex="0" aria-label="Press and hold to lock">
    <svg class="rg" viewBox="0 0 168 168"><circle cx="84" cy="84" r="80" fill="none" stroke="var(--fill2)" stroke-width="6"/><circle id="lRg" cx="84" cy="84" r="80" fill="none" stroke="#1F9D61" stroke-width="6" stroke-linecap="round" stroke-dasharray="502.7" stroke-dashoffset="502.7"/></svg>

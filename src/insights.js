@@ -96,6 +96,7 @@ function insDraw(){
     const pct=Math.round(dayKeys.size/D.days*100);
     h+=`<div class="inshero"><small>Memories kept${insRange==='all'?'':' in the last '+rl}</small><b>${insFmt(M.length)}</b><span>On ${dayKeys.size} of ${D.days} days (${pct}%)</span></div>
      <div class="instiles">${insTile('Current streak',S.cur+(S.cur===1?' day':' days'),'all time')}${insTile('Longest streak',S.longest+(S.longest===1?' day':' days'),'all time')}${insTile('Busiest day',busiest[1],(()=>{const [y,mo,d]=busiest[0].split('-').map(Number);return MS[mo-1]+' '+d})())}</div>`;
+    h+=insExtras();
     const act=insActivity(D,insRange);
     h+=insCard('Activity',act.unit[0].toUpperCase()+act.unit.slice(1),insCols(act.B,act.unit),act.B.map(x=>[x.tip,x.n]));
     const tc={};M.forEach(m=>{tc[m.type]=(tc[m.type]||0)+1});
