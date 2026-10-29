@@ -1258,7 +1258,7 @@ let swReg=null,updGo=false;
 function updBanner(){
   if($('#upd'))return;instHide();
   const b=document.createElement('div');b.className='inst';b.id='upd';
-  b.innerHTML=`<img src="icons/icon-192.png" alt=""><div><b>Update available</b><small>A newer version of Keep is ready</small></div><button class="pill d" id="updGo" style="height:36px;padding:0 16px;font-size:14px">Update</button><button class="ib" id="updX" aria-label="Later" style="width:32px;height:32px">${ic.x}</button>`;
+  b.innerHTML=`<img src="icons/icon-192.png" alt=""><div><b>Update available</b><small>New: your 3D avatar, notifications, invites and a smoother chat</small></div><button class="pill d" id="updGo" style="height:36px;padding:0 16px;font-size:14px">Update</button><button class="ib" id="updX" aria-label="Later" style="width:32px;height:32px">${ic.x}</button>`;
   $('#app').appendChild(b);
   $('#updGo').onclick=updApply;$('#updX').onclick=()=>b.remove();
 }
