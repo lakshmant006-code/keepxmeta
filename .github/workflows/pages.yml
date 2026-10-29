@@ -25,6 +25,7 @@ jobs:
           RECAPTCHA_KEY: ${{ secrets.RECAPTCHA_KEY }}
           IG_APP_ID: ${{ secrets.IG_APP_ID }}
           IG_API: ${{ secrets.IG_API }}
+          GTAG_ID: ${{ secrets.GTAG_ID }}
         run: python3 build.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
