@@ -91,7 +91,7 @@ Local or CI debugging: open the site with `?appcheck-debug` (the SDK prints a de
 
 ## Avatars
 
-Keep has its own avatars: a built-in figure per person, your own Keep Studio character, and imported `.glb` files.
+Keep has its own avatars: a built-in figure per person and imported `.glb` files.
 
 - **Style editor.** In Re-live, tap **Style** to change a person's skin tone, hair style and colour, top (tee or hoodie) and colour, pants and glasses. The avatar updates as you tap. Looks are saved in this browser and included in Back up / Restore. People you never style keep the look their name gave them.
 - **Your own avatar file.** In the same panel, **Import .glb file** uses any `.glb` (or `.vrm`) avatar: VRoid Studio, Avaturn, Blender, or other exports **without Draco or Meshopt compression**, up to 40 MB. It is sized to a person, stood on the ground, and its arms are swung down from a T-pose. It stands in Re-live and Street View but does not sit or wave (that needs the built-in figure). The file stays on this phone, in its own storage, and is not part of Back up. Remove it any time to go back to the built-in figure.
@@ -176,11 +176,3 @@ Press and hold a memory to delete it: a photo in the viewer (swipe to it, then h
 ## Notifications, reflection and Insights extras
 
 Chime-inspired, all on-device. Profile > Notifications is a quiet inbox (On this day, streaks, weekly recap, optional nudge) with per-type switches; the onboarding has a final "You're all set" step with the same switches. Old memories get a "How does it feel now?" reflection (smile / bittersweet / rather not revisit); "rather not" memories stop resurfacing. Insights gains a 30-day kept-days dot grid and a skyline.
-
-## Keep Studio (3D avatar)
-
-Profile > Your avatar (and a step in the welcome tour) opens a procedural 3D character maker: face, hair, body, style and motion tabs, expressions, gestures (wave, nod, look), undo/redo, "Surprise me", drag/pinch to turn and zoom. It is built with the bundled Three.js, needs no account and no network, and the recipe is stored in `kept.studio` (also saved in backups). Saving makes a head-and-shoulders picture; it becomes your profile photo if you have none, or via "Use my avatar".
-
-### Realistic avatar
-
-In Keep Studio, "Realistic" lets you create a lifelike avatar from a selfie with Avaturn (embedded from `https://<AVATURN_SUBDOMAIN>.avaturn.dev`, default `demo`, which Avaturn limits; make your own subdomain at developer.avaturn.me and set `AVATURN_SUBDOMAIN` on Render), or import any rigged `.glb`. The file is stored on the phone only (IndexedDB), and a head-and-shoulders picture becomes your profile photo. Backups include the recipe and picture, not the 3D file.

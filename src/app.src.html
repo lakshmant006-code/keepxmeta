@@ -356,7 +356,6 @@ __FR_CSS__
 __INS_CSS__
 __INTRO_CSS__
 __NT_CSS__
-__ST_CSS__
 __INV_CSS__
 __CHAT_CSS__
 __TAG_CSS__
@@ -386,7 +385,6 @@ __MOT_CSS__
   <div class="mp" id="fr"></div>
   <div class="mp" id="ins"></div>
   <div class="mp" id="nt"></div>
-  <div class="stu" id="studio"></div>
   <div class="ar" id="ar"></div>
   <div class="lb" id="lb"></div>
   <div class="kbd" id="kbd"></div>
@@ -1081,7 +1079,7 @@ function save(){
 }
 /* ---------- profile ---------- */
 function backup(){
-  const lk={};Object.keys(LOOKS).forEach(k=>{lk[k]=Object.assign({},LOOKS[k]);delete lk[k].glb});const d={app:'keep',v:1,saved:new Date().toISOString(),memories:user.map(o=>{if(!o.vid)return o;const c=Object.assign({},o);delete c.vid;return c}),looks:lk,profile:pfp()||undefined,studio:stLoad()||undefined,me:Object.keys(meGet()).length?meGet():undefined,friends:FR.length?FR:undefined},a=document.createElement('a');
+  const lk={};Object.keys(LOOKS).forEach(k=>{lk[k]=Object.assign({},LOOKS[k]);delete lk[k].glb});const d={app:'keep',v:1,saved:new Date().toISOString(),memories:user.map(o=>{if(!o.vid)return o;const c=Object.assign({},o);delete c.vid;return c}),looks:lk,profile:pfp()||undefined,me:Object.keys(meGet()).length?meGet():undefined,friends:FR.length?FR:undefined},a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='keep-backup-'+dk(new Date())+'.json';
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast(user.length+(user.length===1?' memory':' memories')+' saved to a file');
 }
@@ -1090,7 +1088,6 @@ function restore(e){
   f.text().then(t=>{
     const d=JSON.parse(t),L=Array.isArray(d)?d:d.memories;if(!Array.isArray(L))throw 0;
     if(d&&d.looks&&typeof d.looks==='object'&&!Array.isArray(d)){Object.keys(d.looks).forEach(k=>{if(!LOOKS[k]){LOOKS[k]=d.looks[k];delete LOOKS[k].glb}});saveLooks()}
-    if(d&&d.studio&&d.studio.cfg&&!stLoad()){const sn=typeof d.studio.snap==='string'&&/^data:image\//.test(d.studio.snap)&&d.studio.snap.length<200000?d.studio.snap:'';stPut(stClean(d.studio.cfg),sn)}
     if(d&&typeof d.profile==='string'&&/^data:image\//.test(d.profile)&&d.profile.length<400000&&!pfp()){pfpSet(d.profile);renderProf()}
     if(d&&d.me&&typeof d.me==='object'&&!Object.keys(meGet()).length){meSave({name:String(d.me.name||'').slice(0,40),ig:igUser(d.me.ig),bio:String(d.me.bio||'').slice(0,160)});renderProf()}
     if(d&&Array.isArray(d.friends)){const hv=new Set(FR.map(f=>pkey(f.name)));d.friends.forEach(f=>{if(f&&f.name&&!hv.has(pkey(f.name))){FR.push({id:f.id||Date.now()+FR.length,name:String(f.name).slice(0,40),ig:igUser(f.ig),photo:/^data:image\//.test(f.photo||'')?f.photo:''})}});frSave()}
@@ -1124,7 +1121,7 @@ function openProfile(){
    ${meCard()}
    <div class="grp">
     <div class="row"><span>Appearance</span>${seg('theme',[['light','Light'],['dark','Dark']],th)}</div>
-    ${rw('studioOpen','Your avatar',stSnap()?'Edit your little self':'Build a 3D version of you',stSnap()?'Edit':'Create')}${rw('ntOpen','Notifications',ntUnread()?ntUnread()+' new':'Only things that need you','Open')}${rw('insightsOpen','Insights','','Open')}${rw('friendsOpen','Friends','','Open')}${rw('inviteOpen','Invite friends','Share Keep through Instagram','Invite')}${rw('peopleOpen','People','','Open')}
+    ${rw('ntOpen','Notifications',ntUnread()?ntUnread()+' new':'Only things that need you','Open')}${rw('insightsOpen','Insights','','Open')}${rw('friendsOpen','Friends','','Open')}${rw('inviteOpen','Invite friends','Share Keep through Instagram','Invite')}${rw('peopleOpen','People','','Open')}
     ${rw('impOpen','Import photos','','Choose')}${rw('bak','Back up','','Download')}
     <div class="row"><span>Restore</span><label ${cb.replace('class="chip fb flat" style="','class="chip fb flat" style="display:grid;place-items:center;cursor:pointer;')}>Choose file<input type="file" id="rst" accept="application/json,.json" hidden></label></div>
    </div>
@@ -1149,7 +1146,6 @@ function openProfile(){
   $('#pfpIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{pfpSet(await pfpFrom(f));renderProf();openProfile();toast('Profile photo updated')}catch(err){toast('Could not read that photo')}};
   if($('#pfpRm'))$('#pfpRm').onclick=()=>{pfpSet('');renderProf();openProfile();toast('Photo removed')};
   $('#insightsOpen').onclick=()=>{closeSheet();insOpen()};
-  $('#studioOpen').onclick=()=>{closeSheet();setTimeout(()=>studioOpen({onSave:snap=>{if(snap&&!pfp()){pfpSet(snap);renderProf()}}}),320)};
   $('#ntOpen').onclick=()=>{closeSheet();setTimeout(ntOpen,320)};
   $('#friendsOpen').onclick=()=>{closeSheet();frOpen()};
   $('#inviteOpen').onclick=()=>{closeSheet();setTimeout(openInvite,320)};
@@ -1228,7 +1224,6 @@ __INTRO_JS__
 __TAG_JS__
 __PROF_JS__
 __NT_JS__
-__ST_JS__
 __INV_JS__
 __CHAT_JS__
 let yearMode=false;
@@ -1258,7 +1253,7 @@ let swReg=null,updGo=false;
 function updBanner(){
   if($('#upd'))return;instHide();
   const b=document.createElement('div');b.className='inst';b.id='upd';
-  b.innerHTML=`<img src="icons/icon-192.png" alt=""><div><b>Update available</b><small>New: your 3D avatar, notifications, invites and a smoother chat</small></div><button class="pill d" id="updGo" style="height:36px;padding:0 16px;font-size:14px">Update</button><button class="ib" id="updX" aria-label="Later" style="width:32px;height:32px">${ic.x}</button>`;
+  b.innerHTML=`<img src="icons/icon-192.png" alt=""><div><b>Update available</b><small>New: notifications, invites, a smoother chat and faster tagging</small></div><button class="pill d" id="updGo" style="height:36px;padding:0 16px;font-size:14px">Update</button><button class="ib" id="updX" aria-label="Later" style="width:32px;height:32px">${ic.x}</button>`;
   $('#app').appendChild(b);
   $('#updGo').onclick=updApply;$('#updX').onclick=()=>b.remove();
 }

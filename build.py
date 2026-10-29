@@ -29,7 +29,7 @@ body=(r('src/app.src.html').replace('__IMGS__',imgs).replace('__AR_CSS__',r('src
   .replace('__FACE_CSS__',r('src/faces.css')).replace('__FACE_JS__',r('src/faces.js'))
   .replace('__FR_CSS__',r('src/friends.css')).replace('__FR_JS__',r('src/friends.js'))
   .replace('__INS_CSS__',r('src/insights.css')).replace('__INS_JS__',r('src/insights.js'))
-  .replace('__INV_CSS__',r('src/invite.css')).replace('__INV_JS__',r('src/invite.js')).replace('__NT_CSS__',r('src/notify.css')).replace('__NT_JS__',r('src/notify.js')).replace('__ST_CSS__',r('src/studio.css')).replace('__ST_JS__',r('src/studio.js')).replace('__TAG_CSS__',r('src/tagging.css')).replace('__TAG_JS__',r('src/tagging.js')).replace('__INTRO_CSS__',r('src/intro.css')).replace('__INTRO_JS__',r('src/intro.js'))
+  .replace('__INV_CSS__',r('src/invite.css')).replace('__INV_JS__',r('src/invite.js')).replace('__NT_CSS__',r('src/notify.css')).replace('__NT_JS__',r('src/notify.js')).replace('__TAG_CSS__',r('src/tagging.css')).replace('__TAG_JS__',r('src/tagging.js')).replace('__INTRO_CSS__',r('src/intro.css')).replace('__INTRO_JS__',r('src/intro.js'))
   .replace('__CHAT_CSS__',r('src/chat.css')).replace('__CHAT_JS__',r('src/chat.js')).replace('__PROF_CSS__',r('src/profile.css')).replace('__PROF_JS__',r('src/profile.js'))
   .replace('__MOTION__',r('src/vendor/motion.min.js')).replace('__MOT_CSS__',r('src/motion.css')).replace('__MOT_JS__',r('src/motion.js')).replace('__PAGES_JS__',r('src/pages.js')))
 ver=hashlib.sha1(body.encode()).hexdigest()[:10]
@@ -37,7 +37,7 @@ def jget(k):
     v=get(k)
     try:return json.loads(v) if v else None
     except ValueError:raise SystemExit(k+' must be valid JSON (the Firebase web app config object)')
-cfg={'demo':demo,'gmKey':get('GM_KEY'),'firebase':jget('FIREBASE_CONFIG'),'recaptcha':get('RECAPTCHA_KEY'),'igAppId':get('IG_APP_ID'),'igApi':get('IG_API'),'avaturn':get('AVATURN_SUBDOMAIN') or 'demo','build':ver}
+cfg={'demo':demo,'gmKey':get('GM_KEY'),'firebase':jget('FIREBASE_CONFIG'),'recaptcha':get('RECAPTCHA_KEY'),'igAppId':get('IG_APP_ID'),'igApi':get('IG_API'),'build':ver}
 head=('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">'
  '<title>Keep</title><meta name="theme-color" content="#ffffff"><meta name="mobile-web-app-capable" content="yes">'
  '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Keep">'
