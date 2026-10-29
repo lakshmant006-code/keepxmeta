@@ -30,6 +30,7 @@ function ntItems(){
 const ntUnread=()=>{const r=ntGet().read;return ntItems().filter(i=>!r[i.id]).length};
 function ntBadge(){
   const b=$('#profBtn');if(!b)return;let d=b.querySelector('.ntbd');const n=ntUnread();
+  ntHome(n);
   if(!n){if(d)d.remove();return}
   if(!d){d=document.createElement('i');d.className='ntbd';b.appendChild(d)}d.textContent=n>9?'9+':String(n);
 }
@@ -45,9 +46,13 @@ function ntOpen(){
    ${today.length?`<div class="ntg">Today</div>${today.map(card).join('')}`:''}${earlier.length?`<div class="ntg">Earlier</div>${earlier.map(card).join('')}`:''}
    ${items.length?'':'<div class="empty" style="margin:30px 8px">Nothing needs you right now.</div>'}
    <div class="ntg">What can notify you</div><div class="grp" style="margin-top:0;padding:0 16px">${sw('otd','On this day','A memory from a year or more ago')}${sw('streak','Streaks','When you keep something several days running')}${sw('week','Weekly recap','A short summary each Monday')}${sw('nudge','Gentle nudge','If a few days pass with nothing kept')}</div>
-   <p class="note">These appear in Keep when you open it. Real push alerts while the app is closed would need a server, which Keep does not have.</p></div>`;
+   <div class="ntg">On your home screen</div><div class="grp" style="margin-top:0;padding:0 16px"><div class="ntr"><div><b>Home screen alerts</b><small id="ntPS"></small></div><button class="ntsw" id="ntAl" role="switch" aria-label="Home screen alerts"><i></i></button></div></div>
+   <p class="note">Alerts are made on this phone from what you kept. Keep has no server, so a full alert while the app is closed only works through a daily background check, and only on Android. On iPhone they show when you open Keep.</p></div>`;
   $('#ntX').onclick=ntClose;
-  p.querySelectorAll('.ntsw').forEach(b=>b.onclick=()=>{const c=ntGet();c.on[b.dataset.k]=c.on[b.dataset.k]?0:1;ntPut(c);ntOpen()});
+  {const al=$('#ntAl'),ps=$('#ntPS'),pm=ntPerm(),on=pm==='granted';al.classList.toggle('on',on);al.setAttribute('aria-checked',on);
+   ps.textContent=pm==='unsupported'?'Add Keep to your home screen to turn this on':pm==='denied'?'Blocked in your phone settings':on?'Icon badge and alerts when you open Keep, and a daily check on Android':'Show a badge on the Keep icon and phone alerts';
+   al.onclick=async()=>{if(on){toast('Turn alerts off in your phone settings');return}if(await ntAllow())ntOpen()}}
+  p.querySelectorAll('.ntsw').forEach(b=>b.onclick=()=>{const c=ntGet();c.on[b.dataset.k]=c.on[b.dataset.k]?0:1;ntPut(c);dispatchEvent(new Event('keep:nt'));ntOpen()});
   p.querySelector('.frbody').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,[k,v]=a.split(':');
     if(k==='tour'){ntClose();setTimeout(introOpen,320)}else if(k==='add'){ntClose();setTimeout(()=>openAdd(),320)}else if(k==='ins'){ntClose();setTimeout(insOpen,320)}
     else if(k==='day'){ntClose();setTimeout(()=>openDay(v),320)}else if(k==='reflect'){reflectOpen(v)}});
@@ -83,3 +88,30 @@ function insExtras(){
 /* the little red number on the profile button */
 {let _nb=0;const pb=document.getElementById('profBtn');if(pb)new MutationObserver(()=>{if(_nb)return;_nb=1;ntBadge();_nb=0}).observe(pb,{childList:true});}
 setTimeout(ntBadge,600);
+
+/* ---------- on the phone's home screen: app-icon badge, system alerts, daily check ---------- */
+const ntCan=()=>'Notification' in window&&'serviceWorker' in navigator;
+const ntPerm=()=>ntCan()?Notification.permission:'unsupported';
+function ntHome(n){
+  try{if(navigator.setAppBadge){n?navigator.setAppBadge(n):navigator.clearAppBadge()}}catch(e){}
+  if(ntPerm()!=='granted'||!n)return;
+  const c=ntGet(),seen=c.pushed||{},fresh=ntItems().filter(i=>!c.read[i.id]&&!seen[i.id]);
+  if(!fresh.length)return;
+  fresh.forEach(i=>{seen[i.id]=Date.now()});c.pushed=seen;ntPut(c);
+  navigator.serviceWorker.ready.then(r=>fresh.slice(0,3).forEach(i=>r.showNotification(i.t,{body:i.b,tag:i.id,icon:'icons/icon-192.png',badge:'icons/icon-192.png',data:{url:'./'}}))).catch(()=>{});
+}
+async function ntSnap(){
+  try{const c=ntGet(),k=await caches.open('keep-nt');
+    await k.put('snap',new Response(JSON.stringify({on:c.on,at:Date.now()})));
+    const r=await navigator.serviceWorker.ready;
+    if(r.periodicSync&&ntPerm()==='granted')await r.periodicSync.register('keep-daily',{minInterval:864e5})}catch(e){}
+}
+async function ntAllow(){
+  if(!ntCan()){toast('This browser cannot show alerts. Install Keep to your home screen first.');return false}
+  const r=await Notification.requestPermission();
+  if(r!=='granted'){toast('Alerts are off. You can allow them in Settings.');return false}
+  ntSnap();ntBadge();return true;
+}
+addEventListener('keep:nt',ntSnap);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)ntBadge()});
+setTimeout(ntSnap,2500);
