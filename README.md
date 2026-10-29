@@ -176,3 +176,7 @@ Press and hold a memory to delete it: a photo in the viewer (swipe to it, then h
 ## Notifications, reflection and Insights extras
 
 Chime-inspired, all on-device. Profile > Notifications is a quiet inbox (On this day, streaks, weekly recap, optional nudge) with per-type switches; the onboarding has a final "You're all set" step with the same switches. Old memories get a "How does it feel now?" reflection (smile / bittersweet / rather not revisit); "rather not" memories stop resurfacing. Insights gains a 30-day kept-days dot grid and a skyline.
+
+## Counting profiles and usage
+
+Keep has no server, so counts come from the site's Google tag (`GTAG_ID`, on in real builds only). Events, never carrying a handle, name or memory content: `ig_link` and `ig_unlink` (someone linked or unlinked Instagram, by any path), `memory_save` (with the kind: photo, voice, note...), `chat_ask`, `invite` (share method). Each person also gets a user property `ig_linked` = `yes`/`no`. In Google Analytics: Reports > Engagement > Events shows the counts and unique users per event; to segment by `ig_linked`, add it under Admin > Custom definitions > Custom dimensions (scope: User). Profiles are counted as people who linked, not as a list of accounts: Keep cannot see who they are, and sending handles to Google Analytics is not allowed.

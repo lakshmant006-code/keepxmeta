@@ -134,3 +134,6 @@ setTimeout(()=>{try{
   if(seen===null&&!introDone())return;
   if(!document.getElementById('intro'))wnShow();
 }catch(e){}},2200);
+
+/* usage: one event per memory saved, with its kind only */
+try{const _put=idb.put.bind(idb);idb.put=function(m){useTrack('memory_save',{type:String(m&&m.type||'')});return _put.apply(null,arguments)}}catch(e){}

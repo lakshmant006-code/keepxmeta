@@ -141,7 +141,7 @@ async function chatReply(q){
   if(A.chips.length){const d=document.createElement('div');d.className='cchips';d.innerHTML=A.chips.map((c,i)=>`<button class="cchip" style="animation-delay:${i*70}ms" ${c.s?`data-s="${esc(c.s)}"`:c.d?`data-d="${c.d}"`:`data-act="${c.act}"`}>${esc(c.t||c.s)}</button>`).join('');body.appendChild(d)}
 }
 function ask(q){
-  q=q.trim();if(!q)return;openChat(true);if(!chIn()||!chIn().children.length||chIn().querySelector('.chello'))chatMount();
+  q=q.trim();if(!q)return;useTrack('chat_ask');openChat(true);if(!chIn()||!chIn().children.length||chIn().querySelector('.chello'))chatMount();
   chAsked.add(q);chatUser(q);chQ=chQ.then(()=>chatReply(q)).catch(()=>{});
 }
 function sugg(){
