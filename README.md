@@ -154,6 +154,10 @@ Profile → **Invite friends**. **Share invite** opens the share sheet with a sh
 
 Tap the search bar to ask your memories. It reads like a conversation: your questions are bubbles, Keep types back, and answers appear word by word, followed by memory cards (pictures, when, what, a line about it) that open the day. Smart prompts come from what you have kept (people, places, voice notes, a year ago today) and follow-up chips suggest what to ask next. It understands times ("today", "last week", "in June", "a year ago"), kinds ("photos", "voice notes", "quotes"), names and words, plus "my busiest day" and "how many photos". This is rule-based matching on the phone, not a language model, so answers always come from what was kept and show the original; Keep says so when nothing matches.
 
+## Motion
+
+Pages slide in from the side and leave the same way (Friends, Insights, Places); the chat, Add and Re-live rise and sink. The home screen steps aside while a page is open. Photos animate too: the circles on the calendar pop in a few at a time as they scroll into view, a day's photo stack fans out from under its first photo, and opening a photo grows it out of the thumbnail you tapped. Insights bars grow up from the baseline. All of it is decoration, and it is off when the phone asks for reduced motion (`docs/videos/motion.mp4`).
+
 ## Deleting
 
 Press and hold a memory to delete it: a photo in the viewer (swipe to it, then hold), a single photo or a note in a day. A small menu offers a red **Delete** button and a cancel icon. There is no list of delete buttons in the day sheet any more.

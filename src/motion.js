@@ -63,13 +63,14 @@ const home=$('#home'),tops=['#sh','#ov','#mp','#fr','#ins','#nt','#chat'].map($)
 let deep=false,dc=null;
 const depth=()=>{
   const d=tops.some(e=>e.classList.contains('on'));if(d===deep||!home)return;deep=d;
-  if(dc)dc.stop();dc=animate(home,{scale:d?.965:1,opacity:d?.9:1},RM.matches?{duration:0}:SOFT);
+  if(dc)dc.stop();const side=['#fr','#ins','#mp'].some(q=>$(q)&&$(q).classList.contains('on'));dc=animate(home,{scale:d?.965:1,opacity:d?.9:1,x:d&&side?-16:0},RM.matches?{duration:0}:SOFT);
   if(!d)dc.finished.then(()=>{if(!deep){home.style.transform='';home.style.opacity=''}}).catch(()=>{});
 };
 const seenOn=new Map();
 tops.forEach(e=>new MutationObserver(()=>{
   const on=e.classList.contains('on'),was=seenOn.get(e)||false;seenOn.set(e,on);depth();
-  if(on&&!was&&!RM.matches&&e.id!=='sh')animate(e,{opacity:[0,1],y:[22,0]},SOFT).finished.then(()=>{e.style.transform='';e.style.opacity=''}).catch(()=>{});
+  if(on&&!was&&!RM.matches&&e.id!=='sh'){const side=['fr','ins','mp'].includes(e.id);
+    animate(e,side?{opacity:[0,1],x:[38,0],scale:[.97,1]}:{opacity:[0,1],y:[22,0]},SOFT).finished.then(()=>{e.style.transform='';e.style.opacity='';e.style.scale=''}).catch(()=>{})}
   if(!on&&e.id==='sh')document.querySelectorAll('#pc *').forEach(x=>seen.delete(x));
 }).observe(e,{attributes:true,attributeFilter:['class']}));
 if(home)home.style.transformOrigin='50% 35%';
