@@ -1,0 +1,56 @@
+/* Chat: bubbles, typing dots, word-by-word answers, memory cards, smart prompts */
+.chat.on{animation:chOpen .55s var(--spring) both}
+@keyframes chOpen{from{opacity:0;transform:translateY(28px) scale(.985)}to{opacity:1;transform:none}}
+#cbIn{display:flex;flex-direction:column;min-height:100%;padding-bottom:12px}
+.cm{display:flex;gap:10px;margin-top:14px;max-width:100%}
+.cm.u{justify-content:flex-end}
+.cm .bub{padding:10px 15px;border-radius:20px;font-size:16px;line-height:1.45;max-width:88%}
+.cm.u .bub{background:var(--blue);color:#fff;border-bottom-right-radius:6px;transform-origin:100% 100%;animation:cmU .5s var(--spring) both}
+@keyframes cmU{from{opacity:0;transform:translateY(18px) scale(.8)}to{opacity:1;transform:none}}
+.cm.a{align-items:flex-start;animation:cmA .45s var(--spring) both}
+@keyframes cmA{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.cav{flex:none;width:30px;height:30px;border-radius:15px;background:var(--fill);display:grid;place-items:center;margin-top:2px}
+.cbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.cm .bub.a{background:var(--fill);border-bottom-left-radius:6px;transform-origin:0 0;animation:cmB .5s var(--spring) both}
+@keyframes cmB{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+.bub.a b{font-weight:600}
+.bub.typing{display:inline-flex;gap:5px;padding:14px 16px}
+.bub.typing i{width:7px;height:7px;border-radius:50%;background:var(--faint);animation:idot 1.1s infinite}
+.bub.typing i:nth-child(2){animation-delay:.15s}.bub.typing i:nth-child(3){animation-delay:.3s}
+@keyframes idot{0%,60%,100%{transform:none;opacity:.45}30%{transform:translateY(-5px);opacity:1}}
+.cw{display:inline-block;white-space:pre;opacity:0;animation:cwIn .45s var(--spring) forwards;animation-delay:calc(var(--d,0)*22ms)}
+@keyframes cwIn{from{opacity:0;transform:translateY(6px);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
+/* memory cards */
+.mc{width:100%;text-align:left;border-radius:22px;padding:12px 12px 14px;background:color-mix(in srgb,var(--fill) 70%,transparent);border:1px solid var(--line);animation:mcIn .6s var(--spring) both;transition:transform .3s var(--spring),background .2s}
+.mc:active{transform:scale(.98)}
+@keyframes mcIn{from{opacity:0;transform:translateY(22px) scale(.96)}to{opacity:1;transform:none}}
+.mts{display:flex;gap:8px;margin-bottom:12px}
+.mt{flex:1;min-width:0;aspect-ratio:1;max-width:96px;border-radius:14px;background:var(--fill2) center/cover no-repeat;display:grid;place-items:center;position:relative;overflow:hidden;color:var(--mute);animation:mtIn .55s var(--spring) both}
+.mt:nth-child(2){animation-delay:.07s}.mt:nth-child(3){animation-delay:.14s}
+@keyframes mtIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+.mt.ic{background:linear-gradient(160deg,var(--s2),var(--s1));color:#fff}.mt.ic svg{width:26px;height:26px}
+.mt.ic .av{width:100%;height:100%}
+.mt.map{background:linear-gradient(135deg,transparent 48%,rgba(0,0,0,.06) 49% 51%,transparent 52%),linear-gradient(45deg,transparent 48%,rgba(0,0,0,.05) 49% 51%,transparent 52%),#E8EFE3}
+.mt.map i{width:34px;height:34px;border-radius:17px;background:#FF8A3D;color:#fff;display:grid;place-items:center;box-shadow:0 4px 10px rgba(255,138,61,.4)}
+.mt.map small{position:absolute;left:6px;right:6px;bottom:5px;font-size:10px;font-weight:600;color:#44503f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.mt.more{font-size:16px;font-weight:600}
+.mtm{font-size:12px;color:var(--faint);margin-bottom:3px}
+.mti{font-size:17px;font-weight:650;letter-spacing:-.01em;line-height:1.25}
+.mtd{font-size:14px;color:var(--mute);line-height:1.4;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* follow-ups and smart prompts */
+.cchips{display:flex;flex-wrap:wrap;gap:8px}
+.cchip{height:36px;padding:0 15px;border-radius:18px;border:1px solid var(--bd);background:var(--card);font-size:14px;font-weight:500;animation:cmA .5s var(--spring) both;transition:transform .25s var(--spring),background .2s}
+.cchip:active{transform:scale(.95);background:var(--fill)}
+.chello{display:flex;flex-direction:column;align-items:center;text-align:center;padding:34px 4px 8px}
+.chl{width:60px;height:60px;border-radius:30px;background:var(--fill);display:grid;place-items:center;margin-bottom:16px;animation:chF 4s ease-in-out infinite alternate,mtIn .7s var(--spring) both}
+@keyframes chF{from{transform:translateY(-3px)}to{transform:translateY(4px)}}
+.chello h2{font-size:24px;font-weight:700;letter-spacing:-.02em;animation:cmA .6s .1s var(--spring) both}
+.chello p{font-size:15px;line-height:1.45;color:var(--mute);max-width:300px;margin:8px 0 22px;animation:cmA .6s .16s var(--spring) both}
+.sgg{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.sgc{display:flex;flex-direction:column;align-items:flex-start;gap:10px;text-align:left;padding:14px;border-radius:18px;background:var(--fill);font-size:15px;font-weight:550;line-height:1.3;min-height:92px;animation:mcIn .6s var(--spring) both;transition:transform .3s var(--spring),background .2s}
+.sgc span{width:32px;height:32px;border-radius:16px;background:var(--bg);color:var(--blue);display:grid;place-items:center}
+.sgc:active{transform:scale(.97)}
+/* send button wakes up when there is something to send */
+#bar2 #sendB{opacity:.35;transform:scale(.86);transition:opacity .25s,transform .4s var(--spring)}
+#bar2 #sendB.on{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.chat.on,.cm,.cm .bub,.mc,.mt,.cchip,.sgc,.chello *,.cw{animation:none!important;opacity:1;transform:none;filter:none}}

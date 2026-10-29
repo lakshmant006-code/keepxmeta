@@ -146,6 +146,10 @@ Tap the people icon in the header (or Profile → Friends) for a page of the peo
 
 **Instagram.** Instagram closed its friends and followers access for apps like this one (the Basic Display API ended on December 4, 2024, and the replacement is for business accounts only), so Keep cannot sync with your account. Instead, **From Instagram** imports Instagram's own export: in Instagram go to Settings → Accounts Center → Your information and permissions → Download your information, choose Followers and following in JSON, then pick `followers_1.json` and `following.json` (the HTML files work too). Keep reads them on the phone, lists the accounts (mutuals first, with search), and adds the ones you tick. The export only has usernames, so rename people afterwards.
 
+## Chat
+
+Tap the search bar to ask your memories. It reads like a conversation: your questions are bubbles, Keep types back, and answers appear word by word, followed by memory cards (pictures, when, what, a line about it) that open the day. Smart prompts come from what you have kept (people, places, voice notes, a year ago today) and follow-up chips suggest what to ask next. It understands times ("today", "last week", "in June", "a year ago"), kinds ("photos", "voice notes", "quotes"), names and words, plus "my busiest day" and "how many photos". This is rule-based matching on the phone, not a language model, so answers always come from what was kept and show the original; Keep says so when nothing matches.
+
 ## Deleting
 
 Press and hold a memory to delete it: a photo in the viewer (swipe to it, then hold), a single photo or a note in a day. A small menu offers a red **Delete** button and a cancel icon. There is no list of delete buttons in the day sheet any more.
