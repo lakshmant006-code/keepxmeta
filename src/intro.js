@@ -20,7 +20,7 @@ const introSteps=[
  {h:'Start with Instagram',p:'Link it and Keep fills in your name, photo and bio for you. You can skip this.',hint:'',
   art(){return`<div class="ig-tile">${ic.ig.replace('width="22" height="22"','width="64" height="64"')}</div><div class="ig-act" id="igAct"></div>`},
   run(root,done){
-    const act=$('#igAct'),linked=()=>{const h=$('#intro .ihint');h.textContent='Linked @'+meGet().ig+'. Nice.';h.classList.add('ok');act.innerHTML='';introBoom(...Object.values(introCenter($('.ig-tile'))));introBuzz(18);done(true,'Continue')};
+    const act=$('#igAct'),linked=()=>{const h=root.querySelector('.ihint');h.textContent='Linked @'+meGet().ig+'. Nice.';h.classList.add('ok');act.innerHTML='';introBoom(...Object.values(introCenter($('.ig-tile'))));introBuzz(18);done(true,'Continue')};
     if(meGet().ig){linked();return}
     done(true,'Skip for now');
     const typed=()=>{act.innerHTML=`<div class="meat"><span>@</span><input id="igIn" placeholder="instagram username" autocapitalize="none" autocorrect="off"></div><button class="pill d" id="igSave" style="height:40px;padding:0 16px">Save</button>`;
@@ -50,7 +50,7 @@ const introSteps=[
       card.classList.add('fly');card.classList.remove('lift');
       const an=card.animate([{transform:`translate(${dx}px,${dy}px) scale(1.08)`,opacity:1},{transform:`translate(${dx+ddx}px,${dy+ddy}px) scale(${k})`,opacity:.9}],{duration:introReduced()?1:380,easing:'cubic-bezier(.5,0,.2,1)',fill:'forwards'});
       an.onfinish=()=>{card.style.visibility='hidden';hot(null);t.classList.add('got');const c=introCenter(t);introBoom(c.x,c.y);introBuzz(18);$('#kN').textContent='8 kept';
-        const h=$('#intro .ihint');h.textContent='Kept. It will be on this day forever.';h.classList.add('ok');done(true)};
+        const h=root.querySelector('.ihint');h.textContent='Kept. It will be on this day forever.';h.classList.add('ok');done(true)};
     };
     card.addEventListener('pointerdown',e=>{card.setPointerCapture(e.pointerId);sx=e.clientX;sy=e.clientY;drag=true;moved=false;card.classList.add('lift');card.style.transform='scale(1.08)'});
     card.addEventListener('pointermove',e=>{if(!drag)return;dx=e.clientX-sx;dy=e.clientY-sy;if(Math.hypot(dx,dy)>6)moved=true;card.style.transform=`translate(${dx}px,${dy}px) scale(1.08) rotate(${dx/18}deg)`;hot(under(e.clientX,e.clientY))});
@@ -66,7 +66,7 @@ const introSteps=[
       log.insertAdjacentHTML('beforeend',`<div class="a-me">${esc(q)}</div><div class="a-ai" id="aTy"><span class="dt"><i></i><i></i><i></i></span></div>`);
       setTimeout(()=>{const t=$('#aTy');if(!t)return;t.removeAttribute('id');t.innerHTML=esc(ans[q][0])+(ans[q][1]?'<em></em>':'');
         [...ch.children].forEach(x=>{if(x!==b)x.disabled=false});
-        const h=$('#intro .ihint');h.textContent=ans[q][1]?'Always the original memory, never a guess.':'Honest when nothing matches.';h.classList.add('ok');done(true)},introReduced()?50:1000)})}},
+        const h=root.querySelector('.ihint');h.textContent=ans[q][1]?'Always the original memory, never a guess.':'Honest when nothing matches.';h.classList.add('ok');done(true)},introReduced()?50:1000)})}},
  {h:'Bring people back',p:'Tag who was there and their avatar stands where you stood.',hint:'Try a pose',
   art(){return`<div class="v-stage"><div class="v-name">Maya</div>
    <svg class="v-fig" id="vFig" data-pose="stand" viewBox="0 0 150 200" aria-label="Avatar of Maya">
@@ -83,7 +83,7 @@ const introSteps=[
     seg.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
       [...seg.children].forEach(x=>x.classList.toggle('on',x===b));fig.dataset.pose=b.dataset.p;introBuzz(10);used.add(b.dataset.p);
       if(b.dataset.p==='wave'){const c=introCenter(fig);introBoom(c.x+40,c.y-60)}
-      if(used.size>=1){const h=$('#intro .ihint');h.textContent=used.size>=2?'Same spot, same pose, from your photo.':'Nice. Try another.';h.classList.add('ok');done(true)}})}},
+      if(used.size>=1){const h=root.querySelector('.ihint');h.textContent=used.size>=2?'Same spot, same pose, from your photo.':'Nice. Try another.';h.classList.add('ok');done(true)}})}},
  {h:'Yours alone',p:'No account. No server. Nothing uploaded. Everything stays on this phone.',hint:'Press and hold to lock it in',
   art(){return`<div class="l-wrap"><div class="l-btn" id="lBtn" role="button" tabindex="0" aria-label="Press and hold to lock">
    <svg class="rg" viewBox="0 0 168 168"><circle cx="84" cy="84" r="80" fill="none" stroke="var(--fill2)" stroke-width="6"/><circle id="lRg" cx="84" cy="84" r="80" fill="none" stroke="#1F9D61" stroke-width="6" stroke-linecap="round" stroke-dasharray="502.7" stroke-dashoffset="502.7"/></svg>
@@ -94,7 +94,7 @@ const introSteps=[
     const set=v=>{p=v;rg.style.strokeDashoffset=L*(1-v)};
     const tick=()=>{p=Math.min(1,(performance.now()-t0)/T);set(p);if(p>=1)lock();else raf=requestAnimationFrame(tick)};
     const lock=()=>{if(shut)return;shut=true;cancelAnimationFrame(raf);btn.classList.remove('hold');btn.classList.add('shut');set(1);const c=introCenter(btn);introBoom(c.x,c.y);introBuzz([20,40,30]);
-      const h=$('#intro .ihint');h.textContent='Locked in. Only you can see your memories.';h.classList.add('ok');done(true)};
+      const h=root.querySelector('.ihint');h.textContent='Locked in. Only you can see your memories.';h.classList.add('ok');done(true)};
     const down=e=>{if(shut)return;try{btn.setPointerCapture(e.pointerId)}catch(_){}btn.classList.add('hold');t0=performance.now()-p*T;cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);introBuzz(6)};
     const up=()=>{if(shut)return;btn.classList.remove('hold');cancelAnimationFrame(raf);const s=p,u0=performance.now();const back=()=>{const k=Math.max(0,s-(performance.now()-u0)/300);set(k);if(k>0&&!btn.classList.contains('hold'))raf=requestAnimationFrame(back)};raf=requestAnimationFrame(back)};
     btn.addEventListener('pointerdown',down);btn.addEventListener('pointerup',up);btn.addEventListener('pointercancel',up);btn.addEventListener('contextmenu',e=>e.preventDefault());
@@ -110,20 +110,21 @@ function introOpen(){
   if($('#intro'))return;
   const d=document.createElement('div');d.id='intro';const n=introSteps.length;
   d.innerHTML=`<div class="itop"><div class="ibar">${introSteps.map(()=>'<i></i>').join('')}</div><button class="isk" id="iSk">Skip</button></div><div class="istage" id="iSt"></div><button class="pill d igo" id="iGo"></button>`;
-  $('#app').appendChild(d);
+  $('#app').appendChild(d);if(!introReduced())d.animate([{opacity:0},{opacity:1}],{duration:420,easing:'ease-out'});
   let i=-1,cur=null;const st=$('#iSt'),go=$('#iGo'),bars=[...d.querySelectorAll('.ibar i')];
   const finish=()=>{try{localStorage.setItem(INTRO,'1')}catch(e){}if(cur&&cur._off)cur._off();d.animate([{opacity:1},{opacity:0}],{duration:introReduced()?1:260}).onfinish=()=>{d.remove();onbMaybe()}};
   const show=k=>{
     const s=introSteps[k],old=cur;i=k;
     const el=document.createElement('div');el.className='islide';
     el.innerHTML=`<div class="iart">${s.art()}</div><h1>${s.h}</h1><p>${s.p}</p><div class="ihint">${s.hint}</div>`;
-    const enter=()=>{if(old){if(old._off)old._off();old.remove()}st.appendChild(el);cur=el;
-      bars.forEach((b,j)=>b.classList.toggle('on',j<=k));
-      go.disabled=true;go.classList.remove('ready');go.textContent=k===n-1?'Open Keep':'Continue';
-      $('#iSk').style.visibility=k===n-1?'hidden':'visible';
-      s.run(el,(ok,label)=>{go.disabled=!ok;if(label)go.textContent=label;if(ok&&label!=='Skip for now')go.classList.add('ready')});
-      if(!introReduced())el.animate([{opacity:0,transform:'translateX(28px)'},{opacity:1,transform:'none'}],{duration:380,easing:'cubic-bezier(.22,.8,.24,1)'})};
-    if(old&&!introReduced())old.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateX(-28px)'}],{duration:200,easing:'ease-in',fill:'forwards'}).onfinish=enter;else enter();
+    /* the old step leaves while the new one arrives, so there is never an empty screen between them */
+    if(old){if(old._off)old._off();if(introReduced())old.remove();else old.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateX(-36px) scale(.98)'}],{duration:380,easing:'cubic-bezier(.32,.72,0,1)',fill:'forwards'}).onfinish=()=>old.remove()}
+    [...el.children].forEach((c,j)=>c.style.setProperty('--k',j));
+    st.appendChild(el);cur=el;
+    bars.forEach((b,j)=>b.classList.toggle('on',j<=k));
+    go.disabled=true;go.classList.remove('ready');go.textContent=k===n-1?'Open Keep':'Continue';
+    $('#iSk').style.visibility=k===n-1?'hidden':'visible';
+    s.run(el,(ok,label)=>{go.disabled=!ok;if(label)go.textContent=label;if(ok&&label!=='Skip for now')go.classList.add('ready')});
   };
   go.onclick=()=>{if(go.disabled)return;i===n-1?finish():show(i+1)};$('#iSk').onclick=finish;
   let at=0;try{if(sessionStorage.getItem(INTRO_AT)){sessionStorage.removeItem(INTRO_AT);at=1}}catch(e){}

@@ -91,3 +91,8 @@
 #intro .ig-tile{width:112px;height:112px;border-radius:34px;display:grid;place-items:center;color:#fff;background:linear-gradient(45deg,#FEDA75,#FA7E1E 30%,#D62976 60%,#962FBF 80%,#4F5BD5);box-shadow:0 16px 40px rgba(214,41,118,.35);animation:ibreath 3.2s ease-in-out infinite}
 #intro .ig-act{margin-top:26px;width:100%;max-width:300px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:96px}
 #intro .iart:has(.ig-tile){height:auto;flex-direction:column}
+/* each step builds itself in: art, title, text and hint rise one after another */
+#intro .islide>*{animation:istg .8s cubic-bezier(.32,.72,0,1) both;animation-delay:calc(var(--k,0)*80ms + 120ms)}
+@keyframes istg{from{opacity:0;transform:translateX(34px) scale(.97)}to{opacity:1;transform:none}}
+#intro .igo,#intro .isk{transition:opacity .35s,transform .35s cubic-bezier(.32,.72,0,1)}
+#intro .igo:active{transform:scale(.97)}

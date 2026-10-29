@@ -1141,6 +1141,7 @@ function openProfile(){
    <details class="more"><summary>More settings</summary><div class="grp" style="margin-top:0">
     <div class="row"><span>Revisits</span>${seg('rev',[['off','Off'],['monthly','Monthly'],['weekly','Weekly']],revOn)}</div>
     ${CFG.demo?`<div class="row"><span>Preview empty state</span>${seg('empty',[['0','Off'],['1','On']],emptyMode?'1':'0')}</div>`:rw('updChk','Updates','Version '+String(CFG.build).slice(0,6),'Check')}
+    ${rw('tourOpen','Welcome tour','See the intro again','Replay')}
     ${rw('hardRf','Hard refresh','Reload the newest app. Your memories stay.','Refresh')}
     ${isStandalone()?'':rw('instOpen','Install app','','Install')}
     ${rw('gmOpen','Google Maps','',gmKey()?'On':'Add key')}
@@ -1152,6 +1153,7 @@ function openProfile(){
     if(k==='empty'){emptyMode=v==='1';refresh()}
     sg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});
   meWire();
+  $('#tourOpen').onclick=()=>{closeSheet();setTimeout(introOpen,300)};
   $('#gmOpen').onclick=()=>{closeSheet();openMap()};
   if($('#updChk'))$('#updChk').onclick=updCheck;$('#hardRf').onclick=hardRefresh;
   $('#pfpIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{pfpSet(await pfpFrom(f));renderProf();openProfile();toast('Profile photo updated')}catch(err){toast('Could not read that photo')}};
