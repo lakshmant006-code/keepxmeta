@@ -31,15 +31,22 @@ body=(r('src/app.src.html').replace('__IMGS__',imgs).replace('__AR_CSS__',r('src
   .replace('__INS_CSS__',r('src/insights.css')).replace('__INS_JS__',r('src/insights.js'))
   .replace('__INV_CSS__',r('src/invite.css')).replace('__INV_JS__',r('src/invite.js')).replace('__NT_CSS__',r('src/notify.css')).replace('__NT_JS__',r('src/notify.js')).replace('__TAG_CSS__',r('src/tagging.css')).replace('__TAG_JS__',r('src/tagging.js')).replace('__INTRO_CSS__',r('src/intro.css')).replace('__INTRO_JS__',r('src/intro.js'))
   .replace('__CHAT_CSS__',r('src/chat.css')).replace('__CHAT_JS__',r('src/chat.js')).replace('__PROF_CSS__',r('src/profile.css')).replace('__PROF_JS__',r('src/profile.js'))
-  .replace('__MOTION__',r('src/vendor/motion.min.js')).replace('__MOT_CSS__',r('src/motion.css')).replace('__MOT_JS__',r('src/motion.js')).replace('__BULK_JS__',r('src/bulk.js')).replace('__PAGES_JS__',r('src/pages.js')))
+  .replace('__MOTION__',r('src/vendor/motion.min.js')).replace('__MOT_CSS__',r('src/motion.css')).replace('__MOT_JS__',r('src/motion.js')).replace('__BULK_JS__',r('src/bulk.js')).replace('__FLOW_CSS__',r('src/flow.css')).replace('__FLOW_JS__',r('src/flow.js')).replace('__PAGES_JS__',r('src/pages.js')))
 ver=hashlib.sha1(body.encode()).hexdigest()[:10]
 def jget(k):
     v=get(k)
     try:return json.loads(v) if v else None
     except ValueError:raise SystemExit(k+' must be valid JSON (the Firebase web app config object)')
 cfg={'demo':demo,'gmKey':get('GM_KEY'),'firebase':jget('FIREBASE_CONFIG'),'recaptcha':get('RECAPTCHA_KEY'),'igApi':get('IG_API'),'googleClientId':get('GOOGLE_CLIENT_ID'),'build':ver}
+SITE=get('SITE_URL','https://keepxmeta.onrender.com').rstrip('/')
 head=('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">'
- '<title>Keep</title><meta name="theme-color" content="#E9EEF9" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0b0b0d" media="(prefers-color-scheme: dark)"><meta name="mobile-web-app-capable" content="yes">'
+ '<title>Keep: a private place for your photos, voice notes and memories</title>'
+ '<meta name="description" content="Keep gathers photos, voice notes, quotes and places into one calendar you can search in plain words. Everything you keep stays on your phone.">'
+ '<link rel="canonical" href="'+SITE+'/"><meta name="robots" content="index,follow">'
+ '<meta property="og:type" content="website"><meta property="og:site_name" content="Keep"><meta property="og:title" content="Keep: your memories, kept private"><meta property="og:description" content="One calendar for photos, voice notes, quotes and places. Ask for a memory in plain words. Stays on your phone."><meta property="og:url" content="'+SITE+'/"><meta property="og:image" content="'+SITE+'/icons/icon-512.png">'
+ '<meta name="twitter:card" content="summary">'
+ '<script type="application/ld+json">'+json.dumps({'@context':'https://schema.org','@type':'SoftwareApplication','name':'Keep','applicationCategory':'LifestyleApplication','operatingSystem':'iOS, Android, Web','description':'A private calendar of photos, voice notes, quotes and places you can search in plain words.','url':SITE+'/','offers':{'@type':'Offer','price':'0','priceCurrency':'USD'}})+'</script>'
+ '<meta name="theme-color" content="#E9EEF9" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0b0b0d" media="(prefers-color-scheme: dark)"><meta name="mobile-web-app-capable" content="yes">'
  '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Keep">'
  '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.webmanifest">'
  '<link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">'
@@ -51,6 +58,8 @@ if gt:head+=("<script>(function(){var h=location.hostname;if(h==='localhost'||h=
  "var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id="+gt+"';document.head.appendChild(s);"
  "gtag('js',new Date());gtag('config','"+gt+"',{page_location:location.origin+location.pathname,page_referrer:'',allow_google_signals:false,allow_ad_personalization_signals:false})})()</script>")
 shutil.rmtree('dist',ignore_errors=True);shutil.copytree('public','dist')
-open('dist/index.html','w').write('<!doctype html><html lang="en"><head>'+head+'</head><body>'+body+'</body></html>')
+open('dist/index.html','w').write('<!doctype html><html lang="en"><head>'+head+'</head><body>'+body+'<noscript><main style="font-family:system-ui,sans-serif;max-width:560px;margin:48px auto;padding:0 20px"><h1>Keep</h1><p>Keep gathers your photos, voice notes, quotes and places into one calendar you can search in plain words. Everything you keep stays on your phone.</p><p>Turn on JavaScript to use Keep, and add it to your Home Screen to use it like an app.</p></main></noscript></body></html>')
+open('dist/robots.txt','w').write('User-agent: *\nAllow: /\nSitemap: '+SITE+'/sitemap.xml\n')
+open('dist/sitemap.xml','w').write('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>'+SITE+'/</loc></url></urlset>')
 open('dist/sw.js','w').write(r('src/sw.js').replace('__VERSION__',ver))
 print('built dist/ · build',ver,'· demo' if demo else '· real app','· maps key' if cfg['gmKey'] else '· no maps key (set GM_KEY)','· app check' if cfg['firebase'] and cfg['recaptcha'] else '')

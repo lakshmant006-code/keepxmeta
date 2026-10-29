@@ -211,3 +211,9 @@ Merging this ships a new build, so installed apps show "Update available" (its t
 ### Import all my photos
 
 Profile → **Import all my photos** (and "Import my whole library instead" in the first-run photo step). A web app cannot read the photo library by itself; the phone only hands over what the person picks, so this makes picking everything fast: no limit on how many, four photos at a time, each decoded straight to about 1100px, EXIF date and location kept, a progress bar with time left, a **Stop, keep what is done** button, the screen kept awake while it runs (where supported), a check against the phone's storage (about 110 KB a photo) so it never fills silently, and photos already in Keep (same name, size and date) skipped, so it is safe to run again. **Choose a folder** appears where the browser has a folder picker (Chrome on Android and desktop; not iPhone Safari). True "allow access to all photos" needs a native wrapper app (for example Capacitor), a separate step.
+
+### Status flow and search-friendly page
+
+`src/flow.js` is a reusable step-by-step progress screen (a pulsing orb that settles into a check, with a timeline whose steps go waiting, working, done). It animates only `transform` and `opacity`, uses a handful of elements and respects reduced motion, so it stays smooth on a phone; **Import all my photos** uses it. Photos are now also decoded and JPEG-encoded off the main thread (`createImageBitmap` plus `OffscreenCanvas`), so scrolling and animations do not stall during an import.
+
+For search engines the build now writes a descriptive title and meta description, a canonical URL, Open Graph and Twitter tags, `SoftwareApplication` JSON-LD, `robots.txt`, `sitemap.xml` and a `<noscript>` summary. Set `SITE_URL` if the site is not at `https://keepxmeta.onrender.com`. The app itself sits behind sign-in and runs in JavaScript, so only this front page can be indexed.
