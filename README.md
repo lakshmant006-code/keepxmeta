@@ -184,3 +184,13 @@ Keep has no server, so counts come from the site's Google tag (`GTAG_ID`, on in 
 ## Instagram is required to start
 
 On first run the first tour step needs an Instagram link before anything else: one-tap sign-in when `IG_APP_ID`/`IG_API` are set, otherwise typing the handle. Skip is hidden on that step and the final step cannot be reached without it. The tour replayed later from Profile stays optional, and people who already finished the tour are not asked. A typed handle is not verified (Instagram offers no way to check a personal account without a login); one-tap sign-in verifies Business and Creator accounts only.
+
+## Accounts (Keep server)
+
+The Node helper in `worker/` is now a small account server. A person signs in with Instagram (the code is traded for a profile on the server, which holds the app secret), the server keeps **only** their identity (Instagram id, username, name, created and last-seen dates) in Firestore, and returns a signed 30-day session token that the app stores as `kept.session`. Memories, photos and voice notes never leave the phone.
+
+- `POST /exchange`: Instagram code in; profile plus `session` out. `GET /me`: the account (and refreshes last seen). `DELETE /me`: deletes the account (Profile > Delete my account). `GET /stats`: `{users}`, the number of accounts. `/health`: for Render.
+- Render env on `keep-instagram`: `IG_APP_ID`, `IG_APP_SECRET`, `ALLOWED_ORIGIN`, `SESSION_SECRET` (generated), and `FIREBASE_SERVICE_ACCOUNT` (the JSON of a Firebase service account key; create a Firestore database in Native mode first). Without `SESSION_SECRET` accounts are off and sign-in works as before; without `FIREBASE_SERVICE_ACCOUNT` accounts live in memory and vanish on restart (fine for trying it out only).
+- Firestore rules: leave the database closed to clients (default deny); only the server, using the service account, reads and writes the `keepUsers` collection.
+- Instagram's login only works for Business and Creator accounts. The first-run step also lets anyone type a handle instead; that is kept on the phone, marked "not verified", and does not create an account.
+- The Cloudflare Worker build (`wrangler.toml`) has no database, so accounts are Node/Render only.

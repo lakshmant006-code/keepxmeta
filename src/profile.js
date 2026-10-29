@@ -35,6 +35,20 @@ async function meImport(files){
   meSave(me);renderProf();openProfile();toast('Imported your '+[...new Set(got)].join(', '));
 }
 /* One-tap Instagram: only on when the build has IG_APP_ID and IG_API (a deployed worker/instagram.js). Works with Business and Creator accounts. */
+/* ---- account: a verified Instagram sign-in the Keep server remembers (identity only; memories stay on the phone) ---- */
+const SES='kept.session',acctOn=()=>!!CFG.igApi&&!CFG.demo,acctTok=()=>{try{return localStorage.getItem(SES)||''}catch(e){return''}};
+const acctApi=(path,o)=>fetch(CFG.igApi.replace(/\/$/,'')+path,Object.assign({cache:'no-store'},o,{headers:Object.assign({authorization:'Bearer '+acctTok()},(o||{}).headers)}));
+const acctClear=()=>{try{localStorage.removeItem(SES)}catch(e){}};
+async function acctCheck(){
+  if(!acctOn()||!acctTok())return;
+  try{const r=await acctApi('/me');if(r.status===401||r.status===404)acctClear();else if(r.ok){const u=await r.json();acctSince=u.createdAt||0}}catch(e){}
+}
+let acctSince=0;
+async function acctDelete(){
+  if(!confirm('Delete your Keep account? This removes your sign-in from the Keep server. Your memories stay on this phone.'))return;
+  try{const r=await acctApi('/me',{method:'DELETE'});if(!r.ok)throw 0}catch(e){toast('Could not reach Keep. Try again.');return}
+  acctClear();useTrack('account_delete');toast('Your account was deleted');openProfile();
+}
 const IGS='kept.igstate',igSyncOn=()=>!!(CFG.igAppId&&CFG.igApi),igRedirect=()=>location.origin+location.pathname;
 function igSyncStart(){
   let st='';try{st=[...crypto.getRandomValues(new Uint32Array(4))].join('-');sessionStorage.setItem(IGS,st)}catch(e){toast('Turn on site storage to sign in');return}
@@ -54,16 +68,24 @@ async function igSyncFinish(){
     const r=await fetch(CFG.igApi.replace(/\/$/,'')+'/exchange',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({code,redirect_uri:igRedirect()})});
     if(!r.ok)throw 0;const d=await r.json(),me=meGet();
     if(d.name)me.name=String(d.name).slice(0,40);if(d.username)me.ig=igUser(d.username);if(d.bio)me.bio=String(d.bio).slice(0,160);
+    if(d.session){try{localStorage.setItem(SES,d.session)}catch(e){}useTrack('ig_signin',{verified:'yes',new_account:d.created?'yes':'no'})}
     meSave(me);if(/^data:image\//.test(d.picture||'')){try{pfpSet(await meSquare(d.picture))}catch(e){}}
     renderProf();if($('#intro')){const ig=$('#igAct');if(ig&&me.ig)toast('Linked @'+me.ig)}else{openProfile();toast('Linked @'+(me.ig||'instagram')+'. Your details are saved.')}
   }catch(e){toast('Could not reach Instagram just now. You can type your handle instead.')}
 }
 setTimeout(igSyncFinish,0);
+function acctRow(){
+  if(!acctOn())return'';
+  if(acctTok())return`<p class="meb acct ok">Signed in with Instagram${acctSince?' since '+new Date(acctSince).toLocaleDateString(undefined,{month:'short',year:'numeric'}):''}. <button class="mel" id="acctOut">Delete my account</button></p>`;
+  return me_ig_hint();
+}
+const me_ig_hint=()=>meGet().ig?'<p class="meb acct">Your Instagram handle is saved on this phone but not verified. Sign in with Instagram to make it count.</p>':'';
 function meCard(){
   const me=meGet(),u=pfp(),ig=me.ig;
   return`<div class="me"><label id="pfpLab" class="mep ${u?'':'nopic'}" style="${u?`background-image:url(${u})`:''}" aria-label="Choose a profile photo">${u?'':esc(meInitial())}<span class="cam">${ic.img.replace('width="22" height="22"','width="14" height="14"')}</span><input type="file" id="pfpIn" accept="image/*" hidden></label>
    <input class="mein" id="meName" placeholder="Your name" maxlength="40" value="${esc(me.name||'')}" autocomplete="off">
    ${me.bio?`<p class="meb">${esc(me.bio)}</p>`:''}
+   ${acctRow()}
    <div class="meig">${ig?`<a class="chip fb flat" href="${igLink(ig)}" target="_blank" rel="noopener">${ic.ig} @${esc(ig)}</a><button class="mel" id="meIgEdit">Change</button><button class="mel" id="meIgOff">Unlink</button>${igSyncOn()?'<button class="mel" id="meIgSync">Sync again</button>':''}`
      :igSyncOn()?`<button class="pill d" id="meIgSync">${ic.ig} Continue with Instagram</button><button class="mel" id="meIgOn">Type my handle instead</button>`
      :`<button class="pill d" id="meIgOn">${ic.ig} Link Instagram</button>`}</div>
@@ -79,6 +101,7 @@ function meWire(){
     $('#meIgSave').onclick=save;$('#meIgIn').addEventListener('keydown',e=>{if(e.key==='Enter')save()});
   };
   if($('#meIgSync'))$('#meIgSync').onclick=igSyncStart;
+  if($('#acctOut'))$('#acctOut').onclick=acctDelete;
   if($('#meIgOn'))$('#meIgOn').onclick=askIg;if($('#meIgEdit'))$('#meIgEdit').onclick=askIg;
   if($('#meIgOff'))$('#meIgOff').onclick=()=>{const o=me();delete o.ig;meSave(o);openProfile()};
   if($('#meImp'))$('#meImp').onchange=e=>{const f=[...e.target.files];e.target.value='';if(f.length)meImport(f)};
@@ -100,3 +123,5 @@ function tlRipple(b){const r=b.getBoundingClientRect(),d=Math.max(r.width,r.heig
 /* Safari still pinches the page on iOS even with a locked viewport; stop the gesture */
 ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 let tlLastTap=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-tlLastTap<320&&!e.target.closest('input,textarea'))e.preventDefault();tlLastTap=n},{passive:false});
+
+acctCheck();
