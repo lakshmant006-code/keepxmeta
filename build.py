@@ -39,9 +39,9 @@ def jget(k):
     except ValueError:raise SystemExit(k+' must be valid JSON (the Firebase web app config object)')
 cfg={'demo':demo,'gmKey':get('GM_KEY'),'firebase':jget('FIREBASE_CONFIG'),'recaptcha':get('RECAPTCHA_KEY'),'igAppId':get('IG_APP_ID'),'igApi':get('IG_API'),'build':ver}
 head=('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">'
- '<title>Keep</title><meta name="theme-color" content="#ffffff"><meta name="mobile-web-app-capable" content="yes">'
+ '<title>Keep</title><meta name="theme-color" content="#E9EEF9" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0b0b0d" media="(prefers-color-scheme: dark)"><meta name="mobile-web-app-capable" content="yes">'
  '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Keep">'
- '<meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.webmanifest">'
+ '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.webmanifest">'
  '<link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">'
  '<script>window.KEEP='+json.dumps(cfg)+'</script>')
 gt=get('GTAG_ID','' if demo else 'G-LR0ZL46FF6')  # a tag ID is public (it is in the page source); set GTAG_ID=off to build without it
