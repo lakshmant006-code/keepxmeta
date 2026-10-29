@@ -1279,7 +1279,7 @@ async function updCheck(){
   try{await swReg.update()}catch(e){toast('Could not check. Are you online?');return}
   const w=swReg.installing||swReg.waiting;
   if(w&&w.state!=='installed')await new Promise(r=>w.addEventListener('statechange',()=>{if(w.state==='installed'||w.state==='redundant')r()}));
-  if(swReg.waiting){closeSheet();updBanner()}else toast('You have the latest version · '+String(CFG.build).slice(0,6));
+  if(swReg.waiting){closeSheet();toast('Updating to the newest version…');setTimeout(updApply,500)}else toast('You have the latest version · '+String(CFG.build).slice(0,6));
 }
 /* drops the cached copy of the app and loads it fresh. Everything you kept (IndexedDB) stays. */
 async function hardRefresh(){
