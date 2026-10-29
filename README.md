@@ -194,3 +194,7 @@ The Node helper in `worker/` is now a small account server. A person signs in wi
 - Firestore rules: leave the database closed to clients (default deny); only the server, using the service account, reads and writes the `keepUsers` collection.
 - Instagram's login only works for Business and Creator accounts. The first-run step also lets anyone type a handle instead; that is kept on the phone, marked "not verified", and does not create an account.
 - The Cloudflare Worker build (`wrangler.toml`) has no database, so accounts are Node/Render only.
+
+### Sign in with Google
+
+Set `GOOGLE_CLIENT_ID` (an OAuth *web* client ID, public) on **both** Render services: the site needs it to show Google's button, the server to check the token's audience. The button comes from Google Identity Services; the app sends the ID token to `POST /google`, the server verifies the RS256 signature against Google's published keys (and issuer, audience, expiry, verified email) and creates or finds the account `g<google id>`, storing only email and name, then returns the same session token as Instagram. Add your site's origin (e.g. `https://keepxmeta.onrender.com`) under Authorized JavaScript origins for that client. The first-run tour accepts Google **or** Instagram. Profile shows which one you used.

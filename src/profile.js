@@ -41,9 +41,28 @@ const acctApi=(path,o)=>fetch(CFG.igApi.replace(/\/$/,'')+path,Object.assign({ca
 const acctClear=()=>{try{localStorage.removeItem(SES)}catch(e){}};
 async function acctCheck(){
   if(!acctOn()||!acctTok())return;
-  try{const r=await acctApi('/me');if(r.status===401||r.status===404)acctClear();else if(r.ok){const u=await r.json();acctSince=u.createdAt||0}}catch(e){}
+  try{const r=await acctApi('/me');if(r.status===401||r.status===404)acctClear();else if(r.ok){const u=await r.json();acctSince=u.createdAt||0;try{localStorage.setItem(PRV,u.provider||'instagram')}catch(e){}}}catch(e){}
 }
 let acctSince=0;
+const googleOn=()=>!!(CFG.googleClientId&&acctOn()),PRV='kept.provider';
+const acctProv=()=>{try{return localStorage.getItem(PRV)||'instagram'}catch(e){return'instagram'}};
+/* take a sign-in answer from the server: remember the session, and fill in name and photo where there are none yet */
+async function acctAdopt(d,provider){
+  if(!d.session)return false;
+  try{localStorage.setItem(SES,d.session);localStorage.setItem(PRV,provider)}catch(e){}
+  const me=meGet();if(d.name&&!me.name){me.name=String(d.name).slice(0,40);meSave(me)}
+  if(/^data:image\//.test(d.picture||'')&&!pfp()){try{pfpSet(await meSquare(d.picture))}catch(e){}}
+  useTrack(provider+'_signin',{new_account:d.created?'yes':'no'});renderProf();return true;
+}
+const loadGIS=()=>window.google&&google.accounts&&google.accounts.id?Promise.resolve():new Promise((res,rej)=>{const t=document.createElement('script');t.src='https://accounts.google.com/gsi/client';t.async=true;t.onload=res;t.onerror=rej;document.head.appendChild(t)});
+async function googleButton(host,onDone){
+  try{await loadGIS()}catch(e){host.innerHTML='<p class="meb">Google sign-in could not load. Check your connection.</p>';return}
+  google.accounts.id.initialize({client_id:CFG.googleClientId,ux_mode:'popup',callback:async r=>{
+    try{const x=await fetch(CFG.igApi.replace(/\/$/,'')+'/google',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({credential:r.credential})});
+      if(!x.ok)throw 0;if(await acctAdopt(await x.json(),'google'))onDone&&onDone()}
+    catch(e){toast('Google sign-in did not work. Try again.')}}});
+  google.accounts.id.renderButton(host,{theme:'outline',size:'large',shape:'pill',text:'continue_with',logo_alignment:'left',width:Math.min(320,host.clientWidth||300)});
+}
 async function acctDelete(){
   if(!confirm('Delete your Keep account? This removes your sign-in from the Keep server. Your memories stay on this phone.'))return;
   try{const r=await acctApi('/me',{method:'DELETE'});if(!r.ok)throw 0}catch(e){toast('Could not reach Keep. Try again.');return}
@@ -68,7 +87,7 @@ async function igSyncFinish(){
     const r=await fetch(CFG.igApi.replace(/\/$/,'')+'/exchange',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({code,redirect_uri:igRedirect()})});
     if(!r.ok)throw 0;const d=await r.json(),me=meGet();
     if(d.name)me.name=String(d.name).slice(0,40);if(d.username)me.ig=igUser(d.username);if(d.bio)me.bio=String(d.bio).slice(0,160);
-    if(d.session){try{localStorage.setItem(SES,d.session)}catch(e){}useTrack('ig_signin',{verified:'yes',new_account:d.created?'yes':'no'})}
+    if(d.session){try{localStorage.setItem(SES,d.session);localStorage.setItem(PRV,'instagram')}catch(e){}useTrack('ig_signin',{verified:'yes',new_account:d.created?'yes':'no'})}
     meSave(me);if(/^data:image\//.test(d.picture||'')){try{pfpSet(await meSquare(d.picture))}catch(e){}}
     renderProf();if($('#intro')){const ig=$('#igAct');if(ig&&me.ig)toast('Linked @'+me.ig)}else{openProfile();toast('Linked @'+(me.ig||'instagram')+'. Your details are saved.')}
   }catch(e){toast('Could not reach Instagram just now. You can type your handle instead.')}
@@ -76,8 +95,8 @@ async function igSyncFinish(){
 setTimeout(igSyncFinish,0);
 function acctRow(){
   if(!acctOn())return'';
-  if(acctTok())return`<p class="meb acct ok">Signed in with Instagram${acctSince?' since '+new Date(acctSince).toLocaleDateString(undefined,{month:'short',year:'numeric'}):''}. <button class="mel" id="acctOut">Delete my account</button></p>`;
-  return me_ig_hint();
+  if(acctTok())return`<p class="meb acct ok">Signed in with ${acctProv()==='google'?'Google':'Instagram'}${acctSince?' since '+new Date(acctSince).toLocaleDateString(undefined,{month:'short',year:'numeric'}):''}. <button class="mel" id="acctOut">Delete my account</button></p>`;
+  return (googleOn()?'<div class="gbtn" id="gBtn"></div>':'')+me_ig_hint();
 }
 const me_ig_hint=()=>meGet().ig?'<p class="meb acct">Your Instagram handle is saved on this phone but not verified. Sign in with Instagram to make it count.</p>':'';
 function meCard(){
@@ -102,6 +121,7 @@ function meWire(){
   };
   if($('#meIgSync'))$('#meIgSync').onclick=igSyncStart;
   if($('#acctOut'))$('#acctOut').onclick=acctDelete;
+  if($('#gBtn'))googleButton($('#gBtn'),()=>{openProfile();toast('Signed in with Google')});
   if($('#meIgOn'))$('#meIgOn').onclick=askIg;if($('#meIgEdit'))$('#meIgEdit').onclick=askIg;
   if($('#meIgOff'))$('#meIgOff').onclick=()=>{const o=me();delete o.ig;meSave(o);openProfile()};
   if($('#meImp'))$('#meImp').onchange=e=>{const f=[...e.target.files];e.target.value='';if(f.length)meImport(f)};

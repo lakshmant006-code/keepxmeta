@@ -13,6 +13,8 @@ services:
         sync: false
       - key: IG_API
         value: https://keep-instagram.onrender.com
+      - key: GOOGLE_CLIENT_ID
+        sync: false
       - key: GTAG_ID
         value: G-LR0ZL46FF6
   - type: web
@@ -32,6 +34,8 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false
+      - key: GOOGLE_CLIENT_ID
         sync: false
       - key: LLM_API_KEY
         sync: false

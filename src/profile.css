@@ -50,3 +50,5 @@ input,textarea,select{font-size:16px!important;touch-action:manipulation}
 
 .meb.acct{font-size:12px;color:var(--mute);margin:6px 0 0}.meb.acct.ok::before{content:'';display:inline-block;width:7px;height:7px;border-radius:4px;background:#1F9D61;margin-right:6px}
 .meb.acct .mel{display:inline;height:auto;padding:0;font-size:12px}
+.gbtn{display:flex;justify-content:center;margin:10px 0 2px;min-height:44px}
+#intro .gbtn{margin:18px 0 6px}
