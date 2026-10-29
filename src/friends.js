@@ -5,7 +5,7 @@ ic.users=st('<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 3-5 5.5-5s4.
 ic.ig=st('<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".9" fill="currentColor"/>',1.7);
 const FRK='kept.friends';
 let FR=[];try{FR=JSON.parse(localStorage.getItem(FRK)||'[]')||[]}catch(e){}
-const frSave=()=>{try{localStorage.setItem(FRK,JSON.stringify(FR))}catch(e){toast('Could not save. Storage may be full.')}};
+const frSave=()=>{try{localStorage.setItem(FRK,JSON.stringify(FR))}catch(e){toast('Could not save. Storage may be full.')}dispatchEvent(new Event('keep:friends'))};
 /* "@maya_k", "maya_k" or a profile link all become maya_k */
 const igUser=s=>{s=(s||'').trim();const m=/instagram\.com\/([A-Za-z0-9._]+)/i.exec(s);if(m)s=m[1];return s.replace(/^@/,'').replace(/[^A-Za-z0-9._]/g,'').slice(0,30)};
 const igLink=u=>'https://www.instagram.com/'+encodeURIComponent(u)+'/';

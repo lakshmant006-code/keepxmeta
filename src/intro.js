@@ -20,6 +20,7 @@ const introSteps=[
  {h:'Start with Instagram',p:'Link it and Keep fills in your name, photo and bio for you. You can skip this.',hint:'',
   art(){return`<div class="ig-tile">${ic.ig.replace('width="22" height="22"','width="64" height="64"')}</div><div class="ig-act" id="igAct"></div>`},
   run(root,done){
+    invRefCard($('#igAct').parentNode);
     const act=$('#igAct'),linked=()=>{const h=root.querySelector('.ihint');h.textContent='Linked @'+meGet().ig+'. Nice.';h.classList.add('ok');act.innerHTML='';introBoom(...Object.values(introCenter($('.ig-tile'))));introBuzz(18);done(true,'Continue')};
     if(meGet().ig){linked();return}
     done(true,'Skip for now');

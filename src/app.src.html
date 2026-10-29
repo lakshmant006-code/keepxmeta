@@ -355,6 +355,7 @@ __FACE_CSS__
 __FR_CSS__
 __INS_CSS__
 __INTRO_CSS__
+__INV_CSS__
 __PROF_CSS__
 __MOT_CSS__
 </style>
@@ -1134,7 +1135,7 @@ function openProfile(){
    ${meCard()}
    <div class="grp">
     <div class="row"><span>Appearance</span>${seg('theme',[['light','Light'],['dark','Dark']],th)}</div>
-    ${rw('insightsOpen','Insights','','Open')}${rw('friendsOpen','Friends','','Open')}${rw('peopleOpen','People','','Open')}
+    ${rw('insightsOpen','Insights','','Open')}${rw('friendsOpen','Friends','','Open')}${rw('inviteOpen','Invite friends','Share Keep through Instagram','Invite')}${rw('peopleOpen','People','','Open')}
     ${rw('impOpen','Import photos','','Choose')}${rw('bak','Back up','','Download')}
     <div class="row"><span>Restore</span><label ${cb.replace('class="chip fb flat" style="','class="chip fb flat" style="display:grid;place-items:center;cursor:pointer;')}>Choose file<input type="file" id="rst" accept="application/json,.json" hidden></label></div>
    </div>
@@ -1160,6 +1161,7 @@ function openProfile(){
   if($('#pfpRm'))$('#pfpRm').onclick=()=>{pfpSet('');renderProf();openProfile();toast('Photo removed')};
   $('#insightsOpen').onclick=()=>{closeSheet();insOpen()};
   $('#friendsOpen').onclick=()=>{closeSheet();frOpen()};
+  $('#inviteOpen').onclick=()=>{closeSheet();setTimeout(openInvite,320)};
   $('#peopleOpen').onclick=()=>{closeSheet();faceOpenPeople()};
   $('#impOpen').onclick=()=>{closeSheet();onbOpen(true)};
   if($('#instOpen'))$('#instOpen').onclick=()=>{closeSheet();installApp()};
@@ -1233,6 +1235,7 @@ __FR_JS__
 __INS_JS__
 __INTRO_JS__
 __PROF_JS__
+__INV_JS__
 let yearMode=false;
 function refresh(){index();renderCal();renderYear();renderRv()}
 function refreshKeep(){const c=$('#cal'),st=c?c.scrollTop:0;refresh();if(c)c.scrollTop=st}

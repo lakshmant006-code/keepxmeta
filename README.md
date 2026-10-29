@@ -146,6 +146,10 @@ Tap the people icon in the header (or Profile → Friends) for a page of the peo
 
 **Instagram.** Instagram closed its friends and followers access for apps like this one (the Basic Display API ended on December 4, 2024, and the replacement is for business accounts only), so Keep cannot sync with your account. Instead, **From Instagram** imports Instagram's own export: in Instagram go to Settings → Accounts Center → Your information and permissions → Download your information, choose Followers and following in JSON, then pick `followers_1.json` and `following.json` (the HTML files work too). Keep reads them on the phone, lists the accounts (mutuals first, with search), and adds the ones you tick. The export only has usernames, so rename people afterwards.
 
+## Invite friends
+
+Profile → **Invite friends**. **Share invite** opens the share sheet with a short message and link; each friend with an Instagram handle has an **Invite** button that copies the message and opens an Instagram chat with them. If you linked Instagram, the link carries `?ref=<your handle>` so whoever opens it can add you as a friend in one tap. Keep has no server, so it cannot see who has installed it or who is on Instagram right now.
+
 ## Deleting
 
 Press and hold a memory to delete it: a photo in the viewer (swipe to it, then hold), a single photo or a note in a day. A small menu offers a red **Delete** button and a cancel icon. There is no list of delete buttons in the day sheet any more.
