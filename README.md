@@ -2,7 +2,7 @@
 
 Drop anything worth keeping (photo, video, voice, note, quote, person, place, file) into one calendar, then ask for it later. Search answers show the original memory, and say so when nothing matches.
 
-A single static web app, installable on a phone (PWA). Everything you keep is stored on the device in IndexedDB, photos included. There is no server and no account.
+A single static web app, installable on a phone (PWA). Everything you keep (photos, voice notes, text) is stored on the device in IndexedDB. If you turn on Google sign-in (optional, see Accounts below), a small account server also stores your sign-in identity (Google id, name, email, dates), never your memories.
 
 ## Run it as a real app
 
@@ -179,8 +179,21 @@ Chime-inspired, all on-device. Profile > Notifications is a quiet inbox (On this
 
 ## Counting profiles and usage
 
-Keep has no server, so counts come from the site's Google tag (`GTAG_ID`, on in real builds only). Events, never carrying a handle, name or memory content: `ig_link` and `ig_unlink` (someone linked or unlinked Instagram, by any path), `memory_save` (with the kind: photo, voice, note...), `chat_ask`, `invite` (share method). Each person also gets a user property `ig_linked` = `yes`/`no`. In Google Analytics: Reports > Engagement > Events shows the counts and unique users per event; to segment by `ig_linked`, add it under Admin > Custom definitions > Custom dimensions (scope: User). Profiles are counted as people who linked, not as a list of accounts: Keep cannot see who they are, and sending handles to Google Analytics is not allowed.
+Keep's server keeps no usage data, so counts come from the site's Google tag (`GTAG_ID`, on in real builds only). Events, never carrying a handle, name or memory content: `ig_link` and `ig_unlink` (someone linked or unlinked Instagram, by any path), `memory_save` (with the kind: photo, voice, note...), `chat_ask`, `invite` (share method). Each person also gets a user property `ig_linked` = `yes`/`no`. In Google Analytics: Reports > Engagement > Events shows the counts and unique users per event; to segment by `ig_linked`, add it under Admin > Custom definitions > Custom dimensions (scope: User). Profiles are counted as people who linked, not as a list of accounts: Keep cannot see who they are, and sending handles to Google Analytics is not allowed.
 
-## Instagram is required to start
+## Sign in is Google; Instagram is an optional username
 
-On first run the first tour step needs an Instagram link before anything else: one-tap sign-in when `IG_APP_ID`/`IG_API` are set, otherwise typing the handle. Skip is hidden on that step and the final step cannot be reached without it. The tour replayed later from Profile stays optional, and people who already finished the tour are not asked. A typed handle is not verified (Instagram offers no way to check a personal account without a login); one-tap sign-in verifies Business and Creator accounts only.
+Signing in with Google is required on first run (when `GOOGLE_CLIENT_ID` and `IG_API` are set; with neither, the tour has no sign-in step and Keep works as before). The tour then offers an optional "Add your Instagram" step: a typed username kept on the phone, used for invites and friends, not verified and not sent to the server. Profile has the same option (Add, Change, Remove). The earlier Instagram login (OAuth, `/exchange`, `IG_APP_ID`, `IG_APP_SECRET`) has been removed. The tour replayed later from Profile stays optional.
+
+## Accounts (Keep server)
+
+The Node server in `worker/` is a small account server. A person signs in with Google, the server keeps **only** their identity (Google id, name, email, created and last-seen dates) in Firestore, and returns a signed 30-day session token that the app stores as `kept.session`. Deleting the account invalidates every earlier session, even if the same person signs up again. Memories, photos and voice notes never leave the phone.
+
+- `POST /google`: Google ID token in; `session` out. `GET /me`: the account (and refreshes last seen). `DELETE /me`: deletes the account (Profile > Delete my account). `GET /stats`: `{users}`, the number of accounts. `/health`: for Render.
+- Render env on `keep-instagram` (the service name is historical): `GOOGLE_CLIENT_ID`, `ALLOWED_ORIGIN`, `SESSION_SECRET` (generated), and `FIREBASE_SERVICE_ACCOUNT` (the JSON of a Firebase service account key; create a Firestore database in Native mode first). Without `SESSION_SECRET` accounts are off. Without `FIREBASE_SERVICE_ACCOUNT` accounts are also off (the server logs why), unless you set `ALLOW_MEMORY_STORE=1` to try them in memory, where they vanish on restart. If the database fails to start, accounts stay off rather than silently using memory. The static site and the server need the same `GOOGLE_CLIENT_ID`. Needs Node 20 to 24.
+- Firestore rules: leave the database closed to clients (default deny); only the server, using the service account, reads and writes the `keepUsers` collection.
+- The Cloudflare Worker build (`wrangler.toml`) has no database, so accounts are Node/Render only.
+
+### Sign in with Google
+
+Set `GOOGLE_CLIENT_ID` (an OAuth *web* client ID, public) on **both** Render services: the site needs it to show Google's button, the server to check the token's audience. The button comes from Google Identity Services; the app sends the ID token to `POST /google`, the server verifies the RS256 signature against Google's published keys (and issuer, audience, expiry, verified email) and creates or finds the account `g<google id>`, storing only email and name, then returns the same session token as Instagram. Add your site's origin (e.g. `https://keepxmeta.onrender.com`) under Authorized JavaScript origins for that client. Profile shows the sign-in.

@@ -15,22 +15,27 @@ function introBoom(x,y){
 }
 const introCenter=el=>{const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}};
 const introTiles=[['img','#4F9BFF',-112,-96,.6,0],['mic','#FF5C8A',104,-104,.9,-1.2],['quote','#8E7CFF',-120,44,1.1,-2.1],['pin','#1F9D61',116,36,.7,-.6],['cube','#FFB020',-30,-134,.5,-3],['users','#0AA5C2',24,122,1,-1.7],['txt','#6B7280',-70,118,.8,-2.6]];
-const INTRO_AT='kept.introat';
-let introMust=false; /* first run: linking Instagram is required before the tour can go on; a later replay from Profile stays optional */
+const introOK=()=>!!acctTok();
+let introMust=false; /* first run: signing in with Google is required before the tour can go on (when Google sign-in is set up); a later replay from Profile stays optional */
 const introSteps=[
- {h:'Start with Instagram',get p(){return introMust?'Link your Instagram to get started. Keep fills in your name, photo and bio for you.':'Link it and Keep fills in your name, photo and bio for you. You can skip this.'},hint:'',
+ {when:()=>googleOn()&&!acctTok(),h:'Sign in to start',get p(){return introMust?'Sign in with Google to get started. Keep fills in your name and photo for you.':'Sign in with Google to keep your account. You can skip this.'},hint:'',
+  art(){return`<div class="ig-tile" style="background:#fff;box-shadow:0 10px 30px rgba(8,102,255,.18)"><svg width="56" height="56" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7a14.5 14.5 0 010-9.4l-7.9-6.1a24 24 0 000 21.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg></div><div class="ig-act" id="igAct"></div>`},
+  run(root,done){
+    const act=root.querySelector('#igAct'),signed=()=>{const h=root.querySelector('.ihint');h.textContent='Signed in. Nice.';h.classList.add('ok');act.innerHTML='';const g=root.querySelector('#gBtn');if(g)g.remove();introBoom(...Object.values(introCenter(root.querySelector('.ig-tile'))));introBuzz(18);done(true,'Continue');const sk=$('#iSk');if(sk)sk.style.visibility='visible'};
+    if(acctTok()){signed();return}
+    const g=document.createElement('div');g.id='gBtn';g.className='gbtn';act.appendChild(g);googleButton(g,signed);
+    if(introMust)done(false,'Sign in to continue');else done(true,'Skip for now');
+  }},
+ {h:'Add your Instagram',p:'Optional. Type your username so friends can find you and invite you. It stays on this phone.',hint:'',
   art(){return`<div class="ig-tile">${ic.ig.replace('width="22" height="22"','width="64" height="64"')}</div><div class="ig-act" id="igAct"></div>`},
   run(root,done){
-    invRefCard($('#igAct').parentNode);
-    const act=$('#igAct'),linked=()=>{const h=root.querySelector('.ihint');h.textContent='Linked @'+meGet().ig+'. Nice.';h.classList.add('ok');act.innerHTML='';introBoom(...Object.values(introCenter($('.ig-tile'))));introBuzz(18);done(true,'Continue');const sk=$('#iSk');if(sk)sk.style.visibility='visible'};
+    invRefCard(root.querySelector('#igAct').parentNode);
+    const act=root.querySelector('#igAct'),linked=()=>{const h=root.querySelector('.ihint');h.textContent='Added @'+meGet().ig+'. Nice.';h.classList.add('ok');act.innerHTML='';introBoom(...Object.values(introCenter(root.querySelector('.ig-tile'))));introBuzz(18);done(true,'Continue')};
     if(meGet().ig){linked();return}
-    if(introMust)done(false,'Link Instagram to continue');else done(true,'Skip for now');
-    const typed=()=>{act.innerHTML=`<div class="meat"><span>@</span><input id="igIn" placeholder="instagram username" autocapitalize="none" autocorrect="off"></div><button class="pill d" id="igSave" style="height:40px;padding:0 16px">Save</button>`;
-      const sv=()=>{const v=igUser($('#igIn').value);if(!v){toast('Type your Instagram username');return}const o=meGet();o.ig=v;meSave(o);renderProf();linked()};
-      $('#igSave').onclick=sv;$('#igIn').addEventListener('keydown',e=>{if(e.key==='Enter')sv()})};
-    if(igSyncOn()){act.innerHTML=`<button class="pill d" id="igGo" style="width:100%;justify-content:center">${ic.ig} Continue with Instagram</button><button class="mel" id="igType">Type my handle instead</button><p class="meb" style="font-size:12px;color:var(--faint)">Works with Business and Creator accounts. Keep keeps no copy of your login.</p>`;
-      $('#igGo').onclick=()=>{try{sessionStorage.setItem(INTRO_AT,'1')}catch(e){}igSyncStart()};$('#igType').onclick=typed}
-    else{act.innerHTML=`<button class="pill d" id="igType" style="width:100%;justify-content:center">${ic.ig} Link my Instagram</button>`;$('#igType').onclick=typed}
+    done(true,'Skip for now');
+    act.innerHTML=`<div class="meat"><span>@</span><input id="igIn" placeholder="instagram username" autocapitalize="none" autocorrect="off"></div><button class="pill d" id="igSave" style="height:40px;padding:0 16px">Save</button>`;
+    const sv=()=>{const v=igUser(root.querySelector('#igIn').value);if(!v){toast('Type your Instagram username');return}const o=meGet();o.ig=v;meSave(o);renderProf();linked()};
+    root.querySelector('#igSave').onclick=sv;root.querySelector('#igIn').addEventListener('keydown',e=>{if(e.key==='Enter')sv()});
   }},
  {h:'Keep it all',p:'Photos, voice, notes, quotes, people, places. Everything worth keeping, in one calendar.',hint:'',
   art(){return`<div class="w-wrap">${introTiles.map(t=>`<div class="w-t" style="left:${150+t[2]-31}px;top:${150+t[3]-31}px;background:${t[1]};--d:${t[4]*14};--dl:${t[5]}s">${ic[t[0]]||''}</div>`).join('')}<div class="w-logo">K</div></div>`},
@@ -114,16 +119,20 @@ function introMaybe(){
   if(!forced&&(introDone()||emptyMode||user.length))return false;
   introOpen();return true;
 }
-function introOpen(){
+let introBusy=false;
+async function introOpen(){
+  if($('#intro')||introBusy)return;
+  /* a stored session only counts once the server has confirmed it (a slow or failed check never blocks an offline phone) */
+  if(acctOn()&&acctTok()){introBusy=true;try{await Promise.race([acctCheck(),new Promise(r=>setTimeout(r,3000))])}finally{introBusy=false}}
   if($('#intro'))return;
-  const d=document.createElement('div');d.id='intro';const n=introSteps.length;
-  d.innerHTML=`<div class="itop"><div class="ibar">${introSteps.map(()=>'<i></i>').join('')}</div><button class="isk" id="iSk">Skip</button></div><div class="istage" id="iSt"></div><button class="pill d igo" id="iGo"></button>`;
+  const steps=introSteps.filter(s=>!s.when||s.when()),d=document.createElement('div');d.id='intro';const n=steps.length;
+  d.innerHTML=`<div class="itop"><div class="ibar">${steps.map(()=>'<i></i>').join('')}</div><button class="isk" id="iSk">Skip</button></div><div class="istage" id="iSt"></div><button class="pill d igo" id="iGo"></button>`;
   $('#app').appendChild(d);if(!introReduced())d.animate([{opacity:0},{opacity:1}],{duration:420,easing:'ease-out'});
-  introMust=!introDone()&&!meGet().ig;
+  introMust=!introDone()&&googleOn()&&!introOK();
   let i=-1,cur=null;const st=$('#iSt'),go=$('#iGo'),bars=[...d.querySelectorAll('.ibar i')];
-  const finish=()=>{if(introMust&&!meGet().ig){show(0);return}try{localStorage.setItem(INTRO,'1')}catch(e){}if(cur&&cur._off)cur._off();d.animate([{opacity:1},{opacity:0}],{duration:introReduced()?1:260}).onfinish=()=>{d.remove();onbMaybe()}};
+  const finish=()=>{if(introMust&&!introOK()){show(0);return}try{localStorage.setItem(INTRO,'1')}catch(e){}if(cur&&cur._off)cur._off();d.animate([{opacity:1},{opacity:0}],{duration:introReduced()?1:260}).onfinish=()=>{d.remove();onbMaybe()}};
   const show=k=>{
-    const s=introSteps[k],old=cur;i=k;
+    const s=steps[k],old=cur;i=k;
     const el=document.createElement('div');el.className='islide';
     el.innerHTML=`<div class="iart">${s.art()}</div><h1>${s.h}</h1><p>${s.p}</p><div class="ihint">${s.hint}</div>`;
     /* the old step leaves while the new one arrives, so there is never an empty screen between them */
@@ -135,7 +144,6 @@ function introOpen(){
     $('#iSk').style.visibility=k===n-1||(k===0&&introMust)?'hidden':'visible';
     s.run(el,(ok,label)=>{go.disabled=!ok;if(label)go.textContent=label;if(ok&&label!=='Skip for now')go.classList.add('ready')});
   };
-  go.onclick=()=>{if(go.disabled)return;i===n-1?finish():show(i+1)};$('#iSk').onclick=()=>{if(introMust&&!meGet().ig){toast('Link your Instagram to continue');return}finish()};
-  let at=0;try{if(sessionStorage.getItem(INTRO_AT)){sessionStorage.removeItem(INTRO_AT);at=1}}catch(e){}
-  show(at);
+  go.onclick=()=>{if(go.disabled)return;i===n-1?finish():show(i+1)};$('#iSk').onclick=()=>{if(introMust&&!introOK()){toast('Sign in to continue');return}finish()};
+  show(0);
 }

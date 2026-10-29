@@ -9,25 +9,29 @@ services:
     envVars:
       - key: GM_KEY
         sync: false
-      - key: IG_APP_ID
-        sync: false
       - key: IG_API
         value: https://keep-instagram.onrender.com
+      # Must equal GOOGLE_CLIENT_ID on keep-instagram below. A mismatch rejects every Google sign-in.
+      - key: GOOGLE_CLIENT_ID
+        sync: false
       - key: GTAG_ID
         value: G-LR0ZL46FF6
   - type: web
     name: keep-instagram
     runtime: node
     rootDir: worker
-    buildCommand: "true"
+    buildCommand: npm install
     startCommand: node server.js
     healthCheckPath: /health
     envVars:
       - key: ALLOWED_ORIGIN
         value: https://keepxmeta.onrender.com
-      - key: IG_APP_ID
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: FIREBASE_SERVICE_ACCOUNT
         sync: false
-      - key: IG_APP_SECRET
+      # Must equal GOOGLE_CLIENT_ID on keepxmeta above. A mismatch rejects every Google sign-in.
+      - key: GOOGLE_CLIENT_ID
         sync: false
       - key: LLM_API_KEY
         sync: false
