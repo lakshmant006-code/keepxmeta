@@ -1125,7 +1125,7 @@ function openProfile(){
    <div class="grp">
     <div class="row"><span>Appearance</span>${seg('theme',[['light','Light'],['dark','Dark']],th)}</div>
     ${rw('ntOpen','Notifications',ntUnread()?ntUnread()+' new':'Only things that need you','Open')}${rw('insightsOpen','Insights','','Open')}${rw('friendsOpen','Friends','','Open')}${rw('inviteOpen','Invite friends','Share Keep through Instagram','Invite')}${rw('peopleOpen','People','','Open')}
-    ${rw('impOpen','Import photos','','Choose')}${rw('bak','Back up','','Download')}
+    ${rw('impOpen','Import all my photos','Any number, quickly','Choose')}${rw('bak','Back up','','Download')}
     <div class="row"><span>Restore</span><label ${cb.replace('class="chip fb flat" style="','class="chip fb flat" style="display:grid;place-items:center;cursor:pointer;')}>Choose file<input type="file" id="rst" accept="application/json,.json" hidden></label></div>
    </div>
    <details class="more"><summary>More settings</summary><div class="grp" style="margin-top:0">
@@ -1153,7 +1153,7 @@ function openProfile(){
   $('#friendsOpen').onclick=()=>{closeSheet();frOpen()};
   $('#inviteOpen').onclick=()=>{closeSheet();setTimeout(openInvite,320)};
   $('#peopleOpen').onclick=()=>{closeSheet();faceOpenPeople()};
-  $('#impOpen').onclick=()=>{closeSheet();onbOpen(true)};
+  $('#impOpen').onclick=()=>{closeSheet();bulkOpen()};
   if($('#instOpen'))$('#instOpen').onclick=()=>{closeSheet();installApp()};
   $('#bak').onclick=backup;$('#rst').onchange=restore;
 }
@@ -1227,6 +1227,7 @@ __INTRO_JS__
 __TAG_JS__
 __PROF_JS__
 __NT_JS__
+__BULK_JS__
 __INV_JS__
 __CHAT_JS__
 let yearMode=false;
@@ -1347,7 +1348,9 @@ function onbPick(again){
    <ul class="onbl"><li>Each photo lands on the day it was taken.</li><li>Photos that carry a location show up on the map.</li><li>Everything stays on this phone.</li></ul>
    <label class="pill d onbgo">Choose photos<input type="file" id="onbIn2" accept="image/*" multiple hidden></label>
    <button class="onbsk" id="onbSkip">${again?'Cancel':'Skip for now'}</button>
-   <small class="onbn">Tip: in the picker, tap <b>Select</b>, then choose a whole month at once. Up to ${ONB_MAX} at a time.</small>`;
+   <small class="onbn">Tip: in the picker, tap <b>Select</b>, then choose a whole month at once. Up to ${ONB_MAX} at a time.</small>
+   <button class="onbsk" id="onbAll" style="margin-top:6px">Import my whole library instead</button>`;
+  $('#onbAll').onclick=()=>{const d=$('#onb');if(d)d.remove();bulkOpen()};
   $('#onbSkip').onclick=onbClose;
   $('#onbIn2').onchange=e=>{const f=[...e.target.files].filter(x=>/^image\//.test(x.type)||/\.(jpe?g|png|heic|heif|webp)$/i.test(x.name));e.target.value='';if(f.length)onbRun(f)};
 }
