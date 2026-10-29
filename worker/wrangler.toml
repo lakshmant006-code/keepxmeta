@@ -1,8 +1,8 @@
 name = "keep-instagram"
-main = "instagram.js"
+main = "api.js"
 compatibility_date = "2024-11-01"
 
 [vars]
-IG_APP_ID = ""          # your Meta app's Instagram app ID
+GOOGLE_CLIENT_ID = ""    # your Google OAuth web client ID
 ALLOWED_ORIGIN = ""     # e.g. https://<user>.github.io
-# secret: wrangler secret put IG_APP_SECRET
+# secret: wrangler secret put SESSION_SECRET  (the Worker has no database: accounts need the Node/Render server)

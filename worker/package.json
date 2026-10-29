@@ -1,1 +1,1 @@
-{"type":"module","private":true}
+{"type":"module","private":true,"engines":{"node":">=20 <25"},"dependencies":{"firebase-admin":"^12.7.0"}}
