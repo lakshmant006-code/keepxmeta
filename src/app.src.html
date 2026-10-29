@@ -102,6 +102,9 @@ svg{display:block}
 /* voice orb: a slowly rotating season mesh lit like a sphere */
 .orb3d{position:relative;width:112px;height:112px;border-radius:50%;overflow:hidden;isolation:isolate;color:#fff;display:grid;place-items:center;box-shadow:0 12px 20px -10px rgba(30,30,70,.30);transition:transform .25s}
 .orb3d{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer}
+/* iPhone Safari lets blended and filtered children (the moving mesh, the grain) spill out of a rounded box as a square; clip the circle explicitly */
+.orb3d{clip-path:circle(50% at 50% 50%);-webkit-mask-image:-webkit-radial-gradient(white,black);transform:translateZ(0)}
+.orb3d::after{border-radius:50%}
 .lw.js i{animation:none!important;transition:height .09s linear;background:var(--blue)}
 .mb.on.hold{transform:scale(1.1)}
 .lw{opacity:0;transition:opacity .25s}.lw.live{opacity:1}
