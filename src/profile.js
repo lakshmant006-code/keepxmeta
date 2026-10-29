@@ -124,4 +124,14 @@ let tlLastTap=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n
   ping();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')ping()});setInterval(()=>{if(document.visibilityState==='visible')ping()},6e5);
 })();
 
-acctCheck();
+/* ---- sign-in gate: people who already had Keep must sign in with Google once after this update ---- */
+const gateNeeded=()=>googleOn()&&introDone()&&!acctTok();
+function gateShow(){
+  if($('#gate')||!gateNeeded())return;
+  const g=document.createElement('div');g.id='gate';g.className='gate';
+  g.innerHTML=`<div class="gcard"><div class="gk">K</div><h1>Sign in to keep going</h1><p>Keep now uses a Google account. Your memories stay on this phone; only your name and email are kept on the Keep server.</p><div class="gbtn" id="gBtnG"></div><small>Signing in is required to use Keep.</small></div>`;
+  $('#app').appendChild(g);requestAnimationFrame(()=>g.classList.add('on'));
+  googleButton($('#gBtnG'),()=>{g.classList.remove('on');setTimeout(()=>{g.remove();toast('Signed in. Welcome back.');if(typeof wnMaybe==='function')wnMaybe()},300)});
+}
+acctCheck().then(gateShow);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')acctCheck().then(gateShow)});

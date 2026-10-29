@@ -203,3 +203,7 @@ The Node server in `worker/` is a small account server. A person signs in with G
 ### Sign in with Google
 
 Set `GOOGLE_CLIENT_ID` (an OAuth *web* client ID, public) on **both** Render services: the site needs it to show Google's button, the server to check the token's audience. The button comes from Google Identity Services; the app sends the ID token to `POST /google`, the server verifies the RS256 signature against Google's published keys (and issuer, audience, expiry, verified email) and creates or finds the account `g<google id>`, storing only email and name, then returns the same session token as Instagram. Add your site's origin (e.g. `https://keepxmeta.onrender.com`) under Authorized JavaScript origins for that client. Profile shows the sign-in.
+
+### Update flow for existing users
+
+Merging this ships a new build, so installed apps show "Update available" (its text says signing in with Google is now required). After they tap Update, a full-screen "Sign in to keep going" appears for anyone who already finished the tour but has no valid session; it cannot be dismissed. A stored session is checked with the server first (a forged or expired one is cleared). Once signed in, the "What's new" card follows. New users get the same sign-in inside the first-run tour. No gate appears when Google sign-in is not configured (`GOOGLE_CLIENT_ID` and `IG_API`).
