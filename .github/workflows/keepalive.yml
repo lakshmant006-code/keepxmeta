@@ -1,0 +1,18 @@
+name: Keep the Instagram helper awake
+# Render's free web services sleep after about 15 minutes without traffic. This pings the helper every 10 minutes.
+# (The static Keep site never sleeps.) GitHub may delay scheduled runs by a few minutes, and pauses schedules on a
+# repo with no activity for 60 days; open the Actions tab and re-enable if that happens.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+permissions: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping /health
+        env:
+          URL: ${{ secrets.IG_API || 'https://keep-instagram.onrender.com' }}
+        run: curl -fsS --max-time 90 --retry 2 --retry-delay 10 "${URL%/}/health"

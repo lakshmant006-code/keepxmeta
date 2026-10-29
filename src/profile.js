@@ -100,3 +100,9 @@ function tlRipple(b){const r=b.getBoundingClientRect(),d=Math.max(r.width,r.heig
 /* Safari still pinches the page on iOS even with a locked viewport; stop the gesture */
 ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 let tlLastTap=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-tlLastTap<320&&!e.target.closest('input,textarea'))e.preventDefault();tlLastTap=n},{passive:false});
+
+/* keep the Instagram helper awake while people use Keep: a quiet ping when the app opens or returns to the front, at most every 8 minutes */
+(()=>{if(!CFG.igApi||CFG.demo)return;
+  const K='kept.warm',ping=()=>{try{const n=Date.now();if(n-(+sessionStorage.getItem(K)||0)<48e4)return;sessionStorage.setItem(K,String(n));fetch(CFG.igApi.replace(/\/$/,'')+'/health',{mode:'no-cors',cache:'no-store',credentials:'omit'}).catch(()=>{})}catch(e){}};
+  ping();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')ping()});setInterval(()=>{if(document.visibilityState==='visible')ping()},6e5);
+})();
