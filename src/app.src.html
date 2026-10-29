@@ -358,6 +358,7 @@ __INTRO_CSS__
 __NT_CSS__
 __ST_CSS__
 __INV_CSS__
+__CHAT_CSS__
 __PROF_CSS__
 __MOT_CSS__
 </style>
@@ -865,26 +866,7 @@ function search(q){
   scored.sort((a,b)=>b[0]-a[0]||b[1].ts-a[1].ts);
   return scored.map(x=>x[1]);
 }
-function ask(q){
-  q=q.trim();if(!q)return;openChat(true);
-  const res=search(q);let h=`<div class="qb">${esc(q)}</div>`;
-  if(!res.length)h+=`<div class="ans">Nothing you kept matches that. I would rather say so than guess.</div><div class="empty">Try a name, a place, or a date such as “June 22”.</div>`;
-  else{
-    const top=res[0],list=res.slice(0,6);let line;
-    if(top.type==='person')line=`<b>${esc(top.name)}.</b> ${esc(top.text)}`;
-    else if(top.type==='quote')line=`<b>“${esc(top.text)}”</b> ${top.who?esc(top.who)+', ':''}${longDay(new Date(top.ts))}.`;
-    else line=`<b>${longDay(new Date(top.ts))}.</b> ${esc(top.text||top.name||'')}`;
-    h+=`<div class="ans">${line}</div><div class="lbl">From your memories · ${res.length} found</div><div class="res tl2">${list.map(m=>`<div class="rwrap"><div class="tm">${fullDay(new Date(m.ts))}</div>${item(m,false)}</div>`).join('')}</div>`;
-    const ds=[...new Set(res.map(m=>dk(new Date(m.ts))))].slice(0,8);
-    h+=`<div class="lbl">Where it sits in your life</div><div class="strip">${ds.map(k=>{const [y,mo,d]=k.split('-').map(Number);return `<button class="sd" data-d="${k}">${orb(byDay[k],46)}<span>${MS[mo-1]} ${d}</span></button>`}).join('')}</div>`;
-  }
-  const cb=$('#cb');cb.insertAdjacentHTML('beforeend',h);cb.scrollTop=cb.scrollHeight;
-}
-function openChat(keep){$('#chat').classList.add('on');if(!keep)sugg();$('#q2').focus({preventScroll:true})}
 function closeChat(){$('#chat').classList.remove('on');$('#q').value='';$('#q2').value='';blurAll()}
-function sugg(){
-  $('#cb').innerHTML=`<div class="empty" style="margin-top:6px">Ask in your own words. Answers come from what you kept, and show the original.</div><div class="sugg">${['Who is Jake?','Where did I have coffee?'].map(s=>`<button class="chip fb flat" data-s="${s}">${s}</button>`).join('')}</div>`;
-}
 /* ---------- add: full overlay, camera first ---------- */
 const MODES=[['photo','Photo','cam'],['video','Video','vid'],['voice','Voice','mic'],['text','Note','txt'],['more','More','dots']];
 const MORE=[['quote','Quote'],['person','Person'],['place','Place'],['file','File']];
@@ -1245,6 +1227,7 @@ __PROF_JS__
 __NT_JS__
 __ST_JS__
 __INV_JS__
+__CHAT_JS__
 let yearMode=false;
 function refresh(){index();renderCal();renderYear();renderRv()}
 function refreshKeep(){const c=$('#cal'),st=c?c.scrollTop:0;refresh();if(c)c.scrollTop=st}
