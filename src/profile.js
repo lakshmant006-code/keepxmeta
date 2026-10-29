@@ -39,16 +39,18 @@ const SES='kept.session',acctOn=()=>!!CFG.igApi&&!CFG.demo,acctTok=()=>{try{retu
 const acctApi=(path,o)=>fetch(CFG.igApi.replace(/\/$/,'')+path,Object.assign({cache:'no-store'},o,{headers:Object.assign({authorization:'Bearer '+acctTok()},(o||{}).headers)}));
 const acctClear=()=>{try{localStorage.removeItem(SES)}catch(e){}};
 async function acctCheck(){
-  if(!acctOn()||!acctTok())return;
-  try{const r=await acctApi('/me');if(r.status===401||r.status===404)acctClear();else if(r.ok){const u=await r.json();acctSince=u.createdAt||0;try{localStorage.setItem(PRV,u.provider||'instagram')}catch(e){}}}catch(e){}
+  const tok=acctTok();if(!acctOn()||!tok)return;
+  try{const r=await acctApi('/me');if(r.status===401||r.status===404){if(acctTok()===tok){acctClear();if($('#sh')&&$('#sh').classList.contains('on')&&$('#pfpLab'))openProfile()}}else if(r.ok){const u=await r.json();acctSince=u.createdAt||0;try{localStorage.setItem(PRV,u.provider||'instagram')}catch(e){}}}catch(e){}
 }
+const meSquare=url=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const s=Math.min(i.naturalWidth,i.naturalHeight),c=document.createElement('canvas');c.width=c.height=256;
+  c.getContext('2d').drawImage(i,(i.naturalWidth-s)/2,(i.naturalHeight-s)/2,s,s,0,0,256,256);res(c.toDataURL('image/jpeg',.88))};i.onerror=rej;i.src=url});
 let acctSince=0;
 const googleOn=()=>!!(CFG.googleClientId&&acctOn()),PRV='kept.provider';
 const acctProv=()=>{try{return localStorage.getItem(PRV)||'instagram'}catch(e){return'instagram'}};
 /* take a sign-in answer from the server: remember the session, and fill in name and photo where there are none yet */
 async function acctAdopt(d,provider){
   if(!d.session)return false;
-  try{localStorage.setItem(SES,d.session);localStorage.setItem(PRV,provider)}catch(e){}
+  try{localStorage.setItem(SES,d.session);localStorage.setItem(PRV,provider)}catch(e){return false}
   const me=meGet();if(d.name&&!me.name){me.name=String(d.name).slice(0,40);meSave(me)}
   if(/^data:image\//.test(d.picture||'')&&!pfp()){try{pfpSet(await meSquare(d.picture))}catch(e){}}
   useTrack(provider+'_signin',{new_account:d.created?'yes':'no'});renderProf();return true;
@@ -58,13 +60,13 @@ async function googleButton(host,onDone){
   try{await loadGIS()}catch(e){host.innerHTML='<p class="meb">Google sign-in could not load. Check your connection.</p>';return}
   google.accounts.id.initialize({client_id:CFG.googleClientId,ux_mode:'popup',callback:async r=>{
     try{const x=await fetch(CFG.igApi.replace(/\/$/,'')+'/google',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({credential:r.credential})});
-      if(!x.ok)throw 0;if(await acctAdopt(await x.json(),'google'))onDone&&onDone()}
+      if(!x.ok)throw 0;if(await acctAdopt(await x.json(),'google'))onDone&&onDone();else toast('Google sign-in did not work. Try again.')}
     catch(e){toast('Google sign-in did not work. Try again.')}}});
   google.accounts.id.renderButton(host,{theme:'outline',size:'large',shape:'pill',text:'continue_with',logo_alignment:'left',width:Math.min(320,host.clientWidth||300)});
 }
 async function acctDelete(){
   if(!confirm('Delete your Keep account? This removes your sign-in from the Keep server. Your memories stay on this phone.'))return;
-  try{const r=await acctApi('/me',{method:'DELETE'});if(!r.ok)throw 0}catch(e){toast('Could not reach Keep. Try again.');return}
+  try{const r=await acctApi('/me',{method:'DELETE'});if(!r.ok){if(r.status===401||r.status===404){acctClear();openProfile();return}throw 0}}catch(e){toast('Could not reach Keep. Try again.');return}
   acctClear();useTrack('account_delete');toast('Your account was deleted');openProfile();
 }
 function acctRow(){

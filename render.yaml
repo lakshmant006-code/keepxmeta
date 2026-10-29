@@ -11,6 +11,7 @@ services:
         sync: false
       - key: IG_API
         value: https://keep-instagram.onrender.com
+      # Must equal GOOGLE_CLIENT_ID on keep-instagram below. A mismatch rejects every Google sign-in.
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GTAG_ID
@@ -29,6 +30,7 @@ services:
         generateValue: true
       - key: FIREBASE_SERVICE_ACCOUNT
         sync: false
+      # Must equal GOOGLE_CLIENT_ID on keepxmeta above. A mismatch rejects every Google sign-in.
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: LLM_API_KEY

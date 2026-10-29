@@ -119,7 +119,11 @@ function introMaybe(){
   if(!forced&&(introDone()||emptyMode||user.length))return false;
   introOpen();return true;
 }
-function introOpen(){
+let introBusy=false;
+async function introOpen(){
+  if($('#intro')||introBusy)return;
+  /* a stored session only counts once the server has confirmed it (a slow or failed check never blocks an offline phone) */
+  if(acctOn()&&acctTok()){introBusy=true;try{await Promise.race([acctCheck(),new Promise(r=>setTimeout(r,3000))])}finally{introBusy=false}}
   if($('#intro'))return;
   const steps=introSteps.filter(s=>!s.when||s.when()),d=document.createElement('div');d.id='intro';const n=steps.length;
   d.innerHTML=`<div class="itop"><div class="ibar">${steps.map(()=>'<i></i>').join('')}</div><button class="isk" id="iSk">Skip</button></div><div class="istage" id="iSt"></div><button class="pill d igo" id="iGo"></button>`;
