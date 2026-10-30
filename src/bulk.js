@@ -5,13 +5,18 @@
    against the phone's storage so it never fills it silently. Photos already in Keep (same name, size and date) are skipped. */
 const BULK_W=1100,BULK_POOL=4,BULK_AVG=110e3; /* long side about 1100px, JPEG about 110 KB each */
 const bulkIsImg=f=>/^image\//.test(f.type)||/\.(jpe?g|png|heic|heif|webp)$/i.test(f.name);
+const bulkURL=blob=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(blob)});
 async function bulkShrink(f){
   if(window.createImageBitmap){
     try{
       const bm=await createImageBitmap(f,{resizeWidth:BULK_W,resizeQuality:'medium',imageOrientation:'from-image'});
-      const k=Math.min(1,BULK_W/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);
-      c.getContext('2d').drawImage(bm,0,0,c.width,c.height);bm.close&&bm.close();
-      return{src:c.toDataURL('image/jpeg',.8),ar:c.width>=c.height?'4 / 3':'3 / 4'};
+      const k=Math.min(1,BULK_W/Math.max(bm.width,bm.height)),w=Math.round(bm.width*k),h=Math.round(bm.height*k),ar=w>=h?'4 / 3':'3 / 4';
+      if(window.OffscreenCanvas){ /* the JPEG is encoded off the main thread, so scrolling and animations stay smooth while photos come in */
+        const oc=new OffscreenCanvas(w,h);oc.getContext('2d').drawImage(bm,0,0,w,h);bm.close&&bm.close();
+        const blob=await oc.convertToBlob({type:'image/jpeg',quality:.8});return{src:await bulkURL(blob),ar};
+      }
+      const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(bm,0,0,w,h);bm.close&&bm.close();
+      return{src:c.toDataURL('image/jpeg',.8),ar};
     }catch(e){}
   }
   const src=await shrinkImage(f,BULK_W);return{src,ar:lastAr};
@@ -56,10 +61,13 @@ async function bulkRun(files){
   if(!todo.length){$('#onbIn').innerHTML=`<div class="onbic">${ic.img.replace('width="22" height="22"','width="34" height="34"')}</div><h1>Nothing new to keep</h1><p class="onbp">${dup?'Those photos are already in Keep.':'No photos could be read.'}</p><button class="pill d onbgo" id="bkOk">Done</button>`;$('#bkOk').onclick=bulkClose;return}
   let lock=null;try{if(navigator.wakeLock)lock=await navigator.wakeLock.request('screen')}catch(e){}
   const base=Date.now(),got=[],t0=performance.now();let next=0,done=0,fail=0,stop=false;
-  $('#onbIn').innerHTML=`<div class="onbic">${ic.img.replace('width="22" height="22"','width="34" height="34"')}</div><h1>Keeping your photos</h1><p class="onbp" id="bkT">0 of ${todo.length}</p><div class="onbbar"><i id="onbB"></i></div><p class="onbn" id="bkE" style="margin:10px 0 0"></p><button class="pill g onbgo" id="bkStop" style="margin-top:16px">Stop, keep what is done</button>`;
+  const F=flowOpen($('#onbIn'),{icon:ic.img.replace('width="22" height="22"','width="34" height="34"'),title:'Keeping your photos',sub:'0 of '+todo.length,steps:[['Reading your photos','Shrinking each to fit'],['Saving on this phone','Nothing leaves it'],['Filing on the right days',''],['Looking for people','Quietly, in the background']]});
+  F.step(0,'active');F.actions('<button class="pill g onbgo" id="bkStop">Stop, keep what is done</button>');
   $('#bkStop').onclick=()=>{stop=true;$('#bkStop').disabled=true};
-  const draw=()=>{const t=$('#bkT'),b=$('#onbB'),e=$('#bkE');if(!t)return;t.textContent=done+' of '+todo.length;b.style.width=Math.round(done/todo.length*100)+'%';
-    const el=(performance.now()-t0)/1000;if(done>8){const left=Math.round(el/done*(todo.length-done));e.textContent=left>90?'About '+Math.round(left/60)+' minutes left':'About '+left+' seconds left'}};
+  const draw=()=>{
+    F.sub(done+' of '+todo.length);const el=(performance.now()-t0)/1000;
+    if(done>8){const left=Math.round(el/done*(todo.length-done));F.step(0,'active',left>90?'About '+Math.round(left/60)+' minutes left':'About '+left+(left===1?' second left':' seconds left'))}
+  };
   async function worker(){
     while(!stop){
       const i=next++;if(i>=todo.length)return;const f=todo[i],fid=f.name+'|'+f.size+'|'+f.lastModified;
@@ -75,13 +83,16 @@ async function bulkRun(files){
     }
   }
   await Promise.all(Array.from({length:BULK_POOL},worker));
-  persistUser();draw();try{lock&&lock.release()}catch(e){}
+  const pause=ms=>new Promise(r=>setTimeout(r,introReduced()?0:ms));
+  F.step(0,'done',done+' read'+(fail?', '+fail+' could not be read':''));F.sub('Almost there');
+  F.step(1,'active');persistUser();try{lock&&lock.release()}catch(e){}
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
-  refresh();if(typeof faceKick==='function')faceKick(8000);
-  const secs=Math.round((performance.now()-t0)/1000),days=new Set(got.map(x=>dk(new Date(x.ts)))).size,geo=got.filter(x=>x.geo).length;
-  $('#onbIn').innerHTML=`<div class="onbic ok"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-   <h1>${got.length} ${got.length===1?'photo':'photos'} kept</h1>
-   <p class="onbp">${days} ${days===1?'day':'days'}${geo?`, ${geo} with a location`:''}, in ${secs<90?secs+' seconds':Math.round(secs/60)+' minutes'}.${dup?` ${dup} were already in Keep.`:''}${fail?` ${fail} could not be read.`:''}${stop&&done<todo.length?` Stopped with ${todo.length-done} left; run it again to continue, it skips what is done.`:''}</p>
-   <button class="pill d onbgo" id="bkOk">Open my calendar</button><button class="onbsk" id="bkMore">Add more photos</button>`;
+  await pause(350);F.step(1,'done');
+  const days=new Set(got.map(x=>dk(new Date(x.ts)))).size,geo=got.filter(x=>x.geo).length;
+  F.step(2,'active');refresh();await pause(350);F.step(2,'done',days+(days===1?' day':' days')+(geo?', '+geo+' with a location':''));
+  F.step(3,'active');if(typeof faceKick==='function')faceKick(8000);await pause(300);F.step(3,'done','Starts shortly, only while Keep is open');
+  const secs=Math.round((performance.now()-t0)/1000);
+  F.done(got.length+(got.length===1?' photo kept':' photos kept'),'In '+(secs<90?secs+' seconds':Math.round(secs/60)+' minutes')+'.'+(dup?' '+dup+' were already in Keep.':'')+(stop&&done<todo.length?' Stopped with '+(todo.length-done)+' left; run it again to continue, it skips what is done.':''));
+  F.actions('<button class="pill d onbgo" id="bkOk">Open my calendar</button><button class="onbsk" id="bkMore">Add more photos</button>');
   $('#bkOk').onclick=bulkClose;$('#bkMore').onclick=bulkPick;
 }
