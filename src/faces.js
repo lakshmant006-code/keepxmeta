@@ -140,11 +140,17 @@ async function faceOpenPeople(){
   fcCancel=false;
   let people=[];try{people=await peopleAll()}catch(e){}
   const row=p=>`<div class="fcrow"><div><b>${esc(p.name)}</b><small>${p.descs.length} face${p.descs.length===1?'':'s'} learned</small></div><button class="tagch" data-f="${esc(p.name)}">Find in photos</button></div>`;
+  let groups=[];try{groups=await faceClusters()}catch(e){}
+  const gtile=(c,i)=>`<button class="fcgt" data-g="${i}" aria-label="Name this person"><i style="${fcCrop(c.items[0].m,c.items[0].ar,c.items[0].fc.b)}"></i><span>${c.items.length}</span></button>`;
+  const found=groups.length?`<div class="tagh" style="margin-top:4px"><b style="font-size:15px">Found in your photos</b></div><p class="tagn" style="font-size:13.5px;margin:0 0 8px">The same face in two or more photos. Tap one to name them.</p><div class="fcgg">${groups.slice(0,12).map(gtile).join('')}</div>`:`<button class="pill g" id="fcLook" style="width:100%;justify-content:center;margin:4px 0 12px">Look for people in my photos</button>`;
   const pn=fcShow(`<div class="tagh"><b>People</b><button class="ib" id="fcX" aria-label="Close" style="width:34px;height:34px">${ic.x}</button></div>
-    ${people.length?`<div class="fclist">${people.map(row).join('')}</div>`:`<p class="tagn" style="font-size:14px;margin:4px 0 12px">No faces learned yet. Tap a photo in the viewer, add a name, and Keep learns that face so it can find the person in your other photos.</p>`}
+    ${found}
+    ${people.length?`<div class="fclist">${people.map(row).join('')}</div>`:groups.length?'':`<p class="tagn" style="font-size:14px;margin:4px 0 12px"> Tap a photo in the viewer, add a name, and Keep learns that face so it can find the person in your other photos.</p>`}
     <p class="tagn">Face matching runs on this phone. Faces are stored here as numbers, never uploaded.</p>
     ${people.length?'<button class="pill g" id="fcForget" style="width:100%;justify-content:center;margin-top:12px">Forget all face data</button>':''}`);
   $('#fcX').onclick=fcClose;
+  pn.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>faceNameGroup(groups[+b.dataset.g],()=>setTimeout(faceOpenPeople,250)));
+  if($('#fcLook'))$('#fcLook').onclick=async()=>{fcBusy('Looking through your photos…<small>On this phone. The first time can take a minute.</small>');try{await faceLoad();await faceSurvey()}catch(e){console.warn(e)}fcClose();faceOpenPeople()};
   pn.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>faceScan(b.dataset.f));
   if($('#fcForget'))$('#fcForget').onclick=async()=>{await faceDB.clear('people');await faceDB.clear('photos');fcClose();toast('Face data forgotten. Names on photos stay.')};
 }
@@ -192,7 +198,6 @@ async function faceBgRun(){
   const photos=()=>user.filter(m=>m.type==='photo'&&src(m));
   const names=[...new Set(photos().flatMap(m=>namesOf(m).filter(n=>isManual(m,n))))];
   let people;try{people=await peopleAll()}catch(e){return}
-  if(!names.length&&!people.length)return;
   faceBg.run=true;let changed=false;
   try{
     const known=new Set(people.map(p=>pkey(p.name)));
@@ -218,10 +223,93 @@ async function faceBgRun(){
       }
     }
   }catch(e){console.warn('background face matching stopped',e)}
+  try{await faceSurvey()}catch(e){console.warn('face survey stopped',e)}
   finally{
     faceBg.run=false;
     if(changed)refreshKeep(); /* keep the calendar where you were */
     if(faceBg.again){faceBg.again=false;faceKick(1500)}
   }
 }
+
+/* ---------- people you have not named yet: Keep groups the same face across photos, you name each group once ---------- */
+/* Every face found in your photos is compared with the others (on this phone, as 128 numbers). Faces that clearly match are grouped; a group of
+   two or more photos is offered in Profile → People ("Found in your photos"). Name one and Keep tags that name on every photo in the group, then
+   quietly finds the rest. Nothing is tagged until you name the group. */
+const FACE_GROUP=.45,FACE_MERGE=.4,FACE_NO='kept.faceno',FACE_N='kept.faceclusters';
+const fnoGet=()=>{try{return new Set(JSON.parse(localStorage.getItem(FACE_NO)||'[]'))}catch(e){return new Set()}};
+const fnoPut=a=>{try{localStorage.setItem(FACE_NO,JSON.stringify([...a].slice(-200)))}catch(e){}};
+async function faceSurvey(){
+  let detected=0,limit=Infinity;
+  for(const m of user.filter(x=>x.type==='photo'&&src(x))){
+    if(!fvisible())break;
+    if(await faceDB.get('photos',m.id))continue;
+    if(detected>=limit)continue;detected++;
+    try{await facesOf(m)}catch(e){break}
+    if(faceLib){try{const f=await faceLib;if(f.tf.getBackend()==='cpu')limit=25}catch(e){}}
+    await fsleep(150);
+  }
+  await faceClustersRefresh();
+}
+async function faceClusters(){
+  const people=await peopleAll(),items=[];
+  for(const m of user.filter(x=>x.type==='photo'&&src(x))){
+    const rec=await faceDB.get('photos',m.id);if(!rec)continue;
+    rec.faces.forEach((fc,i)=>{
+      if(faceWho(fc.d,people))return;                         /* someone you already named */
+      if(rec.faces.length===1&&namesOf(m).length)return;       /* a named photo of one face */
+      items.push({m,fc,ar:rec.ar,w:fc.b[2]});
+    });
+  }
+  items.sort((a,b)=>b.w-a.w);
+  const cl=[];
+  items.forEach(it=>{
+    let best=null,bd=1e9;cl.forEach(c=>{const d=fdist(c.c,it.fc.d);if(d<bd){bd=d;best=c}});
+    if(best&&bd<FACE_GROUP&&!best.items.some(x=>x.m.id===it.m.id)){best.items.push(it);const n=best.items.length;for(let i=0;i<128;i++)best.c[i]+=(it.fc.d[i]-best.c[i])/n}
+    else cl.push({c:Array.from(it.fc.d),items:[it]});
+  });
+  /* groups that turned out to be the same person */
+  for(let i=0;i<cl.length;i++)for(let j=cl.length-1;j>i;j--){
+    if(fdist(cl[i].c,cl[j].c)<FACE_MERGE){cl[j].items.forEach(it=>{if(!cl[i].items.some(x=>x.m.id===it.m.id))cl[i].items.push(it)});cl.splice(j,1)}
+  }
+  const no=fnoGet();
+  return cl.filter(c=>c.items.length>=2&&!c.items.some(x=>no.has(String(x.m.id)))).sort((a,b)=>b.items.length-a.items.length);
+}
+async function faceClustersRefresh(){
+  let n=0;try{n=(await faceClusters()).length}catch(e){}
+  try{localStorage.setItem(FACE_N,String(n))}catch(e){}
+  if(typeof ntBadge==='function')ntBadge();
+  return n;
+}
+const faceClusterCount=()=>{try{return +localStorage.getItem(FACE_N)||0}catch(e){return 0}};
+/* name one group: every photo in it gets the name */
+async function faceApplyGroup(c,name){
+  let n=0;const k=pkey(name);
+  for(const it of c.items){
+    const m=it.m;if((m.reject||[]).some(x=>pkey(x)===k)||namesOf(m).some(x=>pkey(x)===k))continue;
+    if(!m.who){m.who=name;m.pose=m.pose||'stand';m.at=m.at||[.5,.74]}else m.people=(m.people||[]).concat(name);
+    idb.put(m).catch(()=>{});n++;
+  }
+  const step=Math.max(1,Math.floor(c.items.length/5));
+  for(let i=0;i<c.items.length&&i<step*5;i+=step)await faceLearn(name,c.items[i].fc.d);
+  return n;
+}
+async function faceNameGroup(c,done){
+  const best=c.items[0],known=[...new Set((typeof tagPool==='function'?tagPool().map(e=>e.name):[]).concat((await peopleAll()).map(p=>p.name)))].slice(0,8);
+  const p=fcShow(`<div class="tagh"><b>Who is this?</b><button class="ib" id="fcX" aria-label="Close" style="width:34px;height:34px">${ic.x}</button></div>
+    <div class="fcface" style="${fcCrop(best.m,best.ar,best.fc.b)}"></div>
+    <p class="tagn" style="font-size:14px;margin:10px 0 10px">Keep found this face in <b>${c.items.length}</b> photos. Name them once and every one of those photos gets the name.</p>
+    ${known.length?`<div class="tagr" style="flex-wrap:wrap;margin-bottom:10px">${known.map(n=>`<button class="tagch" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div>`:''}
+    <input class="mein" id="fcName" placeholder="Their name" maxlength="40" autocomplete="off" style="width:100%;margin-bottom:10px">
+    <div class="tagr"><button class="pill d" id="fcSave" style="flex:1;justify-content:center">Name them</button><button class="pill g" id="fcSkip">Not a person</button></div>`);
+  $('#fcX').onclick=()=>{fcClose();done&&done()};
+  p.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{$('#fcName').value=b.dataset.n});
+  $('#fcSkip').onclick=()=>{const no=fnoGet();c.items.forEach(x=>no.add(String(x.m.id)));fnoPut(no);fcClose();faceClustersRefresh();done&&done()};
+  const save=async()=>{
+    const v=$('#fcName').value.trim();if(!v){toast('Type their name');return}
+    const n=await faceApplyGroup(c,v);refreshKeep();fcClose();toast('Tagged '+n+' photo'+(n===1?'':'s')+' as '+v);
+    faceKick(800);faceClustersRefresh();done&&done();
+  };
+  $('#fcSave').onclick=save;$('#fcName').addEventListener('keydown',e=>{if(e.key==='Enter')save()});
+}
+
 if(!CFG.demo)setTimeout(()=>faceKick(0),7000); /* once per visit, a few seconds after opening */
