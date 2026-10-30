@@ -7,9 +7,9 @@ const selMonth=m=>{const d=new Date(m.ts);return d.getFullYear()+'-'+pad(d.getMo
 const selMonthName=k=>{const [y,mo]=k.split('-').map(Number);return MN[mo-1]+' '+y};
 function selOpen(){
   const p=$('#sel');if(!p)return;SEL.sel.clear();SEL.shown=0;SEL.undo=null;SEL.only=false;
-  p.classList.add('on');selDraw();
+  p.classList.add('on');$('#sh').style.zIndex='50';selDraw(); /* sheets (tag, day, caption) open above this page */
 }
-function selClose(){const p=$('#sel');if(!p)return;if(SEL.io)SEL.io.disconnect();p.classList.remove('on');p.innerHTML='';refreshKeep()}
+function selClose(){const p=$('#sel');if(!p)return;if(SEL.io)SEL.io.disconnect();p.classList.remove('on');p.innerHTML='';$('#sh').style.zIndex='';refreshKeep()}
 function selList(){const a=selPhotos();return SEL.only?a.filter(m=>!namesOf(m).length):a}
 function selDraw(){
   const p=$('#sel'),all0=selPhotos(),list=selList(),n=SEL.sel.size;
