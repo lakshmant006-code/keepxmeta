@@ -207,3 +207,7 @@ Set `GOOGLE_CLIENT_ID` (an OAuth *web* client ID, public) on **both** Render ser
 ### Update flow for existing users
 
 Merging this ships a new build, so installed apps show "Update available" (its text says signing in with Google is now required). After they tap Update, a full-screen "Sign in to keep going" appears for anyone who already finished the tour but has no valid session; it cannot be dismissed. A stored session is checked with the server first (a forged or expired one is cleared). Once signed in, the "What's new" card follows. New users get the same sign-in inside the first-run tour. No gate appears when Google sign-in is not configured (`GOOGLE_CLIENT_ID` and `IG_API`).
+
+### Chat that talks back
+
+Answers now read like a conversation: a first line that answers the question, then follow-on bubbles that quote what you wrote and said, taken from journals (notes), voice-note text, quotes, place notes and photo or video captions, not only the pictures. Ask about a person ("What was Kieran doing on October 7?", "Kieran") and the chat tells you which days they appear on and what you kept about them first. When nothing was written down it says so and offers **Tell you what I remember**: whatever you type next is kept as a note on that day. It is still local, rule-based text built only from what you kept (no language model, nothing is sent anywhere), so it never invents facts; free-form chat would need a model on a server and your consent to send memories to it.
