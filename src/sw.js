@@ -14,7 +14,9 @@ self.addEventListener('fetch',e=>{
 });
 
 /* home-screen alerts: tapping one opens Keep; a daily background check (Android, installed app) nudges when something is switched on */
-self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cs=>cs.length?cs[0].focus():self.clients.openWindow('./')))});
+self.addEventListener('notificationclick',e=>{const ar=(e.notification.data||{}).ar;e.notification.close();e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cs=>{
+  if(cs.length){if(ar)cs[0].postMessage({near:ar});return cs[0].focus()}
+  return self.clients.openWindow(ar?'./?near='+ar:'./')}))});
 self.addEventListener('periodicsync',e=>{if(e.tag!=='keep-daily')return;
   e.waitUntil((async()=>{const hit=await (await caches.open('keep-nt')).match('snap');if(!hit)return;const o=await hit.json(),on=o.on||{};
     if(!(on.otd||on.week||on.nudge))return;
