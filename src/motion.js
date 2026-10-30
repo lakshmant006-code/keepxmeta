@@ -59,7 +59,7 @@ new MutationObserver(scan).observe(document.body,{childList:true,subtree:true});
 scan();
 
 /* depth: the home screen steps back a few pixels while anything is open on top, and the new layer rises in */
-const home=$('#home'),tops=['#sh','#ov','#mp','#fr','#ins','#nt','#chat'].map($).filter(Boolean);
+const home=$('#home'),tops=['#sh','#ov','#mp','#fr','#ins','#nt','#sel','#chat'].map($).filter(Boolean);
 let deep=false,dc=null;
 const depth=()=>{
   const d=tops.some(e=>e.classList.contains('on'));if(d===deep||!home)return;deep=d;
