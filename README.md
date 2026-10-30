@@ -211,3 +211,13 @@ Merging this ships a new build, so installed apps show "Update available" (its t
 ### Import all my photos
 
 Profile → **Import all my photos** (and "Import my whole library instead" in the first-run photo step). A web app cannot read the photo library by itself; the phone only hands over what the person picks, so this makes picking everything fast: no limit on how many, four photos at a time, each decoded straight to about 1100px, EXIF date and location kept, a progress bar with time left, a **Stop, keep what is done** button, the screen kept awake while it runs (where supported), a check against the phone's storage (about 110 KB a photo) so it never fills silently, and photos already in Keep (same name, size and date) skipped, so it is safe to run again. **Choose a folder** appears where the browser has a folder picker (Chrome on Android and desktop; not iPhone Safari). True "allow access to all photos" needs a native wrapper app (for example Capacitor), a separate step.
+
+### People found automatically
+
+Like a photo app's People view, but on the phone: Keep looks through your photos in the background (only while the app is open, a few at a time, skipped on Data Saver), finds every face and groups the ones that match. A group seen in two or more photos shows up in **Profile → People → Found in your photos** (and as a card in Notifications). Name a group once and every photo in it gets the name; Keep then quietly tags that person in your other photos. **Not a person** hides a group. Nothing is tagged until you name it, and a tag you removed is never re-added.
+
+This does use a small face model (the bundled face-api.js models, about 8 MB, loaded the first time) because telling faces apart cannot be done without one. It runs entirely in the browser: no photo or face is sent anywhere, and faces are kept as 128 numbers in IndexedDB. **Forget all face data** in People clears them.
+
+### Chat that talks back
+
+Answers now read like a conversation: a first line that answers the question, then follow-on bubbles that quote what you wrote and said, taken from journals (notes), voice-note text, quotes, place notes and photo or video captions, not only the pictures. Ask about a person ("What was Kieran doing on October 7?", "Kieran") and the chat tells you which days they appear on and what you kept about them first. When nothing was written down it says so and offers **Tell you what I remember**: whatever you type next is kept as a note on that day. It is still local, rule-based text built only from what you kept (no language model, nothing is sent anywhere), so it never invents facts; free-form chat would need a model on a server and your consent to send memories to it.
