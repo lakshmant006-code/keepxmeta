@@ -24,6 +24,7 @@ function ntItems(){
   if(cfg.on.week){const dow=(T.getDay()+6)%7,mon=new Date(T.getFullYear(),T.getMonth(),T.getDate()-dow),pm=new Date(+mon-7*864e5),n=A.filter(m=>m.ts>=+pm&&m.ts<+mon);
     if(n.length){const days=new Set(n.map(m=>dk(new Date(m.ts)))),c={};n.forEach(m=>{const d=new Date(m.ts).getDay();c[d]=(c[d]||0)+1});const top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0],DN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
       out.push({id:'week-'+dk(mon),ts:new Date(mon.getFullYear(),mon.getMonth(),mon.getDate(),8).getTime(),ic:'chart',t:'Last week in Keep',b:n.length+(n.length===1?' moment':' moments')+' over '+days.size+(days.size===1?' day':' days')+'. '+DN[+top[0]]+' was your busiest.',a:[['See Insights','ins']]})}}
+  if(typeof faceClusterCount==='function'&&faceClusterCount()>0){const fc=faceClusterCount();out.push({id:'faces-'+fc,ts:morning(9),ic:'users',t:fc+(fc===1?' person':' people')+' found in your photos',b:'The same face shows up in more than one photo. Name each once and Keep tags them everywhere.',a:[['Name them','people']]})}
   if(cfg.on.nudge&&A.length){const last=Math.max(...A.map(m=>m.ts));if(+new Date(T.getFullYear(),T.getMonth(),T.getDate())-last>3*864e5)out.push({id:'nudge-'+dk(T),ts:morning(18),ic:'plus',t:'A quiet few days',b:'Anything from this week worth keeping?',a:[['Keep something','add']]})}
   return out.filter(i=>i.ts<=Date.now()||i.always).sort((a,b)=>b.ts-a.ts);
 }
@@ -54,7 +55,7 @@ function ntOpen(){
    al.onclick=async()=>{if(on){toast('Turn alerts off in your phone settings');return}if(await ntAllow())ntOpen()}}
   p.querySelectorAll('.ntsw').forEach(b=>b.onclick=()=>{const c=ntGet();c.on[b.dataset.k]=c.on[b.dataset.k]?0:1;ntPut(c);dispatchEvent(new Event('keep:nt'));ntOpen()});
   p.querySelector('.frbody').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,[k,v]=a.split(':');
-    if(k==='tour'){ntClose();setTimeout(introOpen,320)}else if(k==='add'){ntClose();setTimeout(()=>openAdd(),320)}else if(k==='ins'){ntClose();setTimeout(insOpen,320)}
+    if(k==='tour'){ntClose();setTimeout(introOpen,320)}else if(k==='add'){ntClose();setTimeout(()=>openAdd(),320)}else if(k==='ins'){ntClose();setTimeout(insOpen,320)}else if(k==='people'){ntClose();setTimeout(()=>{try{faceOpenPeople()}catch(e){}},320)}
     else if(k==='day'){ntClose();setTimeout(()=>openDay(v),320)}else if(k==='reflect'){reflectOpen(v)}});
   setTimeout(ntMarkRead,1200);
 }
