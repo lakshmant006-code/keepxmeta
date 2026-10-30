@@ -111,14 +111,24 @@ function streak(){let n=0;for(let i=0;;i++){const x=new Date(TODAY.getFullYear()
 const dayImg=L=>{const m=L.find(x=>(x.type==='photo'||x.type==='video')&&src(x));return m?src(m):''};
 const gl=(m,fb)=>m?`background-image:url(${src(m)})`:fb||'';
 const WG=[
- {id:'mem',z:'s',name:'Memory',desc:'A photo from an earlier day.',h:m=>`<div class="wgc s wg-mem" style="${gl(m)}"><div class="wgs"><small>${m?esc(ago(m)):'Keep'}</small><b>${m?esc(line(m)):'Add a photo to start'}</b></div></div>`},
+ {id:'mem',z:'s',name:'Memory',desc:'A photo from an earlier day.',h:m=>`<div class="wgc s wg-mem tn" data-img="${m?src(m):''}" style="${gl(m)}"><div class="wgs"><small>${m?esc(ago(m)):'Keep'}</small><b>${m?esc(line(m)):'Add a photo to start'}</b></div></div>`},
  {id:'note',z:'s',name:'Happy note',desc:'A kind line, or one you wrote.',h:(m,n)=>`<div class="wgc s wg-note"><div class="wgemo">${n.e}</div><b>${esc(n.t)}</b></div>`},
- {id:'day',z:'m',name:'On this day',desc:'A past memory with its message.',h:m=>`<div class="wgc m wg-day"><div class="wgt"><small>${m?esc(ago(m)):'Keep'}</small><b>${m?esc(line(m)):'Add a photo to start'}</b><em>${m?fullDay(new Date(m.ts)):''}</em></div><div class="wgp" style="${gl(m)}"></div></div>`},
+ {id:'day',z:'m',name:'On this day',desc:'A past memory with its message.',h:m=>`<div class="wgc m wg-day tn" data-img="${m?src(m):''}"><div class="wgp" style="${gl(m)}"></div><div class="wgt"><small>${m?esc(ago(m)):'Keep'}</small><b>${m?esc(line(m)):'Add a photo to start'}</b><em>${m?fullDay(new Date(m.ts)):''}</em></div></div>`},
  {id:'streak',z:'m',name:'Your streak',desc:'Days kept in a row, and this week.',h:()=>{const w=weekDays(),mx=Math.max(1,...w.map(x=>x.L.length)),n=streak();
    return `<div class="wgc m wg-str"><div class="wgt"><small>Current streak</small><b class="big">${n}<i> ${n===1?'day':'days'}</i></b><em>${w.reduce((a,x)=>a+x.L.length,0)} kept this week</em></div><div class="wgbars">${w.map((x,i)=>`<span class="${x.today?'t':''}"><i style="height:${x.fut?4:Math.max(6,x.L.length/mx*100)}%"></i><u>${DL[i]}</u></span>`).join('')}</div></div>`}},
  {id:'week',z:'l',name:'This week',desc:'Seven days of circles, and today’s memory.',h:m=>{const w=weekDays();
    return `<div class="wgc l wg-week"><small>This week</small><div class="wgdays">${w.map((x,i)=>{const im=dayImg(x.L);return `<span class="${x.today?'t':''}"><i style="${im?`background-image:url(${im})`:''}" class="${x.L.length?'':'e'}"></i><u>${DL[i]}</u></span>`}).join('')}</div>
-   <div class="wgfoot"><div class="wgp" style="${gl(m)}"></div><div class="wgt"><small>${m?esc(ago(m)):'Keep'}</small><b>${m?esc(line(m)):'Add a photo to start'}</b></div></div></div>`}}];
+   <div class="wgfoot tn" data-img="${m?src(m):''}"><div class="wgp" style="${gl(m)}"></div><div class="wgt"><small>${m?esc(ago(m)):'Keep'}</small><b>${m?esc(line(m)):'Add a photo to start'}</b></div></div></div>`}}];
+/* the "memories" look: each photo fades into a colour taken from the photo itself */
+const TINT=new Map();
+function tint(u){
+  if(!u)return Promise.resolve('#2b2f3a');
+  if(TINT.has(u))return TINT.get(u);
+  const pr=new Promise(res=>{const i=new Image();i.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=8;const x=c.getContext('2d');x.drawImage(i,0,0,8,8);const d=x.getImageData(0,0,8,8).data;let r=0,g=0,b=0;for(let k=0;k<d.length;k+=4){r+=d[k];g+=d[k+1];b+=d[k+2]}const n=d.length/4;r/=n;g/=n;b/=n;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),a=mx-mn<40?0:.7;
+    const f=v=>Math.round(Math.max(0,Math.min(255,(v-(mx+mn)/2)*(1+a)+(mx+mn)/2))*.62);res(`rgb(${f(r)},${f(g)},${f(b)})`)}catch(e){res('#2b2f3a')}};i.onerror=()=>res('#2b2f3a');i.src=u});
+  TINT.set(u,pr);return pr;
+}
+const tintAll=root=>root.querySelectorAll('.tn[data-img]').forEach(e=>tint(e.dataset.img).then(c=>e.style.setProperty('--mc',c)));
 let wgTab='gallery';
 function wgDraw(){
   const m=pick(),n=note(),sel=wgSel(),b=$('#wgBody');if(!b)return;
@@ -141,6 +151,7 @@ function wgDraw(){
   }
   b.querySelectorAll('.wgb').forEach(x=>x.onclick=()=>{const id=x.dataset.w,a=wgSel(),i=a.indexOf(id);i<0?a.push(id):a.splice(i,1);wgSave(a);wgDraw();if(window.Motion)Motion.animate(b.querySelector(`.wgb[data-w="${id}"]`),{scale:[.8,1]},{type:'spring',stiffness:500,damping:14})});
   if($('#wgPic'))$('#wgPic').onclick=momOpen;
+  tintAll(b);
 }
 window.wgOpen=()=>{
   const p=$('#wg');p.classList.add('on');wgTab='gallery';

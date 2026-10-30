@@ -47,3 +47,13 @@
 .wgap{display:flex;flex-direction:column;align-items:center;gap:3px}.wgap i{width:100%;max-width:58px;aspect-ratio:1;border-radius:15px;display:grid;place-items:center;box-shadow:0 3px 8px rgba(0,0,0,.18)}.wgap u{text-decoration:none;font-size:10.5px;color:#fff}
 .wgdock{display:flex;justify-content:space-around;padding:10px;border-radius:28px;background:rgba(255,255,255,.28);margin-top:6px}.wgdock i{width:48px;height:48px;border-radius:13px}
 .wgcount{font-size:14px;color:var(--mute);margin:12px 4px 0}.wgempty{color:#fff;text-align:center;padding:30px 0}
+
+/* memories look: the photo is the whole widget and dissolves into a colour drawn from it */
+.tn{--mc:#2b2f3a}
+.wg-mem .wgs{background:linear-gradient(to top,var(--mc) 0%,color-mix(in srgb,var(--mc) 70%,transparent) 45%,transparent 100%);margin:-12px;padding:44px 12px 12px;color:#fff}
+.wg-day{background:linear-gradient(120deg,var(--mc),color-mix(in srgb,var(--mc) 75%,#000));border:0;color:#fff;padding:0!important;gap:0!important;}
+.wg-day .wgp{position:absolute;right:0;top:0;bottom:0;width:62%;height:auto;aspect-ratio:auto;border-radius:0;-webkit-mask-image:linear-gradient(to left,#000 55%,transparent 100%);mask-image:linear-gradient(to left,#000 55%,transparent 100%)}
+.wg-day .wgt{position:relative;z-index:1;padding:14px;max-width:55%}.wg-day small,.wg-day em{color:rgba(255,255,255,.78)}.wg-day b{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.25)}
+.wgfoot.tn{position:relative;overflow:hidden;padding:0;background:var(--mc);align-items:flex-end}
+.wgfoot.tn .wgp{position:absolute;inset:0;width:100%;border-radius:0;-webkit-mask-image:linear-gradient(to bottom,#000 30%,transparent 100%);mask-image:linear-gradient(to bottom,#000 30%,transparent 100%)}
+.wgfoot.tn .wgt{position:relative;z-index:1;padding:14px;color:#fff;flex:none;width:100%}.wgfoot.tn small{color:rgba(255,255,255,.8)}.wgfoot.tn b{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.3)}
