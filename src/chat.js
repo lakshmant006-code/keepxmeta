@@ -82,10 +82,65 @@ function chatCard(items){
 }
 const chBreak=list=>{const c={};list.forEach(m=>c[m.type]=(c[m.type]||0)+1);const nm={photo:['photo','photos'],video:['video','videos'],voice:['voice note','voice notes'],text:['note','notes'],quote:['quote','quotes'],person:['person','people'],place:['place','places'],file:['file','files']};
   return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([t,n])=>n+' '+nm[t][n===1?0:1]).join(', ')};
+/* ---- talking: tell what was kept in plain sentences, using the notes, voice transcripts, quotes and captions as well as the photos ---- */
+const chSnip=(t,n)=>{t=String(t||'').replace(/\s+/g,' ').trim();n=n||150;return t.length>n?t.slice(0,n-1).replace(/\s+\S*$/,'')+'…':t};
+const chList=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+const chFirstOf=n=>firstName(n).toLowerCase();
+function chatPeople(){const s=new Map();all().forEach(m=>(m.type==='person'?[m.name]:chNames(m)).forEach(n=>{if(n&&n.trim().length>1)s.set(chFirstOf(n),n)}));return s}
+const chAbout=n=>{const f=chFirstOf(n);return all().filter(m=>[m.who,(m.people||[]).join(' '),m.name,m.text].join(' ').toLowerCase().includes(f)).sort((a,b)=>b.ts-a.ts)};
+/* one day, told: what was kept, then what was written or said */
+function chatDayStory(k,focus){
+  const all0=(byDay[k]||[]).slice(),[y,mo,d]=k.split('-').map(Number),day=new Date(y,mo-1,d),f=focus?chFirstOf(focus):'';
+  const mine=f?all0.filter(m=>[m.who,(m.people||[]).join(' '),m.name,m.text].join(' ').toLowerCase().includes(f)):all0,rest=f?all0.filter(m=>!mine.includes(m)):[];
+  const who=[...new Set(mine.flatMap(m=>m.type==='person'?[]:chNames(m)))].filter(n=>!f||chFirstOf(n)!==f);
+  const lead=f?`<b>${fullDay(day)}.</b> That day you kept ${chBreak(mine)} that mention ${esc(chPN(focus))}${who.length?`, along with ${chList(who.slice(0,3).map(n=>esc(chPN(n))))}`:''}.`
+    :`<b>${fullDay(day)}.</b> You kept ${chBreak(all0)}${who.length?`, with ${chList(who.slice(0,3).map(n=>esc(chPN(n))))}`:''}.`,lines=[];
+  const say=(m,pre)=>{const t=m.text&&String(m.text).trim(),w=tstr(m.ts);
+    if(m.type==='voice'&&t)lines.push(`${pre}In a voice note at ${w} you said: “${esc(chSnip(t))}”`);
+    else if(m.type==='text'&&t)lines.push(`${pre}You wrote at ${w}: “${esc(chSnip(t))}”`);
+    else if(m.type==='quote'&&t)lines.push(`${pre}You saved a quote${m.who?' from '+esc(m.who):''}: “${esc(chSnip(t))}”`);
+    else if(m.type==='place')lines.push(`${pre}You marked <b>${esc(m.name||'a place')}</b> at ${w}${t?': '+esc(chSnip(t)):'.'}`);
+    else if((m.type==='photo'||m.type==='video')&&t)lines.push(`${pre}The ${m.type} from ${w} is captioned “${esc(chSnip(t))}”`);
+    else if(m.type==='person'&&t)lines.push(`${pre}About <b>${esc(m.name)}</b>: ${esc(chSnip(t))}`)};
+  mine.forEach(m=>say(m,''));
+  if(f&&lines.length<2)rest.forEach(m=>{if(lines.length<3)say(m,lines.length?'Around then, ':'Nothing else mentions '+esc(chPN(focus))+' that day, but ')});
+  return{lead,lines,k,count:mine.length};
+}
+/* the spoken answer: a first line, a few follow-on bubbles and an honest note when nothing was written down */
+function chatTell(q,P,res,days){
+  const pe=chatPeople(),focus=(P.toks.map(t=>pe.get(t)).find(Boolean))||'',more=[],chips=[];
+  let text;
+  if(focus){
+    const about=chAbout(focus),dayKeys=[...new Set(about.map(m=>dk(new Date(m.ts))))],first=chPN(focus),when=/\b(doing|up to|was|were)\b/i.test(q);
+    const inRange=P.range?dayKeys.filter(k=>{const t=+new Date(...k.split('-').map((v,i)=>i===1?v-1:+v));return t>=P.range[0]&&t<=P.range[1]}):dayKeys,use=inRange.length?inRange:dayKeys;
+    const st=chatDayStory(use[0],focus);
+    text=`${esc(first)} shows up in <b>${about.length}</b> of your moments${dayKeys.length>1?`, across ${dayKeys.length} days`:''}. ${when?'I can only go by what you kept, so here is that day: ':'The one to look at is '}`+st.lead;
+    st.lines.slice(0,3).forEach(l=>more.push(l));
+    if(!st.lines.length)more.push(`You did not write or say anything about it, so all I have is what the pictures show. Tell me what you remember and I will keep it with that day.`);
+    chips.push({t:'Tell you what I remember',act:'remember',d:use[0]});
+    if(st.lines.length)more.push(`Anything you remember about that day that is not in here yet?`);
+    if(use.length>1)more.push(`${esc(first)} is in ${use.length-1} other ${use.length===2?'day':'days'} too. Want me to go through them?`);
+    if(use.length>1)chips.push({s:'What else happened with '+first+'?'});
+    return{text,more,chips,days:use.slice(0,2)};
+  }
+  const keys=days.map(g=>g.k);
+  if(keys.length===1||!P.range&&!P.toks.length){
+    const st=chatDayStory(keys[0]);text=(P.label&&keys.length===1?`Here is ${P.label}. `:'')+st.lead;
+    st.lines.slice(0,3).forEach(l=>more.push(l));
+    if(!st.lines.length)more.push('You did not write or say anything that day, only the pictures. Tell me what you remember and I will keep it with that day.');
+    chips.push({t:'Tell you what I remember',act:'remember',d:keys[0]});
+    return{text,more,chips,days:keys.slice(0,1)};
+  }
+  const tot=res.length,topic=P.toks.length&&!P.range?` about “${esc(P.toks.join(' '))}”`:'';
+  text=`${P.label?'Looking at '+P.label+', you':'You'} kept <b>${tot}</b> ${tot===1?'moment':'moments'}${topic} across <b>${keys.length}</b> days.`;
+  keys.slice(0,3).forEach(k=>{const st=chatDayStory(k),line=st.lines[0];more.push(`<b>${fullDay(new Date(...k.split('-').map((v,i)=>i===1?v-1:+v))).replace(/, \d{4}$/,'')}</b>: ${chBreak(byDay[k])}${line?'. '+line:'.'}`)});
+  if(keys.length>3)more.push(`There are ${keys.length-3} more days. Ask about any one and I will tell you what you wrote or said.`);
+  return{text,more,chips,days:keys.slice(0,3)};
+}
 /* turn a question into an answer: text, cards and follow-ups */
 function chatAnswer(q){
   const P=chatParse(q),res=chatFind(q,P),cards=[],chips=[],plural=(n,a,b)=>n===1?a:b;
-  let text,days=[];res.forEach(m=>{const k=dk(new Date(m.ts));let g=days.find(d=>d.k===k);if(!g)days.push(g={k,items:[]});g.items.push(m)});
+  let text,more=[],days=[];res.forEach(m=>{const k=dk(new Date(m.ts));let g=days.find(d=>d.k===k);if(!g)days.push(g={k,items:[]});g.items.push(m)});
   const ofKind=P.types.length?P.types.map(x=>x.n).join(' and '):'';
   if(P.special==='busiest'){
     const ks=Object.keys(byDay).filter(k=>!P.range||(+new Date(...k.split('-').map((v,i)=>i===1?v-1:+v))>=P.range[0]&&+new Date(...k.split('-').map((v,i)=>i===1?v-1:+v))<=P.range[1])).sort((a,b)=>byDay[b].length-byDay[a].length);
@@ -99,20 +154,20 @@ function chatAnswer(q){
     else text='Nothing you kept matches that. I would rather say so than guess.';
   }else{
     const top=res[0];
-    if(P.range||P.types.length){
-      text=`${P.label?'Here is what you kept '+P.label+': ':''}<b>${res.length}</b> ${ofKind?ofKind.replace(/s$/,res.length===1?'':'s'):plural(res.length,'moment','moments')}${days.length>1?` over ${days.length} days`:''}${P.types.length?'':' ('+chBreak(res)+')'}.`;
-    }else if(top.type==='person')text=`<b>${esc(top.name)}.</b> ${esc(top.text)}`;
-    else if(top.type==='quote')text=`<b>“${esc(top.text)}”</b> ${top.who?esc(top.who)+', ':''}${longDay(new Date(top.ts))}.`;
-    else text=`<b>${longDay(new Date(top.ts))}.</b> ${esc(top.text||top.name||'')} <span style="color:var(--mute)">(${days.length} ${plural(days.length,'day','days')})</span>`;
+    if(top.type==='person'&&!P.range&&!P.types.length&&P.toks.length===1){const T=chatTell(q,P,res,days);text=T.text;more=T.more;T.chips.forEach(c=>chips.push(c))}
+    else if(P.types.length&&!P.toks.length){
+      text=`${P.label?'Here is what you kept '+P.label+': ':''}<b>${res.length}</b> ${ofKind?ofKind.replace(/s$/,res.length===1?'':'s'):plural(res.length,'moment','moments')}${days.length>1?` over ${days.length} days`:''}.`;
+      res.filter(m=>m.text&&(m.type==='voice'||m.type==='quote'||m.type==='text')).slice(0,3).forEach(m=>more.push(`${longDay(new Date(m.ts))}, ${tstr(m.ts)}: “${esc(chSnip(m.text,130))}”`));
+    }else{const T=chatTell(q,P,res,days);text=T.text;more=T.more;T.chips.forEach(c=>chips.push(c))}
     days.slice(0,4).forEach(g=>cards.push(chatCard(g.items)));
-    if(days.length>4)text+=` Showing the latest 4 days.`;
+    if(days.length>4&&!more.length)text+=` Showing the latest 4 days.`;
     const who=[...new Set(res.flatMap(m=>m.type==='person'?[]:chNames(m)))][0];
     if(who&&!P.toks.length)chips.push({s:'Photos with '+chPN(who)});
     if(!P.types.length&&res.some(m=>m.type==='photo'))chips.push({s:(P.label?'Photos '+P.label:'My latest photos')});
     if(days.length===1)chips.push({t:'Open that day',d:days[0].k});
   }
   chatSmart().filter(s=>s.q!==q&&!chAsked.has(s.q)&&chips.length<3).forEach(s=>chips.push({s:s.t}));
-  return{text,cards,chips:chips.slice(0,3)};
+  return{text,more,cards,chips:chips.slice(0,3)};
 }
 /* ---- the conversation ---- */
 let chStick=true,chRO=null,chQ=Promise.resolve();const chAsked=new Set();
@@ -130,19 +185,34 @@ function chatWords(el){
   nodes.forEach(t=>{const f=document.createDocumentFragment();t.textContent.split(/(\s+)/).forEach(p=>{if(!p)return;if(/^\s+$/.test(p)){f.appendChild(document.createTextNode(p));return}const s=document.createElement('span');s.className='cw';s.style.setProperty('--d',Math.min(n++,38));s.textContent=p;f.appendChild(s)});t.replaceWith(f)});
 }
 function chatUser(q){chIn().insertAdjacentHTML('beforeend',`<div class="cm u"><div class="bub">${esc(q)}</div></div>`);chStick=true;chatPin()}
-async function chatReply(q){
-  const A=chatAnswer(q),logo=($('#chat .logo')||{outerHTML:''}).outerHTML.replace(/width="\d+" height="\d+"/,'width="16" height="16"');
+async function chatReply(q,pre){
+  const A=pre||chatAnswer(q),logo=($('#chat .logo')||{outerHTML:''}).outerHTML.replace(/width="\d+" height="\d+"/,'width="16" height="16"');
   const row=document.createElement('div');row.className='cm a';row.innerHTML=`<div class="cav">${logo}</div><div class="cbody"><div class="bub a typing"><i></i><i></i><i></i></div></div>`;
   chIn().appendChild(row);const body=row.querySelector('.cbody');
   await chWait(650+Math.min(A.text.length,160)*4);
   body.innerHTML=`<div class="bub a">${A.text}</div>`;chatWords(body.firstChild);
   const words=(A.text.replace(/<[^>]+>/g,'').match(/\S+/g)||[]).length;await chWait(Math.min(words,38)*22+260);
+  for(const t of (A.more||[])){
+    const b=document.createElement('div');b.className='bub a typing';b.innerHTML='<i></i><i></i><i></i>';body.appendChild(b);chatPin();
+    await chWait(420+Math.min(t.length,140)*5);b.classList.remove('typing');b.innerHTML=t;chatWords(b);chatPin();
+    await chWait(Math.min((t.replace(/<[^>]+>/g,'').match(/\S+/g)||[]).length,34)*20+200);
+  }
   for(const c of A.cards){body.insertAdjacentHTML('beforeend',c);body.lastChild.style.animationDelay='0ms';await chWait(140)}
-  if(A.chips.length){const d=document.createElement('div');d.className='cchips';d.innerHTML=A.chips.map((c,i)=>`<button class="cchip" style="animation-delay:${i*70}ms" ${c.s?`data-s="${esc(c.s)}"`:c.d?`data-d="${c.d}"`:`data-act="${c.act}"`}>${esc(c.t||c.s)}</button>`).join('');body.appendChild(d)}
+  if(A.chips.length){const d=document.createElement('div');d.className='cchips';d.innerHTML=A.chips.map((c,i)=>`<button class="cchip" style="animation-delay:${i*70}ms" ${c.act==='remember'?`data-act="remember" data-k="${c.d}"`:c.s?`data-s="${esc(c.s)}"`:c.d?`data-d="${c.d}"`:`data-act="${c.act}"`}>${esc(c.t||c.s)}</button>`).join('');body.appendChild(d)}
+}
+/* "tell you what I remember": the next thing they type is kept as a note on that day */
+let chPend='';
+function chatSaveNote(q,k){
+  const [y,mo,d]=k.split('-').map(Number),items=byDay[k]||[],last=items.length?Math.max(...items.map(m=>m.ts)):new Date(y,mo-1,d,12).getTime();
+  const end=new Date(y,mo-1,d,23,59).getTime(),o={id:Date.now(),ts:Math.min(end,last+60000),type:'text',text:q};
+  user.push(o);persistUser();refresh();useTrack('chat_note');
+  return{text:`Kept. I added it to <b>${fullDay(new Date(y,mo-1,d))}</b>: “${esc(chSnip(q,120))}”`,more:['Next time you ask about that day I will tell it back to you.'],cards:[],chips:[{t:'Open that day',d:k}]};
 }
 function ask(q){
   q=q.trim();if(!q)return;useTrack('chat_ask');openChat(true);if(!chIn()||!chIn().children.length||chIn().querySelector('.chello'))chatMount();
-  chAsked.add(q);chatUser(q);chQ=chQ.then(()=>chatReply(q)).catch(()=>{});
+  chAsked.add(q);chatUser(q);
+  if(chPend&&!/\?\s*$/.test(q)&&!/^(who|what|where|when|how|why|show|my|photos?|open)\b/i.test(q)){const k=chPend;chPend='';const A=chatSaveNote(q,k);chQ=chQ.then(()=>chatReply(q,A)).catch(()=>{});return}
+  chPend='';chQ=chQ.then(()=>chatReply(q)).catch(()=>{});
 }
 function sugg(){
   chatMount();const S=chatSmart(),logo=($('#chat .logo')||{outerHTML:''}).outerHTML.replace(/width="\d+" height="\d+"/,'width="28" height="28"');
@@ -151,5 +221,6 @@ function sugg(){
   const q2=$('#q2');if(q2){const pick=S[Math.floor(Math.random()*S.length)];q2.placeholder=pick?'Try “'+pick.t+'”':'Ask your memories'}
 }
 function openChat(keep){const c=$('#chat');c.classList.add('on');if(!keep)sugg();$('#q2').focus({preventScroll:true})}
-(function(){const cb=$('#cb');cb.addEventListener('click',e=>{const a=e.target.closest('[data-act="add"]');if(a){closeChat();openAdd()}});
+(function(){const cb=$('#cb');cb.addEventListener('click',e=>{const a=e.target.closest('[data-act="add"]');if(a){closeChat();openAdd()}
+    const r=e.target.closest('[data-act="remember"]');if(r){chPend=r.dataset.k;const [y,mo,d]=chPend.split('-').map(Number);chQ=chQ.then(()=>chatReply('',{text:`Go ahead, I am listening. I will keep it with <b>${longDay(new Date(y,mo-1,d))}</b>.`,more:[],cards:[],chips:[]})).catch(()=>{});$('#q2').focus({preventScroll:true})}});
   const q2=$('#q2'),sb=$('#sendB'),sync=()=>sb.classList.toggle('on',!!q2.value.trim());q2.addEventListener('input',sync);sb.addEventListener('click',()=>setTimeout(sync,0));q2.addEventListener('keydown',()=>setTimeout(sync,0));sync()})();

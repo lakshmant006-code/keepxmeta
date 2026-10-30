@@ -217,3 +217,13 @@ Profile → **Import all my photos** (and "Import my whole library instead" in t
 `src/flow.js` is a reusable step-by-step progress screen (a pulsing orb that settles into a check, with a timeline whose steps go waiting, working, done). It animates only `transform` and `opacity`, uses a handful of elements and respects reduced motion, so it stays smooth on a phone; **Import all my photos** uses it. Photos are now also decoded and JPEG-encoded off the main thread (`createImageBitmap` plus `OffscreenCanvas`), so scrolling and animations do not stall during an import.
 
 For search engines the build now writes a descriptive title and meta description, a canonical URL, Open Graph and Twitter tags, `SoftwareApplication` JSON-LD, `robots.txt`, `sitemap.xml` and a `<noscript>` summary. Set `SITE_URL` if the site is not at `https://keepxmeta.onrender.com`. The app itself sits behind sign-in and runs in JavaScript, so only this front page can be indexed.
+
+### People found automatically
+
+Like a photo app's People view, but on the phone: Keep looks through your photos in the background (only while the app is open, a few at a time, skipped on Data Saver), finds every face and groups the ones that match. A group seen in two or more photos shows up in **Profile → People → Found in your photos** (and as a card in Notifications). Name a group once and every photo in it gets the name; Keep then quietly tags that person in your other photos. **Not a person** hides a group. Nothing is tagged until you name it, and a tag you removed is never re-added.
+
+This does use a small face model (the bundled face-api.js models, about 8 MB, loaded the first time) because telling faces apart cannot be done without one. It runs entirely in the browser: no photo or face is sent anywhere, and faces are kept as 128 numbers in IndexedDB. **Forget all face data** in People clears them.
+
+### Chat that talks back
+
+Answers now read like a conversation: a first line that answers the question, then follow-on bubbles that quote what you wrote and said, taken from journals (notes), voice-note text, quotes, place notes and photo or video captions, not only the pictures. Ask about a person ("What was Kieran doing on October 7?", "Kieran") and the chat tells you which days they appear on and what you kept about them first. When nothing was written down it says so and offers **Tell you what I remember**: whatever you type next is kept as a note on that day. It is still local, rule-based text built only from what you kept (no language model, nothing is sent anywhere), so it never invents facts; free-form chat would need a model on a server and your consent to send memories to it.
