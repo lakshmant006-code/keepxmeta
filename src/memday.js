@@ -35,7 +35,7 @@ window.momRender=()=>{
   const m=window.momOn()&&!emptyMode&&ls(HIDE)!==dk(TODAY)?pick():null;
   if(!m){el.hidden=true;return}
   el.hidden=false;el.innerHTML=`<button class="momc" id="momc"><i class="momp" style="background-image:url(${src(m)})"></i><span><small>${esc(ago(m))}</small><b>${esc(line(m))}</b></span></button><button class="momx" id="momx" aria-label="Hide for today">×</button>`;
-  $('#momc').onclick=momOpen;$('#momx').onclick=()=>{ls(HIDE,dk(TODAY));el.hidden=true};
+  $('#momc').onclick=()=>window.wgOpen();$('#momx').onclick=()=>{ls(HIDE,dk(TODAY));el.hidden=true};
 };
 /* ---- cute widgets: three little cards, swipe between them ---- */
 const NOTES=['Small good things count.','You showed up today. That is plenty.','Be gentle with yourself today.','Something nice is on its way.','Today is a fresh page.','Breathe. You are doing fine.','Collect the little joys.','Soft days are good days too.','You are allowed to enjoy this.','Look how much you notice.'];
@@ -100,5 +100,57 @@ async function momShare(w,m,n){
   if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='keep-widget.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Saved as a picture');
 }
+/* ---- Widgets page: a gallery of small, medium and large widgets, and a preview of them on a home screen ---- */
+const WSEL='keep.wg';
+const CHK='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const wgSel=()=>{try{const a=JSON.parse(ls(WSEL));return Array.isArray(a)?a:['mem','day']}catch(e){return['mem','day']}};
+const wgSave=a=>ls(WSEL,JSON.stringify(a));
+const DL='MTWTFSS';
+function weekDays(){const d=new Date(TODAY),off=(d.getDay()+6)%7;return[...Array(7)].map((_,i)=>{const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()-off+i);return{d:x,k:dk(x),L:byDay[dk(x)]||[],fut:+x>+TODAY,today:+x===+TODAY}})}
+function streak(){let n=0;for(let i=0;;i++){const x=new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate()-i);if(byDay[dk(x)])n++;else if(i>0)break;else continue;if(i>4000)break}return n}
+const dayImg=L=>{const m=L.find(x=>(x.type==='photo'||x.type==='video')&&src(x));return m?src(m):''};
+const gl=(m,fb)=>m?`background-image:url(${src(m)})`:fb||'';
+const WG=[
+ {id:'mem',z:'s',name:'Memory',desc:'A photo from an earlier day.',h:m=>`<div class="wgc s wg-mem" style="${gl(m)}"><div class="wgs"><small>${m?esc(ago(m)):'Keep'}</small><b>${m?esc(line(m)):'Add a photo to start'}</b></div></div>`},
+ {id:'note',z:'s',name:'Happy note',desc:'A kind line, or one you wrote.',h:(m,n)=>`<div class="wgc s wg-note"><div class="wgemo">${n.e}</div><b>${esc(n.t)}</b></div>`},
+ {id:'day',z:'m',name:'On this day',desc:'A past memory with its message.',h:m=>`<div class="wgc m wg-day"><div class="wgt"><small>${m?esc(ago(m)):'Keep'}</small><b>${m?esc(line(m)):'Add a photo to start'}</b><em>${m?fullDay(new Date(m.ts)):''}</em></div><div class="wgp" style="${gl(m)}"></div></div>`},
+ {id:'streak',z:'m',name:'Your streak',desc:'Days kept in a row, and this week.',h:()=>{const w=weekDays(),mx=Math.max(1,...w.map(x=>x.L.length)),n=streak();
+   return `<div class="wgc m wg-str"><div class="wgt"><small>Current streak</small><b class="big">${n}<i> ${n===1?'day':'days'}</i></b><em>${w.reduce((a,x)=>a+x.L.length,0)} kept this week</em></div><div class="wgbars">${w.map((x,i)=>`<span class="${x.today?'t':''}"><i style="height:${x.fut?4:Math.max(6,x.L.length/mx*100)}%"></i><u>${DL[i]}</u></span>`).join('')}</div></div>`}},
+ {id:'week',z:'l',name:'This week',desc:'Seven days of circles, and today’s memory.',h:m=>{const w=weekDays();
+   return `<div class="wgc l wg-week"><small>This week</small><div class="wgdays">${w.map((x,i)=>{const im=dayImg(x.L);return `<span class="${x.today?'t':''}"><i style="${im?`background-image:url(${im})`:''}" class="${x.L.length?'':'e'}"></i><u>${DL[i]}</u></span>`}).join('')}</div>
+   <div class="wgfoot"><div class="wgp" style="${gl(m)}"></div><div class="wgt"><small>${m?esc(ago(m)):'Keep'}</small><b>${m?esc(line(m)):'Add a photo to start'}</b></div></div></div>`}}];
+let wgTab='gallery';
+function wgDraw(){
+  const m=pick(),n=note(),sel=wgSel(),b=$('#wgBody');if(!b)return;
+  const one=w=>WG.find(x=>x.id===w).h(m,n);
+  const btn=w=>`<button class="wgb ${sel.includes(w.id)?'on':''}" data-w="${w.id}" aria-label="${sel.includes(w.id)?'Remove':'Add'} ${w.name}">${sel.includes(w.id)?CHK:ic.plus}</button>`;
+  const cell=w=>`<div class="wgi ${w.z}"><div class="wgh">${w.h(m,n)}</div><div class="wgm"><span><b>${w.name}</b><small>${w.desc}</small></span>${btn(w)}</div></div>`;
+  if(wgTab==='gallery'){
+    const sec=(z,t)=>`<h3 class="wgsec">${t}</h3><div class="wgrow ${z}">${WG.filter(w=>w.z===z).map(cell).join('')}</div>`;
+    b.innerHTML=sec('s','Small')+sec('m','Medium')+sec('l','Large')+`<div class="wgmk"><button class="pill g" id="wgPic">Make a picture to share</button></div>`;
+  }else{
+    const ws=WG.filter(w=>sel.includes(w.id)),sm=ws.filter(w=>w.z==='s'),rest=ws.filter(w=>w.z!=='s');
+    const ico=(c,t,g)=>`<span class="wgap"><i style="background:${c}">${g||''}</i><u>${t}</u></span>`;
+    const apps=`<div class="wgapps">${ico('linear-gradient(#5aa0ff,#2f6bff)','Mail')}${ico('linear-gradient(#cfe8c8,#e8f5e3)','Maps')}${ico('linear-gradient(#cfcfd4,#9a9aa0)','Camera')}${ico('#111','Clock')}</div>`;
+    let h='';for(let i=0;i<sm.length;i+=2)h+=`<div class="wgsm">${one(sm[i].id)}${sm[i+1]?one(sm[i+1].id):apps}</div>`;
+    if(!sm.length&&!rest.length)h=`<p class="wgempty">No widgets yet. Add some from the Gallery.</p>`;
+    h+=rest.map(w=>`<div class="wgfull">${one(w.id)}</div>`).join('');
+    b.innerHTML=`<div class="wgscr">${h}<div class="wgapps four">${ico('linear-gradient(#fff,#e8f0ff)','Keep','<svg viewBox="0 0 96 96" width="26" height="26"><circle cx="48" cy="48" r="26" fill="none" stroke="#0866FF" stroke-width="9"/></svg>')}${ico('linear-gradient(#fff,#f1f1f4)','Calendar')}${ico('linear-gradient(#5db4ff,#2f6bff)','Weather')}${ico('linear-gradient(#9a9aa0,#6d6d73)','Settings')}</div>
+     <div class="wgdock">${['#4bd964','#fff','#4bd964','#ff5a6a'].map(c=>`<i style="background:${c}"></i>`).join('')}</div></div>
+     <p class="wgcount">${ws.length} widget${ws.length===1?'':'s'} on this preview. Keep can’t add them to your real Home Screen yet.</p>`;
+  }
+  b.querySelectorAll('.wgb').forEach(x=>x.onclick=()=>{const id=x.dataset.w,a=wgSel(),i=a.indexOf(id);i<0?a.push(id):a.splice(i,1);wgSave(a);wgDraw();if(window.Motion)Motion.animate(b.querySelector(`.wgb[data-w="${id}"]`),{scale:[.8,1]},{type:'spring',stiffness:500,damping:14})});
+  if($('#wgPic'))$('#wgPic').onclick=momOpen;
+}
+window.wgOpen=()=>{
+  const p=$('#wg');p.classList.add('on');wgTab='gallery';
+  p.innerHTML=`<div class="mh2"><button class="ib" id="wgX" aria-label="Back">${ic.x}</button><div class="t"></div><i style="width:44px"></i></div><div class="wgbody"><h1 class="wgh1">Widgets</h1><p class="wgsub">Your memories, one glance away.</p>
+   <div class="seg wgseg" data-k="wgt">${[['gallery','Gallery'],['home','Home Screen']].map(x=>`<button data-v="${x[0]}" class="${x[0]==='gallery'?'on':''}">${x[1]}</button>`).join('')}</div><div id="wgBody"></div></div>`;
+  $('#wgX').onclick=window.wgClose;
+  document.querySelector('.wgseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;wgTab=b.dataset.v;document.querySelectorAll('.wgseg button').forEach(x=>x.classList.toggle('on',x===b));wgDraw()};
+  wgDraw();
+};
+window.wgClose=()=>{const p=$('#wg');p.classList.remove('on');p.innerHTML=''};
+
 momRender();
 })();
