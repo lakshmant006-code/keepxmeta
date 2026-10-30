@@ -1,0 +1,17 @@
+/* Edit many photos */
+.sebar{display:flex;align-items:center;gap:8px;padding:0 16px 8px;flex:none}.sebar .sec{font-size:12.5px;color:var(--mute);margin-left:auto}
+.tagch.on{background:var(--blue);color:#fff}
+.sebody{padding-bottom:110px!important}
+#seGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.semh{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;font-size:15px;font-weight:600;padding:14px 4px 6px;text-align:left}.semh span{font-size:12.5px;font-weight:500;color:var(--blue)}
+.seit{position:relative;aspect-ratio:1;overflow:hidden;background:var(--fill2);padding:0;border-radius:4px;content-visibility:auto;contain-intrinsic-size:90px}
+.seit img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s var(--spring),filter .2s}
+.seit .ck{position:absolute;right:5px;top:5px;width:22px;height:22px;border-radius:11px;background:rgba(0,0,0,.28);box-shadow:inset 0 0 0 2px #fff;color:transparent;font:700 13px/22px var(--font);text-align:center;transition:background .15s,color .15s,transform .2s var(--spring)}
+.seit.on img{transform:scale(.86);filter:brightness(.85)}
+.seit.on .ck{background:var(--blue);color:#fff;box-shadow:none;transform:scale(1.08)}
+.seit .sen{position:absolute;left:5px;bottom:5px;width:8px;height:8px;border-radius:4px;background:#FFB020;box-shadow:0 0 0 1.5px #fff}
+.seact{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;gap:6px;overflow-x:auto;padding:8px;border-radius:24px;background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 8px 30px rgba(0,0,0,.18),0 0 0 1px var(--bd);transform:translateY(140%);transition:transform .45s var(--spring);scrollbar-width:none}
+.seact::-webkit-scrollbar{display:none}.seact.on{transform:none}
+.seact button{flex:none;height:40px;padding:0 15px;border-radius:20px;background:var(--fill2);font-size:14px;font-weight:500;color:var(--ink)}
+.seact button.dn{color:#FF3B30}
+#seGo.danger{background:#FF3B30}

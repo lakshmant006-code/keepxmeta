@@ -359,6 +359,7 @@ __INS_CSS__
 __INTRO_CSS__
 __NT_CSS__
 __FLOW_CSS__
+__SEL_CSS__
 __INV_CSS__
 __CHAT_CSS__
 __TAG_CSS__
@@ -388,6 +389,7 @@ __MOT_CSS__
   <div class="mp" id="fr"></div>
   <div class="mp" id="ins"></div>
   <div class="mp" id="nt"></div>
+  <div class="mp" id="sel"></div>
   <div class="ar" id="ar"></div>
   <div class="lb" id="lb"></div>
   <div class="kbd" id="kbd"></div>
@@ -1125,7 +1127,7 @@ function openProfile(){
    <div class="grp">
     <div class="row"><span>Appearance</span>${seg('theme',[['light','Light'],['dark','Dark']],th)}</div>
     ${rw('ntOpen','Notifications',ntUnread()?ntUnread()+' new':'Only things that need you','Open')}${rw('insightsOpen','Insights','','Open')}${rw('friendsOpen','Friends','','Open')}${rw('inviteOpen','Invite friends','Share Keep through Instagram','Invite')}${rw('peopleOpen','People','','Open')}
-    ${rw('impOpen','Import all my photos','Any number, quickly','Choose')}${rw('bak','Back up','','Download')}
+    ${rw('selOpen','Edit many photos','Tag, move or caption together','Open')}${rw('impOpen','Import all my photos','Any number, quickly','Choose')}${rw('bak','Back up','','Download')}
     <div class="row"><span>Restore</span><label ${cb.replace('class="chip fb flat" style="','class="chip fb flat" style="display:grid;place-items:center;cursor:pointer;')}>Choose file<input type="file" id="rst" accept="application/json,.json" hidden></label></div>
    </div>
    <details class="more"><summary>More settings</summary><div class="grp" style="margin-top:0">
@@ -1149,6 +1151,7 @@ function openProfile(){
   $('#pfpIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{pfpSet(await pfpFrom(f));renderProf();openProfile();toast('Profile photo updated')}catch(err){toast('Could not read that photo')}};
   if($('#pfpRm'))$('#pfpRm').onclick=()=>{pfpSet('');renderProf();openProfile();toast('Photo removed')};
   $('#insightsOpen').onclick=()=>{closeSheet();insOpen()};
+  $('#selOpen').onclick=()=>{closeSheet();setTimeout(selOpen,320)};
   $('#ntOpen').onclick=()=>{closeSheet();setTimeout(ntOpen,320)};
   $('#friendsOpen').onclick=()=>{closeSheet();frOpen()};
   $('#inviteOpen').onclick=()=>{closeSheet();setTimeout(openInvite,320)};
@@ -1229,6 +1232,7 @@ __PROF_JS__
 __NT_JS__
 __FLOW_JS__
 __BULK_JS__
+__SEL_JS__
 __INV_JS__
 __CHAT_JS__
 let yearMode=false;
