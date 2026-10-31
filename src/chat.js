@@ -30,7 +30,7 @@ function chatParse(q){
     if(mi>=0){const ys=[mi<=M?Y:Y-1,mi<=M?Y-1:Y-2],y=ys.find(y=>all().some(m=>{const d=new Date(m.ts);return d.getFullYear()===y&&d.getMonth()===mi}))||ys[0];R(new Date(y,mi,1),new Date(y,mi+1,0),'in '+MN[mi]+(y!==Y?' '+y:''))}
   }
   const types=[];CH_TYPES.forEach(([re,t,n])=>{if(re.test(rest)){types.push({t,n});rest=rest.replace(re,' ')}});
-  if(/\b(busiest|most active|most memories|most moments)\b/.test(rest))special='busiest';
+  if(/\b(busiest|most active|most memories|most (moments|instants))\b/.test(rest))special='busiest';
   else if(/\bhow many\b/.test(rest))special='count';
   else if(/\b(latest|most recent|newest|recently|last)\b/.test(rest)&&!range)special='latest';
   const toks=rest.replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(t=>t.length>1&&!CH_WORDS.has(t)&&!/^\d+$/.test(t)&&!MN.some((mn,i)=>mn.toLowerCase()===t||MS[i].toLowerCase()===t));
@@ -114,7 +114,7 @@ function chatTell(q,P,res,days){
     const about=chAbout(focus),dayKeys=[...new Set(about.map(m=>dk(new Date(m.ts))))],first=chPN(focus),when=/\b(doing|up to|was|were)\b/i.test(q);
     const inRange=P.range?dayKeys.filter(k=>{const t=+new Date(...k.split('-').map((v,i)=>i===1?v-1:+v));return t>=P.range[0]&&t<=P.range[1]}):dayKeys,use=inRange.length?inRange:dayKeys;
     const st=chatDayStory(use[0],focus);
-    text=`${esc(first)} shows up in <b>${about.length}</b> of your moments${dayKeys.length>1?`, across ${dayKeys.length} days`:''}. ${when?'I can only go by what you kept, so here is that day: ':'The one to look at is '}`+st.lead;
+    text=`${esc(first)} shows up in <b>${about.length}</b> of your instants${dayKeys.length>1?`, across ${dayKeys.length} days`:''}. ${when?'I can only go by what you kept, so here is that day: ':'The one to look at is '}`+st.lead;
     st.lines.slice(0,3).forEach(l=>more.push(l));
     if(!st.lines.length)more.push(`You did not write or say anything about it, so all I have is what the pictures show. Tell me what you remember and I will keep it with that day.`);
     chips.push({t:'Tell you what I remember',act:'remember',d:use[0]});
@@ -132,7 +132,7 @@ function chatTell(q,P,res,days){
     return{text,more,chips,days:keys.slice(0,1)};
   }
   const tot=res.length,topic=P.toks.length&&!P.range?` about “${esc(P.toks.join(' '))}”`:'';
-  text=`${P.label?'Looking at '+P.label+', you':'You'} kept <b>${tot}</b> ${tot===1?'moment':'moments'}${topic} across <b>${keys.length}</b> days.`;
+  text=`${P.label?'Looking at '+P.label+', you':'You'} kept <b>${tot}</b> ${tot===1?'instant':'instants'}${topic} across <b>${keys.length}</b> days.`;
   keys.slice(0,3).forEach(k=>{const st=chatDayStory(k),line=st.lines[0];more.push(`<b>${fullDay(new Date(...k.split('-').map((v,i)=>i===1?v-1:+v))).replace(/, \d{4}$/,'')}</b>: ${chBreak(byDay[k])}${line?'. '+line:'.'}`)});
   if(keys.length>3)more.push(`There are ${keys.length-3} more days. Ask about any one and I will tell you what you wrote or said.`);
   return{text,more,chips,days:keys.slice(0,3)};
@@ -145,9 +145,9 @@ function chatAnswer(q){
   if(P.special==='busiest'){
     const ks=Object.keys(byDay).filter(k=>!P.range||(+new Date(...k.split('-').map((v,i)=>i===1?v-1:+v))>=P.range[0]&&+new Date(...k.split('-').map((v,i)=>i===1?v-1:+v))<=P.range[1])).sort((a,b)=>byDay[b].length-byDay[a].length);
     if(!ks.length)text='You have not kept anything to compare yet.';
-    else{const k=ks[0],[y,mo,d]=k.split('-').map(Number);text=`Your busiest day was <b>${fullDay(new Date(y,mo-1,d))}</b> with ${byDay[k].length} moments: ${chBreak(byDay[k])}.`;cards.push(chatCard(byDay[k]));chips.push({t:'Open that day',d:k})}
+    else{const k=ks[0],[y,mo,d]=k.split('-').map(Number);text=`Your busiest day was <b>${fullDay(new Date(y,mo-1,d))}</b> with ${byDay[k].length} instants: ${chBreak(byDay[k])}.`;cards.push(chatCard(byDay[k]));chips.push({t:'Open that day',d:k})}
   }else if(P.special==='count'){
-    text=res.length?`You kept <b>${res.length}</b> ${ofKind||plural(res.length,'moment','moments')}${P.label?' '+P.label:''}${days.length>1?`, across ${days.length} days`:''}.`:`You have not kept any ${ofKind||'moments'}${P.label?' '+P.label:''} yet.`;
+    text=res.length?`You kept <b>${res.length}</b> ${ofKind||plural(res.length,'instant','instants')}${P.label?' '+P.label:''}${days.length>1?`, across ${days.length} days`:''}.`:`You have not kept any ${ofKind||'instants'}${P.label?' '+P.label:''} yet.`;
     if(res.length){days.slice(0,3).forEach(g=>cards.push(chatCard(g.items)))}
   }else if(!res.length){
     if(P.range||P.types.length){text=`You have not kept ${ofKind?'any '+ofKind:'anything'}${P.label?' '+P.label:''} yet.`;chips.push({t:'Keep something now',act:'add'})}
@@ -156,7 +156,7 @@ function chatAnswer(q){
     const top=res[0];
     if(top.type==='person'&&!P.range&&!P.types.length&&P.toks.length===1){const T=chatTell(q,P,res,days);text=T.text;more=T.more;T.chips.forEach(c=>chips.push(c))}
     else if(P.types.length&&!P.toks.length){
-      text=`${P.label?'Here is what you kept '+P.label+': ':''}<b>${res.length}</b> ${ofKind?ofKind.replace(/s$/,res.length===1?'':'s'):plural(res.length,'moment','moments')}${days.length>1?` over ${days.length} days`:''}.`;
+      text=`${P.label?'Here is what you kept '+P.label+': ':''}<b>${res.length}</b> ${ofKind?ofKind.replace(/s$/,res.length===1?'':'s'):plural(res.length,'instant','instants')}${days.length>1?` over ${days.length} days`:''}.`;
       res.filter(m=>m.text&&(m.type==='voice'||m.type==='quote'||m.type==='text')).slice(0,3).forEach(m=>more.push(`${longDay(new Date(m.ts))}, ${tstr(m.ts)}: “${esc(chSnip(m.text,130))}”`));
     }else{const T=chatTell(q,P,res,days);text=T.text;more=T.more;T.chips.forEach(c=>chips.push(c))}
     days.slice(0,4).forEach(g=>cards.push(chatCard(g.items)));
@@ -213,7 +213,7 @@ function ask(q){
   chAsked.add(q);if(!/^__/.test(q))chatUser(q);
   if(chPend&&!/\?\s*$/.test(q)&&!/^(who|what|where|when|how|why|show|my|photos?|open)\b/i.test(q)){const k=chPend;chPend='';const A=chatSaveNote(q,k);chQ=chQ.then(()=>chatReply(q,A)).catch(()=>{});return}
   chPend='';
-  if(window.lookIs&&lookIs(q)){chQ=chQ.then(async()=>{await chatReply(q,{text:'Let me look through your photos for that…',more:[],cards:[],chips:[]});const A=await lookAnswer(q).catch(()=>({text:'I could not look through your photos just now. Try again in a moment.',more:[],cards:[],chips:[]}));await chatReply(q,A)}).catch(()=>{});return}
+  if(window.lookIs&&lookIs(q)){chQ=chQ.then(async()=>{await chatReply(q,{text:'Let me look through your photos for that…',more:[],cards:[],chips:[]});const A=await lookAnswer(q).catch(()=>({text:'I could not look through your photos just now. Try again in a bit.',more:[],cards:[],chips:[]}));await chatReply(q,A)}).catch(()=>{});return}
   {const C=window.cpRespond&&cpRespond(q);if(C){chQ=chQ.then(()=>chatReply(q,C)).catch(()=>{});return}}
   chQ=chQ.then(()=>chatReply(q)).catch(()=>{});
 }
