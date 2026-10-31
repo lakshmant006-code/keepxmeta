@@ -104,7 +104,7 @@ function meWire(){
 /* ---------- day timeline helpers ---------- */
 const tlIcon={photo:'img',video:'vid',voice:'mic',text:'txt',quote:'quote',person:'user',place:'pin',file:'doc'};
 const tlNode=t=>`<span class="nd">${(ic[tlIcon[t]]||ic.txt).replace('width="22" height="22"','width="14" height="14"')}</span>`;
-/* moments reveal as they scroll into view, and the rail fills down to the latest one revealed */
+/* instants reveal as they scroll into view, and the rail fills down to the latest one revealed */
 function tlInit(tl){
   if(!tl)return;const evs=[...tl.querySelectorAll('.ev')],reduced=introReduced();
   const fill=()=>{const on=evs.filter(e=>e.classList.contains('in')),l=on[on.length-1];if(l)tl.style.setProperty('--fh',(l.offsetTop+14)+'px')};

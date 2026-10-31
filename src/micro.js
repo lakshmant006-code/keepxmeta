@@ -25,7 +25,7 @@ if(cal){
       const L=(byDay[c.dataset.d]||[]),m=L.find(x=>(x.type==='photo'||x.type==='video')&&src(x));if(!L.length)return;
       const [y,mo,d]=c.dataset.d.split('-').map(Number),r=c.getBoundingClientRect(),txt=(L.find(x=>x.text)||{}).text||'';
       const el=document.createElement('div');el.className='mpk';
-      el.innerHTML=`${m?`<i style="background-image:url(${src(m)})"></i>`:''}<div><b>${esc(longDay(new Date(y,mo-1,d)))}</b><small>${esc(txt||L.length+(L.length===1?' moment':' moments'))}</small></div>`;
+      el.innerHTML=`${m?`<i style="background-image:url(${src(m)})"></i>`:''}<div><b>${esc(longDay(new Date(y,mo-1,d)))}</b><small>${esc(txt||L.length+(L.length===1?' instant':' instants'))}</small></div>`;
       document.body.appendChild(el);
       const h=el.offsetHeight,left=Math.max(10,Math.min(innerWidth-220,r.left+r.width/2-105)),top=Math.max(10,r.top-h-12);
       el.style.left=left+'px';el.style.top=top+'px';buzz(12);swallow=true;pk={el,k:c.dataset.d};
