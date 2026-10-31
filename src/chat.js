@@ -220,7 +220,8 @@ function ask(q){
 function sugg(){
   chatMount();const S=chatSmart(),logo=($('#chat .logo')||{outerHTML:''}).outerHTML.replace(/width="\d+" height="\d+"/,'width="28" height="28"');
   chIn().innerHTML=`<div class="chello"><div class="chl">${logo}</div><h2>What do you want to remember?</h2><p>Ask in your own words. Answers come from what you kept, and show the original.</p>
-   <div class="sgg">${S.map((s,i)=>`<button class="sgc" style="animation-delay:${180+i*70}ms" data-s="${esc(s.t)}"><span>${chIcon(s.i)}</span>${esc(s.t)}</button>`).join('')}</div></div>`;
+   <div class="sgg compact">${S.map((s,i)=>`<button class="sgc" style="animation-delay:${180+i*70}ms" data-s="${esc(s.t)}"><span>${chIcon(s.i)}</span>${esc(s.t)}</button>`).join('')}</div></div>`;
+  if(window.mmRender)chIn().querySelector('.chello').insertAdjacentHTML('beforeend',mmRender());
   const q2=$('#q2');if(q2){const pick=S[Math.floor(Math.random()*S.length)];q2.placeholder=pick?'Try “'+pick.t+'”':'Ask your memories'}
   {const O=window.cpOpening&&cpOpening();if(O){chIn().innerHTML='';chQ=chQ.then(()=>chatReply('',O)).catch(()=>{})}}
 }
