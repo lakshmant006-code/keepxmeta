@@ -7,7 +7,7 @@ const chNames=m=>[...new Set([m.who].concat(Array.isArray(m.people)?m.people:[])
 const chPN=n=>/^[A-Z]/.test(n)?firstName(n):n;
 const chDay=n=>new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate()+n);
 const chRel=d=>{const df=Math.round((+chDay(0)-+new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5);return df===0?'Today':df===1?'Yesterday':longDay(d)+(d.getFullYear()!==TODAY.getFullYear()?', '+d.getFullYear():'')};
-const chWait=ms=>new Promise(r=>setTimeout(r,introReduced()?Math.min(ms,30):ms));
+const chWait=ms=>new Promise(r=>setTimeout(r,introReduced()||window.chSkip?Math.min(ms,30):ms));
 /* what the question is about: a time range, kinds of memory, and the words left over */
 function chatParse(q){
   let rest=' '+q.toLowerCase().replace(/[“”"?!.,]/g,' ')+' ',range=null,label='',special='';
@@ -187,9 +187,10 @@ function chatWords(el){
 function chatUser(q){chIn().insertAdjacentHTML('beforeend',`<div class="cm u"><div class="bub">${esc(q)}</div></div>`);chStick=true;chatPin()}
 async function chatReply(q,pre){
   const A=pre||chatAnswer(q),logo=($('#chat .logo')||{outerHTML:''}).outerHTML.replace(/width="\d+" height="\d+"/,'width="16" height="16"');
-  const row=document.createElement('div');row.className='cm a';row.innerHTML=`<div class="cav">${logo}</div><div class="cbody"><div class="bub a typing"><i></i><i></i><i></i></div></div>`;
+  const W=window.chWork?chWork(q,pre):null;
+  const row=document.createElement('div');row.className='cm a';row.innerHTML=`<div class="cav">${logo}</div><div class="cbody">${W?W.html:'<div class="bub a typing"><i></i><i></i><i></i></div>'}</div>`;
   chIn().appendChild(row);const body=row.querySelector('.cbody');
-  await chWait(650+Math.min(A.text.length,160)*4);
+  if(W)await W.run(body.firstChild,650+Math.min(A.text.length,160)*4);else await chWait(650+Math.min(A.text.length,160)*4);
   body.innerHTML=`<div class="bub a">${A.text}</div>`;chatWords(body.firstChild);
   const words=(A.text.replace(/<[^>]+>/g,'').match(/\S+/g)||[]).length;await chWait(Math.min(words,38)*22+260);
   for(const t of (A.more||[])){

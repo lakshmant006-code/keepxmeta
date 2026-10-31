@@ -93,6 +93,7 @@ window.cpRespond=q=>{
   if(CP_THX.test(q)&&q.split(/\s+/).length<4)return{text:'Always. I am glad to be here with you.',more:[],cards:[],chips:[]};
   if(CP_BYE.test(q))return{text:'Take care of yourself. I will be here when you come back.',more:[],cards:[],chips:[]};
   if(cpIsAsk(q)&&!m.emo)return null;
+  if(!m.emo&&!/^(i|i'm|im|i've|my|we|today|just|so|it|he|she|they)\b/i.test(q))return null;
   if(!m.emo&&m.score===0&&cpTurn===0&&q.split(/\s+/).length<4)return null;
   cpEmo=m.emo||cpEmo;
   return cpReply(q,m);
