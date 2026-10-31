@@ -2,7 +2,7 @@
 /* Everything is worked out on the phone from what you kept; nothing is pushed from a server. The inbox only holds things that need you,
    and every kind can be switched off. */
 const NTK='kept.nt',RFK='kept.reflect';
-const ntGet=()=>{try{const o=JSON.parse(localStorage.getItem(NTK)||'{}');return{read:o.read||{},on:Object.assign({otd:1,streak:1,week:1,nudge:0,near:0},o.on||{})}}catch(e){return{read:{},on:{otd:1,streak:1,week:1,nudge:0,near:0}}}};
+const ntGet=()=>{try{const o=JSON.parse(localStorage.getItem(NTK)||'{}');return Object.assign({},o,{read:o.read||{},on:Object.assign({otd:1,streak:1,week:1,nudge:0,near:0},o.on||{})})}catch(e){return{read:{},on:{otd:1,streak:1,week:1,nudge:0,near:0}}}};
 const ntPut=c=>{try{localStorage.setItem(NTK,JSON.stringify(c))}catch(e){}};
 const rfGet=()=>{try{const o=JSON.parse(localStorage.getItem(RFK)||'{}');return o&&typeof o==='object'?o:{}}catch(e){return{}}};
 const rfPut=o=>{try{localStorage.setItem(RFK,JSON.stringify(o))}catch(e){}};
@@ -97,10 +97,13 @@ const ntPerm=()=>ntCan()?Notification.permission:'unsupported';
 function ntHome(n){
   try{if(navigator.setAppBadge){n?navigator.setAppBadge(n):navigator.clearAppBadge()}}catch(e){}
   if(ntPerm()!=='granted'||!n)return;
-  const c=ntGet(),seen=c.pushed||{},fresh=ntItems().filter(i=>!c.read[i.id]&&!seen[i.id]);
+  /* one alert, once a day, however many things are waiting: it names the top one and counts the rest. Same tag as the daily one from the service worker, so they replace each other. */
+  const c=ntGet(),day=dk(TODAY);if(c.pushDay===day)return;
+  const fresh=ntItems().filter(i=>!c.read[i.id]&&!i.always); /* the welcome card is only for the inbox */
   if(!fresh.length)return;
-  fresh.forEach(i=>{seen[i.id]=Date.now()});c.pushed=seen;ntPut(c);
-  navigator.serviceWorker.ready.then(r=>fresh.slice(0,3).forEach(i=>r.showNotification(i.t,{body:i.b,tag:i.id,icon:'icons/icon-192.png',badge:'icons/icon-192.png',data:{url:'./'}}))).catch(()=>{});
+  c.pushDay=day;ntPut(c);
+  const top=fresh[0],more=fresh.length-1;
+  navigator.serviceWorker.ready.then(r=>r.showNotification(more?'Keep':top.t,{body:more?top.t+(more===1?' and 1 more thing':' and '+more+' more things')+' waiting for you.':top.b,tag:'keep-daily',icon:'icons/icon-192.png',badge:'icons/icon-192.png',data:{url:'./'}})).catch(()=>{});
 }
 async function ntSnap(){
   try{const c=ntGet(),k=await caches.open('keep-nt');

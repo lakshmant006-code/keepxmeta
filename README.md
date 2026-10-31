@@ -235,3 +235,6 @@ Open a photo or video and tap the share button at the top right (or hold it and 
 
 ### Chat sees what people wore
 Ask "who was in a purple shirt on the 26th" or "anyone in blue pants". Using the faces Keep already finds on the phone (`src/look.js`), it samples the patch below each face for the top and, when the photo shows that far, a patch lower down for the bottom, and names the main colour (skin tones are set aside). Results are cached in the `keep-looks` IndexedDB and nothing is uploaded. It reads colour only: it cannot tell a dress from a long top (a "dress" question matches a one-colour outfit and says so), and patterns, dim light and people turned away can fool it, so the chat shows the photo. Profile → People "forget" is unchanged; clearing site data removes the cache.
+
+
+Phone alerts: at most one a day. Keep shows a single alert that names the top thing waiting and counts the rest ("6-day streak and 4 more things waiting for you"), shares one tag with the daily background alert so they replace each other, and never alerts for the welcome card. The inbox inside Keep still lists everything.
