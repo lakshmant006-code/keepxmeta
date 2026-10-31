@@ -362,6 +362,7 @@ __MICRO_CSS__
 __COMP_CSS__
 __FLOW_CSS__
 __SEL_CSS__
+__SHARE_CSS__
 __INV_CSS__
 __CHAT_CSS__
 __TAG_CSS__
@@ -662,7 +663,8 @@ function openLb(ids){lbList=ids.map(i=>lbReg[i]).filter(Boolean);lbI=0;if(!lbLis
 /* every photo of the day sits in one strip; drag it sideways and it settles on the next or previous photo */
 function drawLb(){
   const n=lbList.length;
-  $('#lb').innerHTML=`<div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs" data-mid="${m.id}">${m.type==='video'&&m.vid?`<div class="lbvw"><video src="${vidURL(m)}" poster="${src(m)}" playsinline loop preload="auto"></video><span class="lbplay">${ic.play}</span><button class="lbmute" aria-label="Sound"><svg class="on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7"/></svg><svg class="off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button></div>`:`<img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false">`}<div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}${namesOf(m).length?' · with '+namesOf(m).map(esc).join(', '):(m.type==='photo'&&user.includes(m)?' · tap the photo to tag who is in it':'')}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}`;
+  $('#lb').innerHTML=`<div class="lbtrackw"><div class="lbtrack" id="lbtr">${lbList.map((m,i)=>`<div class="lbs" data-mid="${m.id}">${m.type==='video'&&m.vid?`<div class="lbvw"><video src="${vidURL(m)}" poster="${src(m)}" playsinline loop preload="auto"></video><span class="lbplay">${ic.play}</span><button class="lbmute" aria-label="Sound"><svg class="on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7"/></svg><svg class="off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button></div>`:`<img src="${src(m)}" alt="${esc(m.text||'Photo')}" draggable="false">`}<div class="lbc">${esc(m.text||'')}</div><div class="lbn">${fullDay(new Date(m.ts))}${n>1?' · '+(i+1)+' of '+n:''}${namesOf(m).length?' · with '+namesOf(m).map(esc).join(', '):(m.type==='photo'&&user.includes(m)?' · tap the photo to tag who is in it':'')}</div></div>`).join('')}</div></div>${n>1?`<div class="lbdots">${lbList.map((_,i)=>`<i class="${i===lbI?'on':''}"></i>`).join('')}</div>`:''}<button class="lbsh" id="lbSh" aria-label="Share or save">${SH_IC}</button>`;
+  $('#lbSh').onclick=ev=>{ev.stopPropagation();shOpen(lbList[lbI])};
   const tr=$('#lbtr');lbPos(tr,0,false);
   tr.querySelectorAll('.lbmute').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const v=b.closest('.lbvw').querySelector('video');v.muted=!v.muted;b.closest('.lbvw').classList.toggle('muted',v.muted)});
   tr.onpointerdown=e=>{if(e.button>0||e.target.closest('.lbmute'))return;lbDrag={x:e.clientX,y:e.clientY,t:performance.now(),dx:0,dy:0,on:false,axis:null,id:e.pointerId}};
@@ -1240,6 +1242,8 @@ __NT_JS__
 __NEAR_JS__
 __FLOW_JS__
 __BULK_JS__
+__SHARE_JS__
+
 __LOOK_JS__
 __SEL_JS__
 __INV_JS__
@@ -1425,11 +1429,12 @@ async function onbRun(files){
     close();node.classList.add('lp');
     if(navigator.vibrate)try{navigator.vibrate(12)}catch(e){}
     const m=document.createElement('div');m.className='lpm';m.id='lpm';
-    m.innerHTML=`<div class="lpc"><button class="dl" id="lpDel">${ic.trash.replace('width="22" height="22"','width="20" height="20"')} Delete</button><button class="cn" id="lpNo" aria-label="Cancel">${ic.x}</button></div>`;
+    m.innerHTML=`<div class="lpc">${/^(photo|video)$/.test((user.find(x=>x.id===id)||{}).type)?`<button class="sh" id="lpSh">${SH_IC} Share</button>`:''}<button class="dl" id="lpDel">${ic.trash.replace('width="22" height="22"','width="20" height="20"')} Delete</button><button class="cn" id="lpNo" aria-label="Cancel">${ic.x}</button></div>`;
     $('#app').appendChild(m);
     m.onclick=e=>{if(e.target===m)close()};
     $('#lpNo').onclick=close;
     $('#lpDel').onclick=()=>{close();remove(id)};
+    const sh=$('#lpSh');if(sh)sh.onclick=()=>{close();shOpen(user.find(x=>x.id===id))};
   }
   document.addEventListener('pointerdown',e=>{
     fired=false; /* a new touch always starts clean, so a stale flag can never swallow a real tap */
