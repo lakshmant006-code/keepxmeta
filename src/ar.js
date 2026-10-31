@@ -235,7 +235,7 @@ function arScanStart(){
   if(ar.stream){arStatus('Looking for a place you kept…');arScanLoop();return}
   (async()=>{
     try{
-      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw 0;
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||(await permState('camera'))==='denied')throw 0;
       ar.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
       if(!ar||!ar.on){ar.stream.getTracks().forEach(t=>t.stop());return}
       const v=$('#arCam');v.srcObject=ar.stream;v.style.display='block';
