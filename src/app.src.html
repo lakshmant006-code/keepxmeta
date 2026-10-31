@@ -363,6 +363,7 @@ __MICRO_CSS__
 __COMP_CSS__
 __MM_CSS__
 __MC_CSS__
+__TR_CSS__
 __FLOW_CSS__
 __SEL_CSS__
 __SHARE_CSS__
@@ -395,6 +396,7 @@ __MD_CSS__
   <div class="sheet" id="sh"><div class="scrim" id="scrim"></div><div class="panel" id="panel"><div class="handle"></div><button class="ib px" id="px" aria-label="Close"></button><div id="pc" style="display:flex;flex-direction:column;min-height:0;flex:1"></div></div></div>
   <div class="mp" id="mp"></div>
   <div class="mp" id="fr"></div>
+  <div id="tr"></div>
   <div class="mp" id="wg"></div>
   <div class="mp" id="ins"></div>
   <div class="mp" id="nt"></div>
@@ -783,7 +785,7 @@ function item(m,withTime){
   else if(m.type==='photo'||m.type==='video')b=stackHTML([m])+(m.text?`<div class="tx">${esc(m.text)}</div>`:'');
   else if(m.type==='text')b=`<div class="tx">${esc(m.text)}</div>`;
   else if(m.type==='quote')b=`<div class="qcard fb"><q>${esc(m.text)}</q>${m.who?`<small>${esc(m.who)}</small>`:''}</div>`;
-  else if(m.type==='voice')b=`<div class="vp fb"><span class="pl">${ic.play}</span>${wave(18,m.id)}<small>${esc(m.dur||'0:10')}</small></div>${m.text?`<div class="tr">${esc(m.text)}</div>`:''}`;
+  else if(m.type==='voice')b=`<div class="vp fb"><span class="pl">${ic.play}</span>${wave(18,m.id)}<small>${esc(m.dur||'0:10')}</small></div>${m.text?`<div class="tr">${esc(m.text)}</div>`:''}${m.turns?`<button class="tagch trlnk" data-tr="${m.id}">Open transcript${m.facts&&m.facts.length?' · ✦ '+m.facts.length:''}</button>`:''}`;
   else if(m.type==='person')b=`<div class="pcard fb"><div class="av">${avatar(m.name)}</div><div><b>${esc(m.name)}</b><p>${esc(m.text)}</p></div></div>`;
   else if(m.type==='file')b=`<div class="fcard fb"><div class="fi">${ic.doc}</div><div><b>${esc(m.name)}</b><p>${esc(m.text||'File')}</p></div></div>`;
   else b=`<div class="plcard fb"><span style="color:var(--mute)">${ic.pin}</span><b style="font-size:16px;font-weight:600">${esc(m.name)}</b></div>`;
@@ -980,7 +982,7 @@ function openAdd(dayKey){
      <div class="shut"><button class="shutter" id="shutter" aria-label="Capture"><i></i></button></div>
      <textarea class="cap-in" id="capIn" rows="1" placeholder="Add a line (optional)"></textarea>
      <div class="whoRow" id="whoRow"><input id="whoIn" placeholder="Who’s in it? (optional)" autocomplete="off"><div class="poses" id="poseSel">${POSES.map(p=>`<button data-p="${p[0]}" class="${p[0]==='stand'?'on':''}">${p[1]}</button>`).join('')}</div></div></section>
-   <section class="pane" data-p="voice"><div class="vc"><button class="orb3d" id="bigrec" aria-label="Hold to talk"><span class="mesh"></span><span class="shade"></span></button><div class="lw js" id="lw">${'<i></i>'.repeat(31)}</div><div class="tm2" id="vt">&nbsp;</div></div></section>
+   <section class="pane" data-p="voice"><div class="vc"><button class="orb3d" id="bigrec" aria-label="Hold to talk"><span class="mesh"></span><span class="shade"></span></button><div class="lw js" id="lw">${'<i></i>'.repeat(31)}</div><div class="tm2" id="vt">&nbsp;</div><button class="tagch" id="trGo">Record a conversation</button></div></section>
    <section class="pane" data-p="text"><textarea class="big-in" id="tx" style="flex:1;min-height:0" placeholder="${PH.text}"></textarea></section>
    <section class="pane" data-p="more"><div class="mseg" id="mseg">${MORE.map(m=>`<button data-m="${m[0]}" class="${m[0]==='quote'?'on':''}">${m[1]}</button>`).join('')}</div><div class="in-wrap" id="mbody"></div></section>
   </div>
@@ -1603,6 +1605,7 @@ __MOT_JS__
 __PAGES_JS__
 __MICRO_JS__
 __MM_JS__
+__TR_JS__
 __COMP_JS__
 __MC_JS__
 </script>
