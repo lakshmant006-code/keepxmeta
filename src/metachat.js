@@ -31,7 +31,7 @@ window.chWork=(q,pre)=>{
   hdr.appendChild(nb);nb.onclick=()=>{chPend='';cpTurn=0;sugg();q2.value=''};
   bar.classList.add('mcomp');q2.placeholder='Reply…';
   const tools=document.createElement('div');tools.className='mct';
-  tools.innerHTML=`<button class="mcp" id="mcPlus" aria-label="Add a moment"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button><span class="mcsp"></span><button class="mcm" id="mcMode" aria-label="Chat mode">${MCN[mcMode]}</button>`;
+  tools.innerHTML=`<button class="mcp" id="mcPlus" aria-label="Add an instant"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button><span class="mcsp"></span><button class="mcm" id="mcMode" aria-label="Chat mode">${MCN[mcMode]}</button>`;
   bar.appendChild(tools);tools.appendChild(sb);
   $('#mcPlus').onclick=()=>{closeChat();openAdd()};
   $('#mcMode').onclick=e=>{const k=Object.keys(MCN);mcMode=k[(k.indexOf(mcMode)+1)%k.length];e.target.textContent=MCN[mcMode];toast(mcMode==='auto'?'Auto: answers questions and listens':mcMode==='search'?'Search: only looks through your memories':'Talk: just listens and replies kindly');try{navigator.vibrate&&navigator.vibrate(6)}catch(_){}};

@@ -17,13 +17,13 @@ function ntItems(){
   if(cfg.on.otd)for(let n=1;n<=3;n++){
     const k=dk(new Date(T.getFullYear()-n,T.getMonth(),T.getDate())),day=byDay[k];if(!day||!day.length||(rf[k]&&rf[k].v==='quiet'))continue;
     const m=day.find(x=>x.text)||day[0],txt=(m.text||m.name||'').trim();
-    out.push({id:'otd-'+k,ts:morning(9),ic:'cal',t:n===1?'A year ago today':n+' years ago today',b:(txt?'“'+(txt.length>70?txt.slice(0,68)+'…':txt)+'” ':'')+day.length+(day.length===1?' moment':' moments')+' kept.',a:[['View memory','day:'+k],[rf[k]?'You felt: '+RF.find(r=>r[0]===rf[k].v)[1]:'How does it feel?','reflect:'+k]]});
+    out.push({id:'otd-'+k,ts:morning(9),ic:'cal',t:n===1?'A year ago today':n+' years ago today',b:(txt?'“'+(txt.length>70?txt.slice(0,68)+'…':txt)+'” ':'')+day.length+(day.length===1?' instant':' instants')+' kept.',a:[['View memory','day:'+k],[rf[k]?'You felt: '+RF.find(r=>r[0]===rf[k].v)[1]:'How does it feel?','reflect:'+k]]});
   }
   const S=insStreaks(A);
   if(cfg.on.streak&&S.cur>=3){const m=S.cur>=30?30:S.cur>=14?14:S.cur>=7?7:S.cur>=5?5:3;out.push({id:'streak-'+m+'-'+dk(T),ts:morning(10),ic:'chart',t:S.cur+'-day streak',b:'You kept something '+S.cur+' days in a row. Keep it going.',a:[['Add something','add']]})}
   if(cfg.on.week){const dow=(T.getDay()+6)%7,mon=new Date(T.getFullYear(),T.getMonth(),T.getDate()-dow),pm=new Date(+mon-7*864e5),n=A.filter(m=>m.ts>=+pm&&m.ts<+mon);
     if(n.length){const days=new Set(n.map(m=>dk(new Date(m.ts)))),c={};n.forEach(m=>{const d=new Date(m.ts).getDay();c[d]=(c[d]||0)+1});const top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0],DN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-      out.push({id:'week-'+dk(mon),ts:new Date(mon.getFullYear(),mon.getMonth(),mon.getDate(),8).getTime(),ic:'chart',t:'Last week in Keep',b:n.length+(n.length===1?' moment':' moments')+' over '+days.size+(days.size===1?' day':' days')+'. '+DN[+top[0]]+' was your busiest.',a:[['See Insights','ins']]})}}
+      out.push({id:'week-'+dk(mon),ts:new Date(mon.getFullYear(),mon.getMonth(),mon.getDate(),8).getTime(),ic:'chart',t:'Last week in Keep',b:n.length+(n.length===1?' instant':' instants')+' over '+days.size+(days.size===1?' day':' days')+'. '+DN[+top[0]]+' was your busiest.',a:[['See Insights','ins']]})}}
   if(typeof faceClusterCount==='function'&&faceClusterCount()>0){const fc=faceClusterCount();out.push({id:'faces-'+fc,ts:morning(9),ic:'users',t:fc+(fc===1?' person':' people')+' found in your photos',b:'The same face shows up in more than one photo. Name each once and Keep tags them everywhere.',a:[['Name them','people']]})}
   if(cfg.on.nudge&&A.length){const last=Math.max(...A.map(m=>m.ts));if(+new Date(T.getFullYear(),T.getMonth(),T.getDate())-last>3*864e5)out.push({id:'nudge-'+dk(T),ts:morning(18),ic:'plus',t:'A quiet few days',b:'Anything from this week worth keeping?',a:[['Keep something','add']]})}
   if(cfg.on.near&&window.nearItems)out.push(...nearItems());

@@ -14,7 +14,7 @@
 .mel{font-size:13px;font-weight:500;color:var(--mute);height:32px;padding:0 8px;display:inline-grid;place-items:center;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line2)}
 .more{margin-top:14px}.more summary{list-style:none;cursor:pointer;font-size:14px;font-weight:500;color:var(--mute);padding:10px 4px;display:flex;align-items:center;gap:6px}.more summary::-webkit-details-marker{display:none}
 .more summary::after{content:"";width:7px;height:7px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(45deg);margin-left:2px;transition:transform .2s}.more[open] summary::after{transform:rotate(-135deg)}
-/* Day journal: a rail down the left. Each moment gets a node with its own icon, the rail fills as you scroll, and moments rise in as they arrive. */
+/* Day journal: a rail down the left. Each instant gets a node with its own icon, the rail fills as you scroll, and instants rise in as they arrive. */
 :root{--spring:cubic-bezier(.32,.72,0,1)}
 .tl{--fh:0px;position:relative;padding-left:46px}
 .tl::before,.tl::after{content:"";position:absolute;left:13.25px;top:14px;width:1.5px;border-radius:1px}
