@@ -800,7 +800,7 @@ function openDay(k){
       h+=`<div class="ev"${st.length===1&&user.includes(st[0])?` data-mid="${st[0].id}"`:''}>${tlNode(x.type)}${stackHTML(st)}<div class="tm">${tstr(st[0].ts)}${st.length>1?' to '+tstr(st[st.length-1].ts):''} <em>· ${[np&&np+' photo'+(np>1?'s':''),nv&&nv+' video'+(nv>1?'s':'')].filter(Boolean).join(' · ')}</em></div>${caps[0]?`<div class="tx">${esc(caps[0])}</div>`:''}</div>`;
     }else h+=`<div class="ev"${user.includes(x)?` data-mid="${x.id}"`:''}>${tlNode(x.type)}${item(x)}</div>`;
   });
-  ph.filter(p=>p.who&&src(p)).forEach(p=>{h+=`<div class="ev">${tlNode('person')}<button class="pill d arbtn" data-ar="${p.id}">${ic.cube} See ${esc(firstName(p.who))} there</button></div>`});
+  ph.filter(p=>p.who&&src(p)).forEach(p=>{h+=`<div class="ev">${tlNode('person')}<button class="pill d arbtn" data-ar="${p.id}">${ic.cube} See ${esc(firstName(p.who))} there</button>${p.geo&&typeof nrOn==='function'?(nrOn()?`<div class="nrhint">I’ll let you know when you walk past here.</div>`:`<div class="nrhint">Want a nudge when you walk past here? <button data-near="1">Turn on</button></div>`):''}</div>`});
   let ti=0;h=h.replace(/<div class="ev"/g,()=>`<div class="ev" style="--i:${ti++}"`);
   openSheet(`<div class="dh"><h1>${longDay(dt)}</h1><p>${dt.getFullYear()} · ${L.length?L.length+' moment'+(L.length>1?'s':''):'quiet day'}</p></div><div class="pb" style="padding-top:16px"><div class="tl">${h}<div class="ev tadd" style="--i:${ti}"><span class="nd">${ic.plus.replace('width="22" height="22"','width="14" height="14"')}</span><button class="tbtn" id="dayAdd">${ic.plus.replace('width="22" height="22"','width="16" height="16"')} ${L.length?'Add to this day':'Keep something on this day'}</button></div></div></div>`,{full:true});
   $('#dayAdd').onclick=e=>{tlRipple(e.currentTarget);setTimeout(()=>{closeSheet();openAdd(k)},180)};tlInit($('#pc .tl'));if(typeof reflectChip==='function')reflectChip(k);
@@ -1235,6 +1235,7 @@ __INTRO_JS__
 __TAG_JS__
 __PROF_JS__
 __NT_JS__
+__NEAR_JS__
 __FLOW_JS__
 __BULK_JS__
 __SEL_JS__

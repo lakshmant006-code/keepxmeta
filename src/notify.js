@@ -2,7 +2,7 @@
 /* Everything is worked out on the phone from what you kept; nothing is pushed from a server. The inbox only holds things that need you,
    and every kind can be switched off. */
 const NTK='kept.nt',RFK='kept.reflect';
-const ntGet=()=>{try{const o=JSON.parse(localStorage.getItem(NTK)||'{}');return{read:o.read||{},on:Object.assign({otd:1,streak:1,week:1,nudge:0},o.on||{})}}catch(e){return{read:{},on:{otd:1,streak:1,week:1,nudge:0}}}};
+const ntGet=()=>{try{const o=JSON.parse(localStorage.getItem(NTK)||'{}');return{read:o.read||{},on:Object.assign({otd:1,streak:1,week:1,nudge:0,near:0},o.on||{})}}catch(e){return{read:{},on:{otd:1,streak:1,week:1,nudge:0,near:0}}}};
 const ntPut=c=>{try{localStorage.setItem(NTK,JSON.stringify(c))}catch(e){}};
 const rfGet=()=>{try{const o=JSON.parse(localStorage.getItem(RFK)||'{}');return o&&typeof o==='object'?o:{}}catch(e){return{}}};
 const rfPut=o=>{try{localStorage.setItem(RFK,JSON.stringify(o))}catch(e){}};
@@ -26,6 +26,7 @@ function ntItems(){
       out.push({id:'week-'+dk(mon),ts:new Date(mon.getFullYear(),mon.getMonth(),mon.getDate(),8).getTime(),ic:'chart',t:'Last week in Keep',b:n.length+(n.length===1?' moment':' moments')+' over '+days.size+(days.size===1?' day':' days')+'. '+DN[+top[0]]+' was your busiest.',a:[['See Insights','ins']]})}}
   if(typeof faceClusterCount==='function'&&faceClusterCount()>0){const fc=faceClusterCount();out.push({id:'faces-'+fc,ts:morning(9),ic:'users',t:fc+(fc===1?' person':' people')+' found in your photos',b:'The same face shows up in more than one photo. Name each once and Keep tags them everywhere.',a:[['Name them','people']]})}
   if(cfg.on.nudge&&A.length){const last=Math.max(...A.map(m=>m.ts));if(+new Date(T.getFullYear(),T.getMonth(),T.getDate())-last>3*864e5)out.push({id:'nudge-'+dk(T),ts:morning(18),ic:'plus',t:'A quiet few days',b:'Anything from this week worth keeping?',a:[['Keep something','add']]})}
+  if(cfg.on.near&&window.nearItems)out.push(...nearItems());
   return out.filter(i=>i.ts<=Date.now()||i.always).sort((a,b)=>b.ts-a.ts);
 }
 const ntUnread=()=>{const r=ntGet().read;return ntItems().filter(i=>!r[i.id]).length};
@@ -46,17 +47,17 @@ function ntOpen(){
    <div class="frbody"><h2 class="nth">Only things that need you.</h2><p class="nts">Quiet by default. Nothing leaves this phone.</p>
    ${today.length?`<div class="ntg">Today</div>${today.map(card).join('')}`:''}${earlier.length?`<div class="ntg">Earlier</div>${earlier.map(card).join('')}`:''}
    ${items.length?'':'<div class="empty" style="margin:30px 8px">Nothing needs you right now.</div>'}
-   <div class="ntg">What can notify you</div><div class="grp" style="margin-top:0;padding:0 16px">${sw('otd','On this day','A memory from a year or more ago')}${sw('streak','Streaks','When you keep something several days running')}${sw('week','Weekly recap','A short summary each Monday')}${sw('nudge','Gentle nudge','If a few days pass with nothing kept')}</div>
+   <div class="ntg">What can notify you</div><div class="grp" style="margin-top:0;padding:0 16px">${sw('otd','On this day','A memory from a year or more ago')}${sw('streak','Streaks','When you keep something several days running')}${sw('week','Weekly recap','A short summary each Monday')}${sw('nudge','Gentle nudge','If a few days pass with nothing kept')}${sw('near','Near a memory','A nudge when you walk past where you were with someone')}</div>
    <div class="ntg">On your home screen</div><div class="grp" style="margin-top:0;padding:0 16px"><div class="ntr"><div><b>Home screen alerts</b><small id="ntPS"></small></div><button class="ntsw" id="ntAl" role="switch" aria-label="Home screen alerts"><i></i></button></div></div>
    <p class="note">Alerts are made on this phone from what you kept. Keep has no server, so a full alert while the app is closed only works through a daily background check, and only on Android. On iPhone they show when you open Keep.</p></div>`;
   $('#ntX').onclick=ntClose;
   {const al=$('#ntAl'),ps=$('#ntPS'),pm=ntPerm(),on=pm==='granted';al.classList.toggle('on',on);al.setAttribute('aria-checked',on);
    ps.textContent=pm==='unsupported'?'Add Keep to your home screen to turn this on':pm==='denied'?'Blocked in your phone settings':on?'Icon badge and alerts when you open Keep, and a daily check on Android':'Show a badge on the Keep icon and phone alerts';
    al.onclick=async()=>{if(on){toast('Turn alerts off in your phone settings');return}if(await ntAllow())ntOpen()}}
-  p.querySelectorAll('.ntsw').forEach(b=>b.onclick=()=>{const c=ntGet();c.on[b.dataset.k]=c.on[b.dataset.k]?0:1;ntPut(c);dispatchEvent(new Event('keep:nt'));ntOpen()});
+  p.querySelectorAll('.ntsw').forEach(b=>b.onclick=()=>{if(b.dataset.k==='near'){nearSet(!ntGet().on.near).then(()=>ntOpen());return}const c=ntGet();c.on[b.dataset.k]=c.on[b.dataset.k]?0:1;ntPut(c);dispatchEvent(new Event('keep:nt'));ntOpen()});
   p.querySelector('.frbody').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,[k,v]=a.split(':');
     if(k==='tour'){ntClose();setTimeout(introOpen,320)}else if(k==='add'){ntClose();setTimeout(()=>openAdd(),320)}else if(k==='ins'){ntClose();setTimeout(insOpen,320)}else if(k==='people'){ntClose();setTimeout(()=>{try{faceOpenPeople()}catch(e){}},320)}
-    else if(k==='day'){ntClose();setTimeout(()=>openDay(v),320)}else if(k==='reflect'){reflectOpen(v)}});
+    else if(k==='day'){ntClose();setTimeout(()=>openDay(v),320)}else if(k==='ar'){ntClose();setTimeout(()=>openAR(+v),320)}else if(k==='reflect'){reflectOpen(v)}});
   setTimeout(ntMarkRead,1200);
 }
 function ntClose(){const p=$('#nt');if(!p)return;p.classList.remove('on');p.innerHTML='';ntBadge()}
