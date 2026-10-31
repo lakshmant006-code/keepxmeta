@@ -210,15 +210,18 @@ function chatSaveNote(q,k){
 }
 function ask(q){
   q=q.trim();if(!q)return;useTrack('chat_ask');openChat(true);if(!chIn()||!chIn().children.length||chIn().querySelector('.chello'))chatMount();
-  chAsked.add(q);chatUser(q);
+  chAsked.add(q);if(!/^__/.test(q))chatUser(q);
   if(chPend&&!/\?\s*$/.test(q)&&!/^(who|what|where|when|how|why|show|my|photos?|open)\b/i.test(q)){const k=chPend;chPend='';const A=chatSaveNote(q,k);chQ=chQ.then(()=>chatReply(q,A)).catch(()=>{});return}
-  chPend='';chQ=chQ.then(()=>chatReply(q)).catch(()=>{});
+  chPend='';
+  {const C=window.cpRespond&&cpRespond(q);if(C){chQ=chQ.then(()=>chatReply(q,C)).catch(()=>{});return}}
+  chQ=chQ.then(()=>chatReply(q)).catch(()=>{});
 }
 function sugg(){
   chatMount();const S=chatSmart(),logo=($('#chat .logo')||{outerHTML:''}).outerHTML.replace(/width="\d+" height="\d+"/,'width="28" height="28"');
   chIn().innerHTML=`<div class="chello"><div class="chl">${logo}</div><h2>What do you want to remember?</h2><p>Ask in your own words. Answers come from what you kept, and show the original.</p>
    <div class="sgg">${S.map((s,i)=>`<button class="sgc" style="animation-delay:${180+i*70}ms" data-s="${esc(s.t)}"><span>${chIcon(s.i)}</span>${esc(s.t)}</button>`).join('')}</div></div>`;
   const q2=$('#q2');if(q2){const pick=S[Math.floor(Math.random()*S.length)];q2.placeholder=pick?'Try “'+pick.t+'”':'Ask your memories'}
+  {const O=window.cpOpening&&cpOpening();if(O){chIn().innerHTML='';chQ=chQ.then(()=>chatReply('',O)).catch(()=>{})}}
 }
 function openChat(keep){const c=$('#chat');c.classList.add('on');if(!keep)sugg();$('#q2').focus({preventScroll:true})}
 (function(){const cb=$('#cb');cb.addEventListener('click',e=>{const a=e.target.closest('[data-act="add"]');if(a){closeChat();openAdd()}

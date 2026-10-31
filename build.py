@@ -29,9 +29,9 @@ body=(r('src/app.src.html').replace('__IMGS__',imgs).replace('__AR_CSS__',r('src
   .replace('__FACE_CSS__',r('src/faces.css')).replace('__FACE_JS__',r('src/faces.js'))
   .replace('__FR_CSS__',r('src/friends.css')).replace('__FR_JS__',r('src/friends.js'))
   .replace('__INS_CSS__',r('src/insights.css')).replace('__INS_JS__',r('src/insights.js'))
-  .replace('__INV_CSS__',r('src/invite.css')).replace('__INV_JS__',r('src/invite.js')).replace('__NT_CSS__',r('src/notify.css')).replace('__NT_JS__',r('src/notify.js')).replace('__TAG_CSS__',r('src/tagging.css')).replace('__TAG_JS__',r('src/tagging.js')).replace('__INTRO_CSS__',r('src/intro.css')).replace('__INTRO_JS__',r('src/intro.js'))
+  .replace('__INV_CSS__',r('src/invite.css')).replace('__INV_JS__',r('src/invite.js')).replace('__NT_CSS__',r('src/notify.css')).replace('__NEAR_JS__',r('src/nearby.js')).replace('__NT_JS__',r('src/notify.js')).replace('__TAG_CSS__',r('src/tagging.css')).replace('__TAG_JS__',r('src/tagging.js')).replace('__INTRO_CSS__',r('src/intro.css')).replace('__INTRO_JS__',r('src/intro.js'))
   .replace('__CHAT_CSS__',r('src/chat.css')).replace('__CHAT_JS__',r('src/chat.js')).replace('__PROF_CSS__',r('src/profile.css')).replace('__PROF_JS__',r('src/profile.js'))
-  .replace('__MOTION__',r('src/vendor/motion.min.js')).replace('__MOT_CSS__',r('src/motion.css')).replace('__MOT_JS__',r('src/motion.js')).replace('__BULK_JS__',r('src/bulk.js')).replace('__SEL_CSS__',r('src/select.css')).replace('__SEL_JS__',r('src/select.js')).replace('__FLOW_CSS__',r('src/flow.css')).replace('__FLOW_JS__',r('src/flow.js')).replace('__PAGES_JS__',r('src/pages.js')))
+  .replace('__MD_CSS__',r('src/memday.css')).replace('__MD_JS__',r('src/memday.js')).replace('__MOTION__',r('src/vendor/motion.min.js')).replace('__MOT_CSS__',r('src/motion.css')).replace('__MOT_JS__',r('src/motion.js')).replace('__BULK_JS__',r('src/bulk.js')).replace('__SEL_CSS__',r('src/select.css')).replace('__SEL_JS__',r('src/select.js')).replace('__FLOW_CSS__',r('src/flow.css')).replace('__FLOW_JS__',r('src/flow.js')).replace('__PAGES_JS__',r('src/pages.js')).replace('__COMP_CSS__',r('src/companion.css')).replace('__COMP_JS__',r('src/companion.js')).replace('__MICRO_CSS__',r('src/micro.css')).replace('__MICRO_JS__',r('src/micro.js')))
 ver=hashlib.sha1(body.encode()).hexdigest()[:10]
 def jget(k):
     v=get(k)
