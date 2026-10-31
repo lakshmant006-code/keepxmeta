@@ -110,6 +110,8 @@ A day opens as a timeline: a line down the left with a dot for each moment, and 
 
 Drag up or down on the viewfinder or on the red button to zoom (up zooms in), or pinch. The zoom is digital, so it applies to photos and to recorded video on every phone, and a pill shows the level (up to 5x). In Video, tap the red button to start and again to stop; the microphone is used if you allow it, otherwise the video is silent.
 
+
+The camera permission is asked once. After you allow it, Keep opens the camera straight away each time and keeps the same camera running while you switch between Photo, Note and the other tabs (it is released when you close the screen or leave the app). If it was turned down or blocked, Keep does not ask again on its own: the viewfinder says so and a tap on it asks. The microphone and AR camera skip the request when the browser already has it blocked. Browsers decide how long a "yes" lasts: Chrome and Android keep it; Safari on iPhone may ask again when the app is reopened, which a website cannot override.
 ## Photo viewer
 
 Swipe left and right to move between a day's photos. Swipe down to close: the photo follows your finger, shrinks a little, and the page behind fades in; let go past a short distance (or flick) and it closes, otherwise it springs back. There is no close button. Escape works on desktop.

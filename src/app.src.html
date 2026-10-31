@@ -157,6 +157,7 @@ svg{display:block}
 .canvas{position:relative;flex:1;min-height:0;overflow:hidden}
 .pane{position:absolute;inset:0;padding:4px 16px 8px;display:flex;flex-direction:column;opacity:0;transform:translateY(12px) scale(.985);visibility:hidden;pointer-events:none;transition:opacity .28s ease,transform .34s cubic-bezier(.2,.8,.2,1),visibility 0s .34s}
 .pane.on{opacity:1;transform:none;visibility:visible;pointer-events:auto;transition-delay:0s}
+.vf.camoff{cursor:pointer}
 .vf{flex:1;min-height:110px;border-radius:28px;overflow:hidden;position:relative;background:var(--fill);border:1px solid var(--bd)}
 .vf video,.vf .fbk,.vf img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background-size:cover;background-position:center}
 .vf video{display:none}
@@ -924,15 +925,41 @@ function zoomGestures(){
   /* a drag that zoomed must not also count as a tap on the red button */
   sh.addEventListener('click',e=>{if(moved){e.stopImmediatePropagation();e.preventDefault()}},true);
 }
-async function startCam(){
-  if(stream)return;
+/* ---- camera permission: ask once, remember, never nag ---- */
+/* Once the camera is allowed, Keep opens it straight away every time and keeps the same camera running while you switch between Photo, Note and so on.
+   If it was turned down (or blocked in settings), Keep does not ask again by itself: the viewfinder says so, and a tap on it asks. */
+const CAMK='kept.cam';
+const camMem=()=>{try{return localStorage.getItem(CAMK)||''}catch(e){return''}};
+const camSet=v=>{try{localStorage.setItem(CAMK,v)}catch(e){}};
+async function permState(name){try{if(navigator.permissions&&navigator.permissions.query)return(await navigator.permissions.query({name})).state}catch(e){}return''}
+let camBusy=false;
+function camOff(blocked){
+  live=false;const l=$('#vflab'),vf=$('#vf');if(l)l.innerHTML=blocked?'Camera is blocked · allow it in Settings':'Tap to turn on the camera';
+  if(vf)vf.classList.add('camoff');flipVis();
+}
+function holdCam(){ /* leaving the Photo tab: hide the picture but keep the camera, so coming back needs no new request */
+  live=false;flipVis();const v=$('#cam');if(v)v.style.display='none';const f=$('#fbk');if(f)f.style.display='';
+}
+function resumeCam(){
+  const v=$('#cam');if(!v||!stream)return false;setZoom(camZoom);v.srcObject=stream;v.style.display='block';const f=$('#fbk');if(f)f.style.display='none';live=true;const l=$('#vflab');if(l)l.innerHTML='Camera';flipVis();return true;
+}
+async function startCam(tap){
+  if(stream){resumeCam();return}
+  if(camBusy)return;camBusy=true;
   try{
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw 0;
+    const ps=await permState('camera');
+    if(!tap&&(ps==='denied'||(ps!=='granted'&&camMem()==='no'))){camOff(ps==='denied');return}
     stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:1920},height:{ideal:1080}},audio:false});
     const v=$('#cam');if(!v){stopCam();return}
-    setZoom(1);
-    v.srcObject=stream;v.style.display='block';$('#fbk').style.display='none';live=true;$('#vflab').innerHTML='Camera';flipVis();
-  }catch(e){live=false;const l=$('#vflab');if(l)l.innerHTML=DEMOLAB}
+    camSet('ok');setZoom(1);
+    const tr=stream.getVideoTracks()[0];if(tr)tr.onended=()=>{if(stream&&stream.getVideoTracks()[0]===tr){stream=null;live=false;flipVis()}}; /* the phone took the camera back (a call, another app) */
+    v.srcObject=stream;v.style.display='block';$('#fbk').style.display='none';live=true;$('#vflab').innerHTML='Camera';const vf=$('#vf');if(vf)vf.classList.remove('camoff');flipVis();
+  }catch(e){
+    stream=null;
+    if(e&&(e.name==='NotAllowedError'||e.name==='SecurityError')){camSet('no');camOff((await permState('camera'))==='denied');if(tap)toast('Camera is blocked. Turn it on in your browser or phone settings.')}
+    else{live=false;const l=$('#vflab');if(l)l.innerHTML=DEMOLAB}
+  }finally{camBusy=false}
 }
 const shrinkImage=(file,max=1600)=>new Promise((res,rej)=>{const u=URL.createObjectURL(file),i=new Image();i.onload=()=>{const k=Math.min(1,max/Math.max(i.naturalWidth,i.naturalHeight)),c=document.createElement('canvas');c.width=Math.round(i.naturalWidth*k);c.height=Math.round(i.naturalHeight*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);lastAr=c.width>=c.height?'4 / 3':'3 / 4';res(c.toDataURL('image/jpeg',.85))};i.onerror=()=>{URL.revokeObjectURL(u);rej()};i.src=u});
 const videoPoster=file=>new Promise((res,rej)=>{const u=URL.createObjectURL(file),v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='metadata';v.onloadeddata=()=>{v.currentTime=Math.min(.5,(v.duration||1)/2)};v.onseeked=()=>{const k=Math.min(1,1280/Math.max(v.videoWidth,v.videoHeight)),c=document.createElement('canvas');c.width=Math.round(v.videoWidth*k);c.height=Math.round(v.videoHeight*k);c.getContext('2d').drawImage(v,0,0,c.width,c.height);const n=Math.round(v.duration||0);URL.revokeObjectURL(u);res({src:c.toDataURL('image/jpeg',.8),dur:Math.floor(n/60)+':'+pad(n%60)})};v.onerror=()=>{URL.revokeObjectURL(u);rej()};v.src=u});
@@ -958,6 +985,7 @@ function openAdd(dayKey){
   <div class="modes" id="modes">${MODES.map(m=>`<button class="mb ${m[0]==='photo'?'on':''}" data-m="${m[0]}" aria-label="${m[1]}">${ic[m[2]]}</button>`).join('')}</div>`;
   $('#ov').classList.add('on');
   $('#ox').onclick=closeAdd;$('#keep').onclick=save;
+  $('#vf').addEventListener('click',e=>{if($('#vf').classList.contains('camoff')&&!live&&!e.target.closest('.vfb'))startCam(true)});
   $('#modes').addEventListener('pointerdown',e=>{const b=e.target.closest('.mb');if(b&&b.dataset.m==='voice'&&mode==='voice'){e.preventDefault();voiceStart()}});
   $('#modes').addEventListener('contextmenu',e=>e.preventDefault());
   $('#modes').addEventListener('click',e=>{const b=e.target.closest('.mb');if(!b)return;if(b.dataset.m==='voice'&&mode==='voice')return;setMode(b.dataset.m)});
@@ -985,7 +1013,7 @@ function setMode(m,first){
   $('#otitle').textContent=titleFor();
   const sh=$('#shutter');sh.classList.toggle('v',m==='video');sh.classList.remove('rec');
   {const w=$('#whoRow');if(w)w.style.display=m==='photo'?'flex':'none'}
-  if(p==='cam'){showShot();if(!stream)startCam()}else{stopCam()}
+  if(p==='cam'){showShot();startCam()}else{holdCam()}
   if(document.activeElement&&document.activeElement.blur&&p!=='text'&&p!=='more')blurAll();
   setTimeout(()=>{const f=p==='text'?$('#tx'):p==='more'?($('#f1')||$('#f2')):null;if(f)f.focus({preventScroll:true})},180);
   validate();
@@ -1011,7 +1039,7 @@ async function vidStart(r){
   const draw=()=>{const z=camZoom,sw=w/z,sh=h/z;x.drawImage(v,(w-sw)/2,(h-sh)/2,sw,sh,0,0,cw,ch);r.raf=requestAnimationFrame(draw)};draw();
   if(!cv.captureStream)throw new Error('no captureStream');
   const out=cv.captureStream(30);
-  try{const a=await navigator.mediaDevices.getUserMedia({audio:true});if(rec!==r){a.getTracks().forEach(t=>t.stop());return}r.aud=a;a.getAudioTracks().forEach(t=>out.addTrack(t))}catch(e){/* no microphone access: the video still records, silent */}
+  try{if(await permState('microphone')==='denied')throw 0;const a=await navigator.mediaDevices.getUserMedia({audio:true});if(rec!==r){a.getTracks().forEach(t=>t.stop());return}r.aud=a;a.getAudioTracks().forEach(t=>out.addTrack(t))}catch(e){/* no microphone access: the video still records, silent */}
   if(rec!==r)return;
   const mime=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';
   r.mr=new MediaRecorder(out,Object.assign({videoBitsPerSecond:3.5e6},mime?{mimeType:mime}:{}));
@@ -1021,6 +1049,7 @@ async function vidStart(r){
 let aud=null;
 async function audStart(){
   try{
+    if(await permState('microphone')==='denied')throw 0;
     const st=await navigator.mediaDevices.getUserMedia({audio:true});
     if(!rec){st.getTracks().forEach(t=>t.stop());return}
     const AC=window.AudioContext||window.webkitAudioContext,ctx=new AC(),an=ctx.createAnalyser();an.fftSize=128;ctx.createMediaStreamSource(st).connect(an);
@@ -1269,6 +1298,10 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-lb]');if(t
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#ins')&&$('#ins').classList.contains('on')){insClose();return}if(e.key==='Escape'&&$('#frp')){$('#frp').remove();return}if(e.key==='Escape'&&$('#fr').classList.contains('on')){frClose();return}if(e.key==='Escape'&&$('#tagp')){$('#tagp').remove();return}if($('#lb').classList.contains('on')){if(e.key==='ArrowRight')lbStep(1);if(e.key==='ArrowLeft')lbStep(-1)}if(e.key==='Escape'){if($('#lb').classList.contains('on'))closeLb();else if($('#ov').classList.contains('on'))closeAdd();else if($('#sh').classList.contains('on'))closeSheet();else closeChat()}});
 refresh();setYear(false);loadUser().then(()=>{if(!introMaybe())onbMaybe()});
 /* a new day while the app sat open */
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'&&stream&&!rec)stopCam();
+  else if(document.visibilityState==='visible'&&!stream&&$('#ov').classList.contains('on')&&mode==='photo')startCam();
+});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!CFG.demo){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate());if(+t!==+TODAY){TODAY=t;refresh()}}});
 /* ---------- updates: tell the person when a new version is ready, apply it on a tap ---------- */
 let swReg=null,updGo=false;
