@@ -1,5 +1,5 @@
-/* ---------- Moments: a feed of what you kept, shown on the chat's first screen (Days, Weeks, Months) ---------- */
-/* Each moment is a small collage: the best photo large, a map tile for the place, a few more photos and a "+N" tile, then a time, a title and a line. */
+/* ---------- Instants: a feed of what you kept, shown on the chat's first screen (Days, Weeks, Months) ---------- */
+/* Each instant is a small collage: the best photo large, a map tile for the place, a few more photos and a "+N" tile, then a time, a title and a line. */
 const MMK='kept.mm';
 let mmMode='days';
 const mmPhotos=L=>L.filter(x=>(x.type==='photo'||x.type==='video')&&src(x)).sort((a,b)=>(!!b.text+!!b.who)-(!!a.text+!!a.who)||a.ts-b.ts);
@@ -44,13 +44,13 @@ function mmGroups(mode){
 const mmLabel=(mode,k,L)=>{const [y,m,d]=k.split('-').map(Number),dt=new Date(y,m-1,d);
   if(mode==='days'){const t=Math.min(...L.map(x=>x.ts));return chRel(dt)+' · '+tstr(t)}
   if(mode==='weeks'){const e=new Date(y,m-1,d+6),diff=Math.round((+TODAY-+dt)/864e5);return (diff<7?'This week':diff<14?'Last week':'Week of')+' · '+MS[dt.getMonth()]+' '+dt.getDate()+' to '+(e.getMonth()!==dt.getMonth()?MS[e.getMonth()]+' ':'')+e.getDate()+' · '+new Set(L.map(x=>dk(new Date(x.ts)))).size+' days'}
-  return MN[dt.getMonth()]+' '+dt.getFullYear()+' · '+L.length+' moments'};
+  return MN[dt.getMonth()]+' '+dt.getFullYear()+' · '+L.length+' instants'};
 /* a collection banner: the person or place you have the most photos of */
 function mmHero(){
   const c=new Map();all().filter(m=>m.type==='photo'&&src(m)).forEach(m=>chNames(m).forEach(n=>{const f=chFirstOf(n);if(f.length<3||CH_WORDS.has(f))return;const e=c.get(f)||{n,L:[]};e.L.push(m);c.set(f,e)}));
   const top=[...c.values()].sort((a,b)=>b.L.length-a.L.length)[0];if(!top||top.L.length<3)return '';
   const ph=top.L.sort((a,b)=>b.ts-a.ts)[0];
-  return `<button class="mmh" data-s="Photos with ${esc(chPN(top.n))}" style="background-image:url(${src(ph)})"><span><b>Moments with ${esc(chPN(top.n))}</b><small>${top.L.length} moments</small></span></button>`;
+  return `<button class="mmh" data-s="Photos with ${esc(chPN(top.n))}" style="background-image:url(${src(ph)})"><span><b>Instants with ${esc(chPN(top.n))}</b><small>${top.L.length} instants</small></span></button>`;
 }
 function mmHTML(mode){
   const gs=mmGroups(mode);if(!gs.length)return '';

@@ -5,7 +5,7 @@ const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorag
 window.momOn=()=>ls(KEY)!=='0';
 window.momSet=on=>{ls(KEY,on?'1':'0');if(on)ls(HIDE,'');momRender()};
 const hash=s=>{let h=2166136261;const c=String(s);for(let i=0;i<c.length;i++){h^=c.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0};
-const GENTLE=['A moment you kept.','Glad you kept this one.','A good one to look back on.'];
+const GENTLE=['An instant you kept.','Glad you kept this one.','A good one to look back on.'];
 let shift=0;
 function pool(){
   const t0=+TODAY;
@@ -44,7 +44,7 @@ const myNotes=()=>{try{return JSON.parse(ls('keep.notes')||'[]')}catch(e){return
 const saveNotes=a=>ls('keep.notes',JSON.stringify(a.slice(-40)));
 let nshift=0;
 function note(){
-  const mine=myNotes(),pool=mine.concat(NOTES,[`You have kept ${all().length} moments. Look how much you notice.`]);
+  const mine=myNotes(),pool=mine.concat(NOTES,[`You have kept ${all().length} instants. Look how much you notice.`]);
   const h=hash(dk(TODAY)+'n');return{t:pool[(h+nshift)%pool.length],e:EMO[(h+nshift)%EMO.length]};
 }
 const WS=[
@@ -135,7 +135,7 @@ function wgHome(){
   const ws=WG.filter(w=>wgSel().includes(w.id));if(!ws.length)return '';
   return `<h3 class="wgsec">On your home screen</h3><div class="wghome"><p>Open a widget as its own icon. In Safari or Chrome, open its link, then choose <b>Add to Home Screen</b>. The icon shows today’s picture and tapping it opens that widget. It is a shortcut that refreshes when you open it, not a live widget: phones only allow those from a native app.</p>
    ${ws.map(w=>`<div class="wghr"><span><b>${w.name}</b><small>${w.z==='s'?'Small':w.z==='m'?'Medium':'Large'}</small></span><button class="tagch" data-sh="${w.id}">Share link</button><button class="tagch" data-cp="${w.id}">Copy</button></div>`).join('')}
-   <p class="wgnote">Android: long-press the Keep icon for shortcuts to Add a moment, Memory of the day, Talk to Keep and Widgets.</p></div>`;
+   <p class="wgnote">Android: long-press the Keep icon for shortcuts to Add an instant, Memory of the day, Talk to Keep and Widgets.</p></div>`;
 }
 function wgDraw(){
   const m=pick(),n=note(),sel=wgSel(),b=$('#wgBody');if(!b)return;

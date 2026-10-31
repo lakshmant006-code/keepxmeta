@@ -28,7 +28,7 @@
   ],
   "shortcuts": [
     {
-      "name": "Add a moment",
+      "name": "Add an instant",
       "short_name": "Add",
       "url": "./?a=add",
       "icons": [

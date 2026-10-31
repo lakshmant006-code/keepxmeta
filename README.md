@@ -104,7 +104,7 @@ Profile → tap the circle to choose a photo (cropped to a square, kept on this 
 
 ## Day journal
 
-A day opens as a timeline: a line down the left with a dot for each moment, and **Add to this day** at the end of the line. Whatever you keep from there lands on that day and appears on the line when you return.
+A day opens as a timeline: a line down the left with a dot for each instant, and **Add to this day** at the end of the line. Whatever you keep from there lands on that day and appears on the line when you return.
 
 ## Camera
 
