@@ -130,6 +130,13 @@ function tint(u){
 }
 const tintAll=root=>root.querySelectorAll('.tn[data-img]').forEach(e=>tint(e.dataset.img).then(c=>e.style.setProperty('--mc',c)));
 let wgTab='gallery';
+const wgUrl=id=>location.origin+location.pathname+'?w='+id;
+function wgHome(){
+  const ws=WG.filter(w=>wgSel().includes(w.id));if(!ws.length)return '';
+  return `<h3 class="wgsec">On your home screen</h3><div class="wghome"><p>Open a widget as its own icon. In Safari or Chrome, open its link, then choose <b>Add to Home Screen</b>. The icon shows today’s picture and tapping it opens that widget. It is a shortcut that refreshes when you open it, not a live widget: phones only allow those from a native app.</p>
+   ${ws.map(w=>`<div class="wghr"><span><b>${w.name}</b><small>${w.z==='s'?'Small':w.z==='m'?'Medium':'Large'}</small></span><button class="tagch" data-sh="${w.id}">Share link</button><button class="tagch" data-cp="${w.id}">Copy</button></div>`).join('')}
+   <p class="wgnote">Android: long-press the Keep icon for shortcuts to Add a moment, Memory of the day, Talk to Keep and Widgets.</p></div>`;
+}
 function wgDraw(){
   const m=pick(),n=note(),sel=wgSel(),b=$('#wgBody');if(!b)return;
   const one=w=>WG.find(x=>x.id===w).h(m,n);
@@ -137,7 +144,7 @@ function wgDraw(){
   const cell=w=>`<div class="wgi ${w.z}"><div class="wgh">${w.h(m,n)}</div><div class="wgm"><span><b>${w.name}</b><small>${w.desc}</small></span>${btn(w)}</div></div>`;
   if(wgTab==='gallery'){
     const sec=(z,t)=>`<h3 class="wgsec">${t}</h3><div class="wgrow ${z}">${WG.filter(w=>w.z===z).map(cell).join('')}</div>`;
-    b.innerHTML=sec('s','Small')+sec('m','Medium')+sec('l','Large')+`<div class="wgmk"><button class="pill g" id="wgPic">Make a picture to share</button></div>`;
+    b.innerHTML=sec('s','Small')+sec('m','Medium')+sec('l','Large')+`<div class="wgmk"><button class="pill g" id="wgPic">Make a picture to share</button></div>`+wgHome();
   }else{
     const ws=WG.filter(w=>sel.includes(w.id)),sm=ws.filter(w=>w.z==='s'),rest=ws.filter(w=>w.z!=='s');
     const ico=(c,t,g)=>`<span class="wgap"><i style="background:${c}">${g||''}</i><u>${t}</u></span>`;
@@ -151,6 +158,8 @@ function wgDraw(){
   }
   b.querySelectorAll('.wgb').forEach(x=>x.onclick=()=>{const id=x.dataset.w,a=wgSel(),i=a.indexOf(id);i<0?a.push(id):a.splice(i,1);wgSave(a);wgDraw();if(window.Motion)Motion.animate(b.querySelector(`.wgb[data-w="${id}"]`),{scale:[.8,1]},{type:'spring',stiffness:500,damping:14})});
   if($('#wgPic'))$('#wgPic').onclick=momOpen;
+  b.querySelectorAll('[data-sh]').forEach(x=>x.onclick=async()=>{const u=wgUrl(x.dataset.sh);try{if(navigator.share)await navigator.share({title:'Keep widget',url:u});else{await navigator.clipboard.writeText(u);toast('Link copied')}}catch(e){}});
+  b.querySelectorAll('[data-cp]').forEach(x=>x.onclick=async()=>{try{await navigator.clipboard.writeText(wgUrl(x.dataset.cp));toast('Link copied')}catch(e){toast(wgUrl(x.dataset.cp))}});
   tintAll(b);
 }
 window.wgOpen=()=>{
@@ -162,6 +171,23 @@ window.wgOpen=()=>{
   wgDraw();
 };
 window.wgClose=()=>{const p=$('#wg');p.classList.remove('on');p.innerHTML=''};
+
+/* a widget on its own page, for a home screen shortcut: ?w=mem|note|day|streak|week */
+function wgView(id){
+  const w=WG.find(x=>x.id===id);if(!w)return;
+  const m=pick(),n=note();let v=$('#wgview');if(v)v.remove();
+  v=document.createElement('div');v.id='wgview';v.className='wgview';v.innerHTML=`<div class="wgvw ${w.z}">${w.h(m,n)}</div><small>Tap to open Keep</small>`;$('#app').appendChild(v);tintAll(v);
+  v.onclick=()=>{v.remove();document.title='Keep'};
+  document.title=w.name;
+  /* the icon on the home screen is today's picture */
+  const c=document.createElement('canvas');c.width=c.height=180;const x=c.getContext('2d');
+  const done=()=>{let l=document.querySelector('link[rel="apple-touch-icon"]');if(!l){l=document.createElement('link');l.rel='apple-touch-icon';document.head.appendChild(l)}l.href=c.toDataURL('image/png')};
+  if(m&&id!=='note'&&id!=='streak'){const i=new Image();i.onload=()=>{const k=Math.max(180/i.width,180/i.height);x.drawImage(i,(180-i.width*k)/2,(180-i.height*k)/2,i.width*k,i.height*k);done()};i.onerror=done;i.src=src(m)}
+  else{x.fillStyle=id==='note'?'#FFF3A8':'#0866FF';x.fillRect(0,0,180,180);x.font='90px serif';x.textAlign='center';x.fillText(id==='note'?n.e:'✨',90,118);done()}
+}
+{const q=new URLSearchParams(location.search),w=q.get('w'),a=q.get('a');
+ if(w||a){try{history.replaceState(null,'',location.pathname)}catch(e){}
+  setTimeout(()=>{try{if(w)wgView(w);else if(a==='add')openAdd();else if(a==='chat')openChat();else if(a==='widgets')wgOpen()}catch(e){}},700)}}
 
 momRender();
 })();

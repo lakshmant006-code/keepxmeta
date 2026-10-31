@@ -57,3 +57,8 @@
 .wgfoot.tn{position:relative;overflow:hidden;padding:0;background:var(--mc);align-items:flex-end}
 .wgfoot.tn .wgp{position:absolute;inset:0;width:100%;border-radius:0;-webkit-mask-image:linear-gradient(to bottom,#000 30%,transparent 100%);mask-image:linear-gradient(to bottom,#000 30%,transparent 100%)}
 .wgfoot.tn .wgt{position:relative;z-index:1;padding:14px;color:#fff;flex:none;width:100%}.wgfoot.tn small{color:rgba(255,255,255,.8)}.wgfoot.tn b{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.3)}
+
+.wghome{margin-top:4px;padding:14px 16px;border-radius:20px;background:var(--fill)}.wghome p{font-size:13.5px;color:var(--mute);line-height:1.45}.wghome .wgnote{margin-top:10px;font-size:12.5px}
+.wghr{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--line)}.wghr span{flex:1;min-width:0}.wghr b{display:block;font-size:15px}.wghr small{font-size:12px;color:var(--mute)}
+.wgview{position:absolute;inset:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:linear-gradient(180deg,#cfe0ff,#6f9cff 60%,#1a2a6b)}
+.wgvw{width:min(88vw,380px)}.wgvw .wgc{width:100%;box-shadow:0 20px 50px rgba(10,20,80,.35)}.wgview small{color:rgba(255,255,255,.85);font-size:13px}
