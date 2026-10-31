@@ -213,6 +213,7 @@ function ask(q){
   chAsked.add(q);if(!/^__/.test(q))chatUser(q);
   if(chPend&&!/\?\s*$/.test(q)&&!/^(who|what|where|when|how|why|show|my|photos?|open)\b/i.test(q)){const k=chPend;chPend='';const A=chatSaveNote(q,k);chQ=chQ.then(()=>chatReply(q,A)).catch(()=>{});return}
   chPend='';
+  if(window.lookIs&&lookIs(q)){chQ=chQ.then(async()=>{await chatReply(q,{text:'Let me look through your photos for that…',more:[],cards:[],chips:[]});const A=await lookAnswer(q).catch(()=>({text:'I could not look through your photos just now. Try again in a moment.',more:[],cards:[],chips:[]}));await chatReply(q,A)}).catch(()=>{});return}
   {const C=window.cpRespond&&cpRespond(q);if(C){chQ=chQ.then(()=>chatReply(q,C)).catch(()=>{});return}}
   chQ=chQ.then(()=>chatReply(q)).catch(()=>{});
 }
