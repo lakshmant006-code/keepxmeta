@@ -3,7 +3,7 @@
    them all (or a whole folder where the browser allows it). This makes that fast and safe: no limit on how many, four photos at a time, smaller
    pictures decoded straight to size, a screen that stays awake, progress with time left, a Stop button that keeps what is done, and a check
    against the phone's storage so it never fills it silently. Photos already in Keep (same name, size and date) are skipped. */
-const BULK_W=1100,BULK_POOL=4,BULK_AVG=110e3; /* long side about 1100px, JPEG about 110 KB each */
+const BULK_W=1100,BULK_POOL=Math.max(3,Math.min(6,(navigator.hardwareConcurrency||4)-1)),BULK_AVG=110e3; /* long side about 1100px, JPEG about 110 KB each */
 const bulkIsImg=f=>/^image\//.test(f.type)||/\.(jpe?g|png|heic|heif|webp)$/i.test(f.name);
 const bulkURL=blob=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(blob)});
 async function bulkShrink(f){

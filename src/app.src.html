@@ -1409,41 +1409,8 @@ function onbPick(again){
   $('#onbSkip').onclick=onbClose;
   $('#onbIn2').onchange=e=>{const f=[...e.target.files].filter(x=>/^image\//.test(x.type)||/\.(jpe?g|png|heic|heif|webp)$/i.test(x.name));e.target.value='';if(f.length)onbRun(f)};
 }
-async function onbRun(files){
-  const over=files.length>ONB_MAX;files=files.slice(0,ONB_MAX);
-  const have=new Set(user.map(o=>o.fid).filter(Boolean)),base=Date.now(),got=[];let skip=0,i=0;
-  $('#onbIn').innerHTML=`<div class="onbic">${ic.img.replace('width="22" height="22"','width="34" height="34"')}</div><h1>Keeping your photos</h1><p class="onbp" id="onbT">0 of ${files.length}</p><div class="onbbar"><i id="onbB"></i></div><small class="onbn">Keep this screen open</small>`;
-  for(const f of files){
-    i++;
-    const fid=f.name+'|'+f.size+'|'+f.lastModified;
-    if(have.has(fid)){skip++}
-    else try{
-      const ex=await exifOf(f),dataUrl=await shrinkImage(f,1280);
-      const o={id:base+i,ts:Math.min(ex.ts||f.lastModified||base,base),type:'photo',ar:lastAr,src:dataUrl,text:'',fid};
-      if(ex.geo)o.geo=ex.geo;
-      user.push(o);got.push(o);have.add(fid);
-      if(got.length%10===0)persistUser();
-    }catch(e){skip++}
-    const t=$('#onbT'),bar=$('#onbB');if(t)t.textContent=i+' of '+files.length;if(bar)bar.style.width=Math.round(i/files.length*100)+'%';
-    if(i%4===0)await new Promise(r=>setTimeout(r,0));
-  }
-  persistUser();
-  if(!got.length){
-    $('#onbIn').innerHTML=`<div class="onbic">${ic.img.replace('width="22" height="22"','width="34" height="34"')}</div><h1>Nothing new to keep</h1><p class="onbp">${skip?'Those photos were already in Keep, or could not be read.':'No photos were chosen.'}</p><button class="pill d onbgo" id="onbRe">Try again</button><button class="onbsk" id="onbSkip">Close</button>`;
-    $('#onbRe').onclick=()=>onbPick(true);$('#onbSkip').onclick=onbClose;return;
-  }
-  got.sort((a,b)=>a.ts-b.ts);
-  const a=new Date(got[0].ts),z=new Date(got[got.length-1].ts),fmt=x=>MS[x.getMonth()]+' '+x.getDate(),geo=got.filter(x=>x.geo).length;
-  const days=new Set(got.map(x=>dk(new Date(x.ts)))).size;
-  onbFlag();refresh();
-  if(typeof faceKick==='function')faceKick(8000);
-  $('#onbIn').innerHTML=`<div class="onbic ok"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-   <h1>${got.length} ${got.length===1?'photo':'photos'} kept</h1>
-   <p class="onbp">${days} ${days===1?'day':'days'}, from ${fmt(a)} to ${fmt(z)}.${geo?` ${geo} ${geo===1?'has':'have'} a location and ${geo===1?'is':'are'} on the map.`:' None carried a location, so the map stays empty for now.'}${skip?` ${skip} skipped (already kept or unreadable).`:''}${over?` Only the first ${ONB_MAX} were added; run Import photos again for the rest.`:''}</p>
-   <button class="pill d onbgo" id="onbOk">Open my calendar</button><button class="onbsk" id="onbMore">Add more photos</button>`;
-  $('#onbOk').onclick=()=>{onbClose();const c=$('#cal');const t=$('#m-'+z.getFullYear()+'-'+(z.getMonth()+1));if(t&&c)c.scrollTop=t.offsetTop-4};
-  $('#onbMore').onclick=()=>onbPick(true);
-}
+/* the first-run picker uses the same fast pipeline as "Import all my photos": several photos at once, decoded straight to size, saved in batches */
+async function onbRun(files){onbFlag();return bulkRun(files)}
 /* ---------- long press a memory: delete ---------- */
 /* Hold a photo (in the viewer), a lone photo or a note in a day, and a small menu offers Delete. Only things you kept can be deleted. */
 (function(){
