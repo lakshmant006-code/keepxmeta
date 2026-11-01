@@ -13,19 +13,19 @@ const chRelSafe=d=>{const df=Math.round((+new Date(TODAY.getFullYear(),TODAY.get
 /* what could be in the inbox right now */
 function ntItems(){
   const cfg=ntGet(),A=all(),out=[],T=TODAY,morning=h=>new Date(T.getFullYear(),T.getMonth(),T.getDate(),h).getTime(),rf=rfGet();
-  out.push({id:'welcome',ts:morning(8),ic:'cube',t:'Welcome to Keep',b:'Everything you keep stays on this phone. Take a quick tour any time.',a:[['Take the tour','tour']],always:1});
+  out.push({id:'welcome',kind:'welcome',ts:morning(8),ic:'cube',t:'Welcome to Keep',b:'Everything you keep stays on this phone. Take a quick tour any time.',a:[['Take the tour','tour']],always:1});
   if(cfg.on.otd)for(let n=1;n<=3;n++){
     const k=dk(new Date(T.getFullYear()-n,T.getMonth(),T.getDate())),day=byDay[k];if(!day||!day.length||(rf[k]&&rf[k].v==='quiet'))continue;
     const m=day.find(x=>x.text)||day[0],txt=(m.text||m.name||'').trim();
-    out.push({id:'otd-'+k,ts:morning(9),ic:'cal',t:n===1?'A year ago today':n+' years ago today',b:(txt?'“'+(txt.length>70?txt.slice(0,68)+'…':txt)+'” ':'')+day.length+(day.length===1?' instant':' instants')+' kept.',a:[['View memory','day:'+k],[rf[k]?'You felt: '+RF.find(r=>r[0]===rf[k].v)[1]:'How does it feel?','reflect:'+k]]});
+    out.push({id:'otd-'+k,kind:'otd',ts:morning(9),ic:'cal',t:n===1?'A year ago today':n+' years ago today',b:(txt?'“'+(txt.length>70?txt.slice(0,68)+'…':txt)+'” ':'')+day.length+(day.length===1?' instant':' instants')+' kept.',a:[['View memory','day:'+k],[rf[k]?'You felt: '+RF.find(r=>r[0]===rf[k].v)[1]:'How does it feel?','reflect:'+k]]});
   }
   const S=insStreaks(A);
-  if(cfg.on.streak&&S.cur>=3){const m=S.cur>=30?30:S.cur>=14?14:S.cur>=7?7:S.cur>=5?5:3;out.push({id:'streak-'+m+'-'+dk(T),ts:morning(10),ic:'chart',t:S.cur+'-day streak',b:'You kept something '+S.cur+' days in a row. Keep it going.',a:[['Add something','add']]})}
+  if(cfg.on.streak&&[3,5,7,14,21,30,50,100,200,365].includes(S.cur)){const m=S.cur;out.push({id:'streak-'+m+'-'+dk(new Date(T.getFullYear(),T.getMonth(),T.getDate()-S.cur+1)),kind:'streak',ts:morning(10),ic:'chart',t:S.cur+'-day streak',b:'You kept something '+S.cur+' days in a row. Keep it going.',a:[['Add something','add']]})}
   if(cfg.on.week){const dow=(T.getDay()+6)%7,mon=new Date(T.getFullYear(),T.getMonth(),T.getDate()-dow),pm=new Date(+mon-7*864e5),n=A.filter(m=>m.ts>=+pm&&m.ts<+mon);
     if(n.length){const days=new Set(n.map(m=>dk(new Date(m.ts)))),c={};n.forEach(m=>{const d=new Date(m.ts).getDay();c[d]=(c[d]||0)+1});const top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0],DN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-      out.push({id:'week-'+dk(mon),ts:new Date(mon.getFullYear(),mon.getMonth(),mon.getDate(),8).getTime(),ic:'chart',t:'Last week in Keep',b:n.length+(n.length===1?' instant':' instants')+' over '+days.size+(days.size===1?' day':' days')+'. '+DN[+top[0]]+' was your busiest.',a:[['See Insights','ins']]})}}
-  if(typeof faceClusterCount==='function'&&faceClusterCount()>0){const fc=faceClusterCount();out.push({id:'faces-'+fc,ts:morning(9),ic:'users',t:fc+(fc===1?' person':' people')+' found in your photos',b:'The same face shows up in more than one photo. Name each once and Keep tags them everywhere.',a:[['Name them','people']]})}
-  if(cfg.on.nudge&&A.length){const last=Math.max(...A.map(m=>m.ts));if(+new Date(T.getFullYear(),T.getMonth(),T.getDate())-last>3*864e5)out.push({id:'nudge-'+dk(T),ts:morning(18),ic:'plus',t:'A quiet few days',b:'Anything from this week worth keeping?',a:[['Keep something','add']]})}
+      out.push({id:'week-'+dk(mon),kind:'week',ts:new Date(mon.getFullYear(),mon.getMonth(),mon.getDate(),8).getTime(),ic:'chart',t:'Last week in Keep',b:n.length+(n.length===1?' instant':' instants')+' over '+days.size+(days.size===1?' day':' days')+'. '+DN[+top[0]]+' was your busiest.',a:[['See Insights','ins']]})}}
+  if(typeof faceClusterCount==='function'&&faceClusterCount()>0){const fc=faceClusterCount();out.push({id:'faces-'+fc,kind:'faces',ts:morning(9),ic:'users',t:fc+(fc===1?' person':' people')+' found in your photos',b:'The same face shows up in more than one photo. Name each once and Keep tags them everywhere.',a:[['Name them','people']]})}
+  if(cfg.on.nudge&&A.length){const last=Math.max(...A.map(m=>m.ts));if(+new Date(T.getFullYear(),T.getMonth(),T.getDate())-last>3*864e5)out.push({id:'nudge-'+dk(T),kind:'nudge',ts:morning(18),ic:'plus',t:'A quiet few days',b:'Anything from this week worth keeping?',a:[['Keep something','add']]})}
   if(cfg.on.near&&window.nearItems)out.push(...nearItems());
   return out.filter(i=>i.ts<=Date.now()||i.always).sort((a,b)=>b.ts-a.ts);
 }
@@ -94,17 +94,31 @@ setTimeout(ntBadge,600);
 /* ---------- on the phone's home screen: app-icon badge, system alerts, daily check ---------- */
 const ntCan=()=>'Notification' in window&&'serviceWorker' in navigator;
 const ntPerm=()=>ntCan()?Notification.permission:'unsupported';
+/* A phone alert is rare on purpose: never while Keep is open, never at night, at most two a day and one of each kind, at least three hours apart,
+   and only for things worth leaving what you are doing for (a memory from a past year, a streak milestone, last week's recap, the nudge if you asked for it). */
+const NT_BK='kept.ntb',NT_PUSH=['otd','streak','week','nudge'];
+const ntQuiet=d=>{const h=(d||new Date()).getHours();return h>=21||h<9};
+function ntBudget(kind,commit){
+  let b={};try{b=JSON.parse(localStorage.getItem(NT_BK)||'{}')||{}}catch(e){}
+  const day=dk(new Date());if(b.d!==day)b={d:day,n:0,k:{},last:b.last||0};
+  const ok=!ntQuiet()&&b.n<2&&!b.k[kind]&&Date.now()-(b.last||0)>=3*36e5;
+  if(ok&&commit){b.n++;b.k[kind]=1;b.last=Date.now();try{localStorage.setItem(NT_BK,JSON.stringify(b))}catch(e){}try{caches.open('keep-nt').then(k=>k.put('last',new Response(String(b.last)))).catch(()=>{})}catch(e){}}
+  return ok;
+}
+window.ntBudget=ntBudget;
 function ntHome(n){
   try{if(navigator.setAppBadge){n?navigator.setAppBadge(n):navigator.clearAppBadge()}}catch(e){}
-  if(ntPerm()!=='granted'||!n)return;
-  const c=ntGet(),seen=c.pushed||{},fresh=ntItems().filter(i=>!c.read[i.id]&&!seen[i.id]);
-  if(!fresh.length)return;
-  fresh.forEach(i=>{seen[i.id]=Date.now()});c.pushed=seen;ntPut(c);
-  navigator.serviceWorker.ready.then(r=>fresh.slice(0,3).forEach(i=>r.showNotification(i.t,{body:i.b,tag:i.id,icon:'icons/icon-192.png',badge:'icons/icon-192.png',data:{url:'./'}}))).catch(()=>{});
+  if(ntPerm()!=='granted'||!n||document.visibilityState==='visible')return; /* you are in the app: the badge is enough */
+  const c=ntGet(),seen=c.pushed||{},fresh=ntItems().filter(i=>!c.read[i.id]&&!seen[i.id]&&NT_PUSH.includes(i.kind)).sort((a,b)=>NT_PUSH.indexOf(a.kind)-NT_PUSH.indexOf(b.kind));
+  const top=fresh[0];if(!top||!ntBudget(top.kind,true))return;
+  fresh.forEach(i=>{seen[i.id]=Date.now()}); /* the rest are dropped, not saved up for tomorrow */
+  c.pushed=seen;ntPut(c);
+  navigator.serviceWorker.ready.then(r=>r.showNotification(top.t,{body:top.b,tag:top.id,icon:'icons/icon-192.png',badge:'icons/icon-192.png',data:{url:'./'}})).catch(()=>{});
 }
 async function ntSnap(){
-  try{const c=ntGet(),k=await caches.open('keep-nt');
-    await k.put('snap',new Response(JSON.stringify({on:c.on,at:Date.now()})));
+  try{const c=ntGet(),k=await caches.open('keep-nt'),seen=c.pushed||{};
+    const top=ntItems().filter(i=>!c.read[i.id]&&!seen[i.id]&&NT_PUSH.includes(i.kind)).sort((a,b)=>NT_PUSH.indexOf(a.kind)-NT_PUSH.indexOf(b.kind))[0];
+    await k.put('snap',new Response(JSON.stringify({on:c.on,at:Date.now(),msg:top?{id:top.id,t:top.t,b:top.b}:null})));
     const r=await navigator.serviceWorker.ready;
     if(r.periodicSync&&ntPerm()==='granted')await r.periodicSync.register('keep-daily',{minInterval:864e5})}catch(e){}
 }

@@ -40,7 +40,7 @@ function nrFire(m){
   const x=nrText(m),id='near-'+key+'-'+Date.now();
   st.seen[key]=Date.now();st.lastAny=Date.now();st.hits.push({id,mid:m.id,ts:Date.now(),t:x.t,b:x.b,btn:x.btn});nrPut(st);
   if(typeof ntBadge==='function')ntBadge();
-  if(typeof ntPerm==='function'&&ntPerm()==='granted'&&document.visibilityState!=='visible'){
+  if(typeof ntPerm==='function'&&ntPerm()==='granted'&&document.visibilityState!=='visible'&&(!window.ntBudget||ntBudget('near',true))){
     const c=ntGet();c.pushed=c.pushed||{};c.pushed[id]=Date.now();ntPut(c);
     navigator.serviceWorker.ready.then(r=>r.showNotification(x.t,{body:x.b,tag:id,icon:'icons/icon-192.png',badge:'icons/icon-192.png',data:{ar:m.id}})).catch(()=>{});
   }

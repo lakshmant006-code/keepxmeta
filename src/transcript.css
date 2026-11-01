@@ -18,3 +18,9 @@
 .trmic{width:64px;height:64px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;box-shadow:0 8px 22px rgba(0,0,0,.2)}.trmic.on{background:var(--blue);color:#fff}
 .trkeep{height:44px;padding:0 22px;border-radius:22px;background:var(--blue);color:#fff;font-size:15px;font-weight:600}
 .tagch.trlnk{margin-top:8px}
+.vtr{width:100%;max-width:330px;margin-top:6px}.vtr small{display:block;font-size:12.5px;color:var(--mute);text-align:center;margin-bottom:6px}.vtr .tagch{margin-left:6px}
+.vtr textarea{width:100%;border-radius:16px;background:var(--fill);border:1px solid var(--bd);padding:10px 12px;font-size:15px;color:var(--ink);resize:none;outline:0;font-family:inherit}
+.asrm{position:absolute;inset:0;z-index:99;background:rgba(0,0,0,.4);display:flex;align-items:flex-end}
+.asrm>div{width:100%;background:var(--bg);border-radius:26px 26px 0 0;padding:22px 20px calc(env(safe-area-inset-bottom,0px) + 22px)}
+.asrm h2{font-size:20px;font-weight:700;margin-bottom:8px}.asrm p{font-size:15px;line-height:1.45;color:var(--mute);margin-bottom:8px}
+.asrb{display:flex;gap:10px;margin-top:14px}.asrb .pill{flex:1;justify-content:center}
