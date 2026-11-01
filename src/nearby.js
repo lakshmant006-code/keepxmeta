@@ -1,14 +1,27 @@
 /* ---------- Near a memory: "Come see Kalyan here" when you walk back past where you were together ---------- */
 /* Worked out on the phone from the places you kept. A web app cannot watch your location once it is closed, so this runs while Keep is open
    (or just left in the background); it never sends your position anywhere. */
-const NRK='kept.near',NR_R=150,NR_MIN_DAYS=14,NR_COOL=7*864e5;
-const nrGet=()=>{try{const o=JSON.parse(localStorage.getItem(NRK)||'{}');return{seen:o.seen||{},hits:o.hits||[]}}catch(e){return{seen:{},hits:[]}}};
-const nrPut=o=>{try{localStorage.setItem(NRK,JSON.stringify({seen:o.seen,hits:o.hits.slice(-30)}))}catch(e){}};
+const NRK='kept.near',NRH='kept.home',NR_R=80,NR_MIN_DAYS=14,NR_COOL=14*864e5,NR_GAP=6*36e5; /* walking past only: 80 m, once per place a fortnight, one nudge every six hours */
+const nrGet=()=>{try{const o=JSON.parse(localStorage.getItem(NRK)||'{}');return{seen:o.seen||{},hits:o.hits||[],lastAny:o.lastAny||0}}catch(e){return{seen:{},hits:[],lastAny:0}}};
+const nrPut=o=>{try{localStorage.setItem(NRK,JSON.stringify({seen:o.seen,hits:o.hits.slice(-30),lastAny:o.lastAny||0}))}catch(e){}};
 const nrDist=(a,b)=>{const R=6371e3,r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r,x=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
+/* where you usually are (home, work, a regular cafe) never nudges: places you kept on several different days, plus a home you set yourself */
+const nrHome=()=>{try{const h=JSON.parse(localStorage.getItem(NRH)||'null');return h&&h.length===2?h:null}catch(e){return null}};
+let nrRegC=null;
+function nrRegular(){
+  const n=all().length;if(nrRegC&&nrRegC.n===n)return nrRegC.c;
+  const cl=[];
+  all().filter(m=>m.geo&&m.geo.length===2).forEach(m=>{
+    let c=cl.find(x=>nrDist(x.p,m.geo)<150);if(!c){c={p:m.geo,days:new Set()};cl.push(c)}c.days.add(dk(new Date(m.ts)));
+  });
+  const c=cl.filter(x=>x.days.size>=5).map(x=>x.p);nrRegC={n,c};return c;
+}
+const nrUsual=p=>{const h=nrHome();return(h&&nrDist(h,p)<250)||nrRegular().some(c=>nrDist(c,p)<200)};
+const nrQuiet=d=>{const h=(d||new Date()).getHours();return h>=21||h<8};
 /* one place per person: the latest photo of them there */
 function nrPlaces(){
   const out=[];
-  all().filter(m=>m.type==='photo'&&m.who&&m.geo&&m.geo.length===2).sort((a,b)=>b.ts-a.ts).forEach(m=>{
+  all().filter(m=>m.type==='photo'&&m.who&&m.geo&&m.geo.length===2&&!nrUsual(m.geo)).sort((a,b)=>b.ts-a.ts).forEach(m=>{
     if(out.some(o=>pkey(o.m.who)===pkey(m.who)&&nrDist(o.m.geo,m.geo)<NR_R*1.5))return;out.push({m});
   });
   return out.map(o=>o.m);
@@ -23,9 +36,9 @@ const nrOn=()=>!!ntGet().on.near;
 window.nearItems=()=>nrGet().hits.map(h=>({id:h.id,ts:h.ts,ic:'users',t:h.t,b:h.b,a:[[h.btn,'ar:'+h.mid]]}));
 function nrFire(m){
   const st=nrGet(),key=m.id,last=st.seen[key]||0;
-  if(Date.now()-last<NR_COOL)return;
+  if(Date.now()-last<NR_COOL||Date.now()-(st.lastAny||0)<NR_GAP)return;
   const x=nrText(m),id='near-'+key+'-'+Date.now();
-  st.seen[key]=Date.now();st.hits.push({id,mid:m.id,ts:Date.now(),t:x.t,b:x.b,btn:x.btn});nrPut(st);
+  st.seen[key]=Date.now();st.lastAny=Date.now();st.hits.push({id,mid:m.id,ts:Date.now(),t:x.t,b:x.b,btn:x.btn});nrPut(st);
   if(typeof ntBadge==='function')ntBadge();
   if(typeof ntPerm==='function'&&ntPerm()==='granted'&&document.visibilityState!=='visible'){
     const c=ntGet();c.pushed=c.pushed||{};c.pushed[id]=Date.now();ntPut(c);
@@ -42,14 +55,29 @@ function nrBanner(m,x){
   $('#nrX').onclick=off;$('#nrGo').onclick=()=>{off();closeSheet();openAR(m.id)};
   setTimeout(off,14000);
 }
-let nrW=null;
-function nrCheck(lat,lng){
-  const me=[lat,lng],T=+TODAY;
-  nrPlaces().forEach(m=>{if(T-m.ts<NR_MIN_DAYS*864e5)return;if(nrDist(me,m.geo)<=NR_R)nrFire(m)});
+let nrW=null,nrPrev=null;
+/* only when you are walking past: you need to be moving at walking pace and coming into the place from outside, not sitting in it */
+function nrCheck(lat,lng,ts){
+  ts=ts||Date.now();const me=[lat,lng],prev=nrPrev;nrPrev={p:me,t:ts};
+  if(!prev)return;
+  const dt=(ts-prev.t)/1000,d=nrDist(prev.p,me);if(dt<2||dt>300)return;
+  const v=d/dt;if(v<.6||v>3.2)return;
+  if(nrQuiet(new Date(ts))||nrUsual(me))return;
+  const T=+TODAY;
+  nrPlaces().forEach(m=>{if(T-m.ts<NR_MIN_DAYS*864e5)return;if(nrDist(me,m.geo)<=NR_R&&nrDist(prev.p,m.geo)>NR_R)nrFire(m)});
 }
+window.nrCheck=nrCheck;
+/* set where home is, so Keep stays quiet there */
+window.nearHomeUI=()=>{
+  const b=$('#nrHome'),t=$('#nrHomeS');if(!b)return;
+  const draw=()=>{const h=nrHome();t.textContent=h?'Set. Keep stays quiet within about 250 m.':'Not set. Keep also stays quiet where you often are.';b.textContent=h?'Update':'Set here'};
+  draw();
+  b.onclick=()=>{if(!navigator.geolocation){toast('Location is not available here');return}
+    navigator.geolocation.getCurrentPosition(p=>{try{localStorage.setItem(NRH,JSON.stringify([+p.coords.latitude.toFixed(5),+p.coords.longitude.toFixed(5)]))}catch(e){}draw();toast('Home set. Keep stays quiet here')},()=>toast('Allow location to set home'),{timeout:9000})};
+};
 function nrStart(){
   if(nrW!==null||!navigator.geolocation||!nrOn())return;
-  nrW=navigator.geolocation.watchPosition(p=>nrCheck(p.coords.latitude,p.coords.longitude),()=>{},{enableHighAccuracy:false,maximumAge:30000,timeout:60000});
+  nrW=navigator.geolocation.watchPosition(p=>nrCheck(p.coords.latitude,p.coords.longitude,p.timestamp),()=>{},{enableHighAccuracy:false,maximumAge:30000,timeout:60000});
 }
 function nrStop(){if(nrW!==null){navigator.geolocation.clearWatch(nrW);nrW=null}}
 /* switching it on asks for location once, right here, and says why */
