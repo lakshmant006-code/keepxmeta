@@ -7,6 +7,5 @@
 .mqa span.on{background:var(--blue);color:#fff;border-color:transparent}
 .mtd{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 190px);z-index:6;height:34px;padding:0 14px;border-radius:17px;background:color-mix(in srgb,var(--bg) 78%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--bd);box-shadow:0 6px 18px rgba(0,0,0,.14);font-size:13px;font-weight:600;color:var(--blue);display:flex;align-items:center;gap:6px;transform:translateX(-50%);opacity:0;pointer-events:none}
 .mtd.on{pointer-events:auto}
-.mrp{position:fixed;z-index:70;border-radius:50%;border:2px solid var(--blue);pointer-events:none}
 .mfl{position:absolute;inset:0;background:#fff;pointer-events:none;border-radius:inherit;z-index:6}
 #q.ph0::placeholder{opacity:0}#q::placeholder{transition:opacity .18s}
