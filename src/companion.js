@@ -36,7 +36,7 @@ function cpGood(){
 }
 function cpGoodReply(){
   const m=cpGood();
-  if(!m)return{text:'I do not have a happy moment of yours to point to yet. Keep one small good thing today, even a coffee, and I will remember it for the harder days.',more:[],cards:[],chips:[{t:'Keep something now',act:'add'}]};
+  if(!m)return{text:'I do not have a happy instant of yours to point to yet. Keep one small good thing today, even a coffee, and I will remember it for the harder days.',more:[],cards:[],chips:[{t:'Keep something now',act:'add'}]};
   const when=chRel(new Date(m.ts));
   return{text:`Here is one. ${esc(when)}${m.type==='photo'?' you kept a photo and wrote':' you wrote'}: “${esc(chSnip(m.text,140))}”`,more:['That was you. It can be you again.'],cards:[chatCard([m])],chips:[{t:'Another one',s:'__good'},{t:'Breathe with me',act:'breathe'},{t:'Keep this as a note',act:'savenote'}]};
 }
@@ -53,7 +53,7 @@ const CP_SAY={
   tired:{open:['You sound worn out.','That sounds exhausting.','No wonder you are drained.'],
     next:['What took the most out of you today?','Is there anything you can put down until tomorrow?','Be kind to yourself tonight. Rest counts.']},
   shame:{open:['You are being hard on yourself, and I would like to be a bit kinder to you.','One hard thing does not define you.','That sounds like it stings.'],
-    next:['What would you say to a friend who told you this?','What happened? You can tell me the whole thing.','You are still the same person who kept all of these good moments.']},
+    next:['What would you say to a friend who told you this?','What happened? You can tell me the whole thing.','You are still the same person who kept all of these good instants.']},
   joy:{open:['I love hearing that!','That is wonderful. You deserve it.','Yes! I am happy for you.'],
     next:['Tell me more. What made it so good?','Let us keep it so you can find it again. Want me to save this?','Who do you want to share it with?']},
   '':{open:['I hear you.','Thank you for telling me.','I am listening.'],next:['Tell me more.','How did that feel?','What is on your mind most right now?']}
@@ -93,6 +93,7 @@ window.cpRespond=q=>{
   if(CP_THX.test(q)&&q.split(/\s+/).length<4)return{text:'Always. I am glad to be here with you.',more:[],cards:[],chips:[]};
   if(CP_BYE.test(q))return{text:'Take care of yourself. I will be here when you come back.',more:[],cards:[],chips:[]};
   if(cpIsAsk(q)&&!m.emo)return null;
+  if(!m.emo&&!/^(i|i'm|im|i've|my|we|today|just|so|it|he|she|they)\b/i.test(q))return null;
   if(!m.emo&&m.score===0&&cpTurn===0&&q.split(/\s+/).length<4)return null;
   cpEmo=m.emo||cpEmo;
   return cpReply(q,m);

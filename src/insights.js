@@ -91,7 +91,7 @@ function insDraw(){
   const busiest=Object.entries(byD).sort((a,c)=>c[1]-a[1])[0];
   let h=`<div class="seg insseg" role="tablist" aria-label="Range">${INS_RANGES.map(r=>`<button data-v="${r[0]}" class="${insRange===r[0]?'on':''}">${r[1]}</button>`).join('')}</div>`;
   if(!M.length){
-    h+=`<div class="empty" style="margin:36px 8px;line-height:1.5">Nothing kept in ${insRange==='all'?'your memories':'the last '+rl} yet.<br>Add a moment and it shows up here.</div>`;
+    h+=`<div class="empty" style="margin:36px 8px;line-height:1.5">Nothing kept in ${insRange==='all'?'your memories':'the last '+rl} yet.<br>Add an instant and it shows up here.</div>`;
   }else{
     const pct=Math.round(dayKeys.size/D.days*100);
     h+=`<div class="inshero"><small>Memories kept${insRange==='all'?'':' in the last '+rl}</small><b>${insFmt(M.length)}</b><span>On ${dayKeys.size} of ${D.days} days (${pct}%)</span></div>
