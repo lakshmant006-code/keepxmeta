@@ -18,8 +18,12 @@ self.addEventListener('notificationclick',e=>{const ar=(e.notification.data||{})
   if(cs.length){if(ar)cs[0].postMessage({near:ar});return cs[0].focus()}
   return self.clients.openWindow(ar?'./?near='+ar:'./')}))});
 self.addEventListener('periodicsync',e=>{if(e.tag!=='keep-daily')return;
-  e.waitUntil((async()=>{const hit=await (await caches.open('keep-nt')).match('snap');if(!hit)return;const o=await hit.json(),on=o.on||{};
-    if(!(on.otd||on.week||on.nudge))return;
+  /* at most one, between 9am and 9pm, a day apart, never while the app is open, and only if the app left a real message (no generic "something is waiting") */
+  e.waitUntil((async()=>{const k=await caches.open('keep-nt'),hit=await k.match('snap');if(!hit)return;const o=await hit.json(),msg=o.msg;if(!msg||!msg.id)return;
+    const h=new Date().getHours();if(h>=21||h<9)return;
+    const lastR=await k.match('last'),last=lastR?+(await lastR.text()):0;if(Date.now()-last<20*36e5)return;
+    const sentR=await k.match('sent'),sent=sentR?await sentR.text():'';if(sent===msg.id)return;
     const cs=await self.clients.matchAll({type:'window'});if(cs.some(c=>c.visibilityState==='visible'))return;
+    await k.put('last',new Response(String(Date.now())));await k.put('sent',new Response(msg.id));
     try{self.navigator.setAppBadge&&await self.navigator.setAppBadge(1)}catch(_){}
-    await self.registration.showNotification('Keep',{body:on.nudge?'Anything worth keeping today?':'Something from your past may be waiting.',tag:'keep-daily',icon:'icons/icon-192.png',data:{url:'./'}})})())});
+    await self.registration.showNotification(msg.t||'Keep',{body:msg.b||'',tag:'keep-daily',icon:'icons/icon-192.png',data:{url:'./'}})})())});

@@ -982,7 +982,7 @@ function openAdd(dayKey){
      <div class="shut"><button class="shutter" id="shutter" aria-label="Capture"><i></i></button></div>
      <textarea class="cap-in" id="capIn" rows="1" placeholder="Add a line (optional)"></textarea>
      <div class="whoRow" id="whoRow"><input id="whoIn" placeholder="Who’s in it? (optional)" autocomplete="off"><div class="poses" id="poseSel">${POSES.map(p=>`<button data-p="${p[0]}" class="${p[0]==='stand'?'on':''}">${p[1]}</button>`).join('')}</div></div></section>
-   <section class="pane" data-p="voice"><div class="vc"><button class="orb3d" id="bigrec" aria-label="Hold to talk"><span class="mesh"></span><span class="shade"></span></button><div class="lw js" id="lw">${'<i></i>'.repeat(31)}</div><div class="tm2" id="vt">&nbsp;</div><button class="tagch" id="trGo">Record a conversation</button></div></section>
+   <section class="pane" data-p="voice"><div class="vc"><button class="orb3d" id="bigrec" aria-label="Hold to talk"><span class="mesh"></span><span class="shade"></span></button><div class="lw js" id="lw">${'<i></i>'.repeat(31)}</div><div class="tm2" id="vt">&nbsp;</div><div class="vtr" id="vtrBox"><small id="vtrS">${typeof asrHas==='function'&&!asrHas()?'Want your words written down? ':'Hold the circle and talk. Your words appear here.'}${typeof asrHas==='function'&&!asrHas()?'<button class="tagch" id="vtrGet">Turn on</button>':''}</small><textarea id="vtx" rows="3" placeholder="Your words" autocomplete="off"></textarea></div><button class="tagch" id="trGo">Record a conversation</button></div></section>
    <section class="pane" data-p="text"><textarea class="big-in" id="tx" style="flex:1;min-height:0" placeholder="${PH.text}"></textarea></section>
    <section class="pane" data-p="more"><div class="mseg" id="mseg">${MORE.map(m=>`<button data-m="${m[0]}" class="${m[0]==='quote'?'on':''}">${m[1]}</button>`).join('')}</div><div class="in-wrap" id="mbody"></div></section>
   </div>
@@ -1573,6 +1573,7 @@ __PAGES_JS__
 __MICRO_JS__
 __MM_JS__
 __TR_JS__
+__ASR_JS__
 __COMP_JS__
 __MC_JS__
 </script>

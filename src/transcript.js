@@ -48,7 +48,10 @@ window.trAdd=(sp,text)=>{
   const f=trSplit(text).map(trFact).find(Boolean);if(f)trTip(f.fact);
 };
 function trListen(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){TR.typed=true;return false}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  /* an installed iPhone web app has no speech recognition: use the on-phone listener there, and wherever the browser has none */
+  if((!SR||(window.asrPref&&asrPref()))&&window.trAsrStart&&trAsrStart()){TR.typed=true;return true}
+  if(!SR){TR.typed=true;return false}
   const r=new SR();r.continuous=true;r.interimResults=true;r.lang=navigator.language||'en-US';TR.rec=r;TR.on=true;
   r.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const res=e.results[i];if(res.isFinal)trAdd(TR.sp,res[0].transcript);else interim+=res[0].transcript}
     if(interim){TR.interim=interim;trDraw(true)}};
@@ -56,7 +59,7 @@ function trListen(){
   r.onend=()=>{if(TR&&TR.on&&TR.rec===r){try{r.start()}catch(e){}}};
   try{r.start()}catch(e){return false}return true;
 }
-function trStopListen(){if(TR&&TR.rec){TR.on=false;try{TR.rec.stop()}catch(e){}}}
+function trStopListen(){if(TR&&TR.rec){TR.on=false;try{TR.rec.stop()}catch(e){}}if(TR&&TR.stopAsr)TR.stopAsr()}
 function trChrome(){
   const mic=$('#trMic'),sp=$('#trSp'),ty=$('#trType');if(!mic)return;
   mic.classList.toggle('on',!!TR.on);mic.setAttribute('aria-label',TR.on?'Pause':'Listen');
