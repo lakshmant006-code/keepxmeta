@@ -6,14 +6,6 @@ const buzz=ms=>{if(!RM.matches&&navigator.vibrate)try{navigator.vibrate(ms)}catc
 const POP={type:'spring',stiffness:520,damping:24},SOFT={type:'spring',stiffness:340,damping:26};
 const cal=$('#cal');
 
-/* 1. a ring ripples out from the day you touch */
-if(cal)cal.addEventListener('pointerdown',e=>{
-  if(RM.matches)return;const c=e.target.closest('.cell[data-d]');if(!c)return;
-  const o=c.querySelector('.orb')||c,r=o.getBoundingClientRect(),d=document.createElement('i');d.className='mrp';
-  Object.assign(d.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});document.body.appendChild(d);
-  animate(d,{scale:[1,1.7],opacity:[.55,0]},{duration:.5,ease:'easeOut'}).finished.then(()=>d.remove(),()=>d.remove());
-},{passive:true});
-
 /* 2. hold a day to peek at it without opening it; let go to close, slide up to open */
 let pk=null;
 const killPeek=()=>{if(!pk)return;const e=pk.el;pk=null;animate(e,{opacity:0,scale:.92},{duration:.15}).finished.then(()=>e.remove(),()=>e.remove())};
