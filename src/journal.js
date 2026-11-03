@@ -101,48 +101,116 @@ function jrQuote(j){
 const jrAgo=ts=>{const d=Math.round((+TODAY-ts)/864e5);if(d<60)return d+' DAYS AGO';const m=Math.round(d/30);if(m<12)return(['','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE','TEN','ELEVEN'][m]||m)+' MONTHS AGO';const y=Math.round(d/365);return y===1?'A YEAR AGO':y+' YEARS AGO'};
 const JR_ANS=['I found what I was looking for.','I’m still figuring it out.','What I wanted has changed.','I see things differently now.'];
 function jrLetterHTML(m){
-  return `<div class="jlet" id="jlet" data-id="${m.id}"><small>A LETTER FROM YOUR PAST</small><h3>You once wanted this.</h3><em>${jrAgo(m.ts)}</em><q>${esc(jrQuote(m.j))}</q><b>And today?</b>
+  return `<div class="jlet" id="jlet" data-id="${m.id}"><h3>You once wanted this.</h3><em>${jrAgo(m.ts)}</em><q>${esc(jrQuote(m.j))}</q><b>And today?</b>
    <div class="jans">${JR_ANS.map((t,i)=>`<button data-a="${i}">${esc(t)}</button>`).join('')}</div></div>`;
 }
-function jrBanSet(pk){
-  if(!pk)return;const img=$('#jbi'),t=$('#jbt'),q=$('#jbq');if(!img)return;
-  if(jrBan&&pk.b.id===jrBan.id)return;
-  jrBan=pk.b;jrCp=pk.c;
-  const apply=()=>{const f=$('#jbf');if(f)f.style.backgroundImage='url(journal/'+pk.b.id+'.jpg)';img.src='journal/'+pk.b.id+'.jpg';img.style.display='';t.textContent=pk.c.l;q.textContent=pk.c.f};
-  if(window.Motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches){Motion.animate('#jban .jbi,#jban .jbs',{opacity:[1,0]},{duration:.18}).finished.then(()=>{apply();Motion.animate('#jban .jbi,#jban .jbs',{opacity:[0,1]},{duration:.35})},apply)}else apply();
-  jrPh();
+/* ---- the Journal: one question at a time, with a little friend who reacts ---- */
+const JR_EMOJI={Happy:'😊',Hopeful:'🌈',Loved:'🥰',Excited:'🤩',Peaceful:'😌',Grateful:'🙏',Anxious:'😰',Lonely:'🥺',Confused:'😵‍💫',Sad:'😢',Frustrated:'😤',Overwhelmed:'🤯',Nostalgic:'🥹',Restless:'😬',Curious:'🧐',Proud:'😎',Content:'🙂',Inspired:'✨',Disappointed:'😞',Vulnerable:'🫣',Connected:'🤝',Uncertain:'🤔',Relieved:'😮‍💨',Tired:'😴',Hurt:'💔',Calm:'🍃'};
+const JR_MOOD={Happy:'joy',Excited:'cheer',Proud:'cheer',Grateful:'joy',Loved:'joy',Hopeful:'joy',Curious:'joy',Content:'joy',Inspired:'cheer',Connected:'joy',Relieved:'calm',Peaceful:'calm',Calm:'calm',Anxious:'worried',Overwhelmed:'worried',Restless:'worried',Confused:'worried',Uncertain:'worried',Sad:'sad',Lonely:'sad',Hurt:'sad',Disappointed:'sad',Tired:'sad',Vulnerable:'sad',Frustrated:'grr',Nostalgic:'dreamy'};
+const JR_STEPS=[['feel','Today, I feel…'],['want','Right now, I really want…'],['desire','Deep down, I desire…'],['need','What I need most is…'],['unsaid','Something I haven’t said out loud…'],['look','I’m looking forward to…'],['remember','One thing to remember today…']];
+const JR_FACE={
+  neutral:{m:'M66 100 Q80 108 94 100',f:'none'},
+  joy:{m:'M62 94 Q80 124 98 94 Z',f:'#7a1f12'},
+  cheer:{m:'M60 92 Q80 130 100 92 Z',f:'#7a1f12'},
+  calm:{m:'M66 100 Q80 110 94 100',f:'none',closed:1},
+  worried:{m:'M64 105 Q72 97 80 105 T96 105',f:'none'},
+  sad:{m:'M64 110 Q80 94 96 110',f:'none',tear:1},
+  grr:{m:'M66 106 L94 106',f:'none',brow:1},
+  dreamy:{m:'M68 100 Q80 108 92 100',f:'none',look:[-4,-5]},
+  shh:{m:'M70 104 L90 104',f:'none',hand:1}};
+function jrMascot(){
+  return `<svg class="mas" id="mas" viewBox="0 0 160 150" aria-hidden="true"><defs><radialGradient id="mg" cx="38%" cy="28%" r="80%"><stop offset="0" stop-color="#FFB071"/><stop offset=".55" stop-color="#FF8A3D"/><stop offset="1" stop-color="#F2631B"/></radialGradient></defs>
+   <g id="mbody"><path d="M80 14c-6-8-2-12 6-12-2 6 0 8 4 12" fill="#7BC043" id="mleaf"/><path d="M80 14c38 0 62 26 62 62 0 38-26 62-62 62S18 114 18 76C18 40 42 14 80 14z" fill="url(#mg)"/><ellipse cx="56" cy="36" rx="14" ry="7" fill="#fff" opacity=".28" transform="rotate(-24 56 36)"/>
+   <circle cx="42" cy="92" r="8" fill="#FF6F61" opacity=".45"/><circle cx="118" cy="92" r="8" fill="#FF6F61" opacity=".45"/>
+   <g id="meyes"><ellipse cx="58" cy="68" rx="17" ry="19" fill="#fff"/><ellipse cx="102" cy="68" rx="17" ry="19" fill="#fff"/><circle id="mpl" cx="58" cy="70" r="9" fill="#1b1b22"/><circle id="mpr" cx="102" cy="70" r="9" fill="#1b1b22"/><circle id="mgl" cx="55" cy="66" r="3" fill="#fff"/><circle id="mgr" cx="99" cy="66" r="3" fill="#fff"/>
+   <path id="mcl" d="M41 68 Q58 82 75 68" stroke="#7a2d0a" stroke-width="4" fill="none" stroke-linecap="round" opacity="0"/><path id="mcr" d="M85 68 Q102 82 119 68" stroke="#7a2d0a" stroke-width="4" fill="none" stroke-linecap="round" opacity="0"/>
+   <rect id="mlid1" x="40" y="48" width="36" height="40" rx="18" fill="#FF8A3D" transform-origin="58 48" style="transform:scaleY(0)"/><rect id="mlid2" x="84" y="48" width="36" height="40" rx="18" fill="#FF8A3D" transform-origin="102 48" style="transform:scaleY(0)"/></g>
+   <path id="mbr" d="M42 46 L72 54 M118 46 L88 54" stroke="#7a2d0a" stroke-width="5" stroke-linecap="round" opacity="0"/>
+   <path id="mmo" d="M66 100 Q80 108 94 100" stroke="#7a2d0a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+   <path id="mtr" d="M44 84 q-4 8 0 12 q4-4 0-12z" fill="#7cc8ff" opacity="0"/>
+   <g id="mhand" opacity="0"><rect x="74" y="90" width="12" height="30" rx="6" fill="#FFC9A0" stroke="#e8955a" stroke-width="2"/></g></g></svg>`;
 }
-/* starter lines in the empty boxes follow the banner */
-function jrPh(){if(!jrBan)return;['want','desire','need','look'].forEach(k=>{const t=$('#j_'+k);if(t)t.placeholder=jrBan.ph[k]||''})}
-function jrMount(){
-  const p=$('#jpane');if(!p||p.dataset.m)return;p.dataset.m='1';JR=jrFresh();
-  const letter=jrLetterPick();
-  const words=(k,t)=>`<details class="jw"><summary>Need words?</summary><div class="jwc">${JR_WORDS[k].map(w=>`<button data-k="${k}">${esc(w)}</button>`).join('')}</div></details>`;
-  {const pk=jrBanPick([]);jrBan=pk.b;jrCp=pk.c}
-  p.innerHTML=`<div class="jscr jpane"><div class="jban" id="jban"><img class="jbi" id="jbi" alt="" src="journal/${jrBan.id}.jpg" onerror="this.style.display='none'"><div class="jbf" id="jbf" style="background-image:url(journal/${jrBan.id}.jpg)"></div><div class="jbs"><b id="jbt">${esc(jrCp.l)}</b><span id="jbq">${esc(jrCp.f)}</span><div class="jbb"><button id="jbk">Keep this thought</button><button id="jbn" class="jbl">More thoughts</button></div></div></div><small class="jey">YOUR DAILY CHECK-IN</small><h2 class="jh">What’s going on inside your world?</h2><p class="jsub">You can be feeling more than one thing at once.</p>
-    ${letter?jrLetterHTML(letter):''}
-    <div class="jsec"><label>01 — Today, I feel…</label><div class="jch" id="jch">${JR_EMO.map(e=>`<button data-e="${e}">${e}</button>`).join('')}</div>
-      <details class="jw"><summary>More feelings</summary><div class="jch">${JR_EMO2.map(e=>`<button data-e="${e}">${e}</button>`).join('')}</div></details>
-      <div class="jstr"><span>How strongly am I feeling it?</span><b id="jsv">5/10</b></div><input type="range" id="jsl" min="0" max="10" value="5" aria-label="How strongly"></div>
-    ${JR_Q.map(q=>`<div class="jsec"><label for="j_${q[0]}">${q[1]} — ${q[2]}${q[0]==='unsaid'?' <i class="jlk">Private</i>':''}</label><p class="jhint">${q[3]}</p><textarea id="j_${q[0]}" rows="2" data-k="${q[0]}" autocomplete="off"></textarea>${JR_WORDS[q[0]]?words(q[0]):''}</div>`).join('')}
-    <p class="jfoot"><b id="jcnt">0</b> answered. Even three can become something meaningful to look back on.</p><p class="jsig">${kLine('j')}</p>
-    <button class="pill g jcopy" id="jcopy">Copy journal entry</button><p class="jnote">Use this as a template, then copy your entry to your personal journal.</p></div>`;
-  const sync=()=>{
-    JR.feel=[...p.querySelectorAll('#jch button.on,.jpane .jch button.on')].map(b=>b.dataset.e).filter((v,i,a)=>a.indexOf(v)===i);
-    JR_Q.forEach(q=>{const t=p.querySelector('#j_'+q[0]);JR[q[0]]=t?t.value:''});
-    const c=$('#jcnt');if(c)c.textContent=jrAnswered();jrBanSet(jrBanPick(JR.feel));validate();
+let jrStep=0,jrMoodNow='neutral',jrMasA=null;
+function jrMood(name,pop){
+  const f=JR_FACE[name]||JR_FACE.neutral,g=id=>$('#'+id);if(!g('mas'))return;jrMoodNow=name;
+  const mo=g('mmo');mo.setAttribute('d',f.m);mo.setAttribute('fill',f.f);
+  g('mcl').style.opacity=g('mcr').style.opacity=f.closed?1:0;g('mpl').style.opacity=g('mpr').style.opacity=g('mgl').style.opacity=g('mgr').style.opacity=f.closed?0:1;
+  g('mbr').style.opacity=f.brow?1:0;g('mtr').style.opacity=f.tear?1:0;g('mhand').style.opacity=f.hand?1:0;g('mmo').style.opacity=f.hand?0:1;
+  if(f.look)jrLook(f.look[0],f.look[1]);
+  if(pop&&window.Motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+    const sq=name==='cheer'?{y:[0,-22,0],scale:[1,1.1,1]}:name==='sad'?{y:[0,4,0],scaleY:[1,.94,1]}:name==='worried'?{x:[0,-4,4,-3,3,0]}:{scale:[1,1.1,.97,1]};
+    Motion.animate('#mbody',sq,{duration:name==='cheer'?.6:.45,ease:'easeOut'});
+  }
+}
+function jrLook(dx,dy){const m=Math.max(-5,Math.min(5,dx)),n=Math.max(-5,Math.min(5,dy));[['mpl',58],['mpr',102]].forEach(([id,cx])=>{const e=$('#'+id);if(e){e.setAttribute('cx',cx+m);e.setAttribute('cy',70+n)}});[['mgl',55],['mgr',99]].forEach(([id,cx])=>{const e=$('#'+id);if(e){e.setAttribute('cx',cx+m);e.setAttribute('cy',66+n)}})}
+function jrBurst(x,y,txt){
+  if(!window.Motion||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  for(let i=0;i<3;i++){const e=document.createElement('span');e.className='jpf';e.textContent=txt;Object.assign(e.style,{left:x-12+'px',top:y-12+'px'});document.body.appendChild(e);
+    Motion.animate(e,{y:[0,-70-i*20],x:[0,(i-1)*34],opacity:[1,0],scale:[.6,1.3]},{duration:.8+i*.1,ease:'easeOut'}).finished.then(()=>e.remove(),()=>e.remove())}
+}
+function jrConfetti(){
+  if(!window.Motion||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  const cols=['#FF8A3D','#FFC857','#7BC043','#4FB3FF','#FF6F91','#B388FF'];
+  for(let i=0;i<34;i++){const e=document.createElement('i');e.className='jcf';Object.assign(e.style,{left:Math.random()*100+'vw',top:'-12px',background:cols[i%cols.length],width:6+Math.random()*6+'px',height:8+Math.random()*8+'px'});document.body.appendChild(e);
+    Motion.animate(e,{y:[0,innerHeight*(.6+Math.random()*.5)],x:[0,(Math.random()-.5)*120],rotate:[0,360*(Math.random()>.5?1:-1)],opacity:[1,1,0]},{duration:1.1+Math.random()*.8,ease:'easeIn',delay:Math.random()*.25}).finished.then(()=>e.remove(),()=>e.remove())}
+  try{navigator.vibrate&&navigator.vibrate([10,30,10])}catch(e){}
+}
+function jrStepHTML(i){
+  const [k,t]=JR_STEPS[i];
+  if(k==='feel')return `<h2 class="jt">${t}</h2><div class="jch" id="jch">${JR_EMO.map(e=>`<button data-e="${e}" class="${JR.feel.includes(e)?'on':''}"><u>${JR_EMOJI[e]}</u>${e}</button>`).join('')}<button class="jmore" id="jmore" aria-label="More feelings">＋</button></div>
+    <div class="jch jx" id="jx" hidden>${JR_EMO2.map(e=>`<button data-e="${e}" class="${JR.feel.includes(e)?'on':''}"><u>${JR_EMOJI[e]}</u>${e}</button>`).join('')}</div>
+    <div class="jstr" id="jstr" ${JR.feel.length?'':'hidden'}><b id="jsv">${JR.str}</b><input type="range" id="jsl" min="1" max="10" value="${JR.str}" aria-label="How strongly"></div>`;
+  const words=JR_WORDS[k]?`<div class="jwr">${JR_WORDS[k].map(w=>`<button data-k="${k}">${esc(w)}</button>`).join('')}</div>`:'';
+  return `<h2 class="jt">${t}</h2><textarea id="j_${k}" rows="4" data-k="${k}" autocomplete="off" placeholder="${esc((jrBan&&jrBan.ph[k])||'')}">${esc(JR[k]||'')}</textarea>${words}`;
+}
+function jrDraw(dir){
+  const body=$('#jbody');if(!body)return;
+  const first=!body.dataset.d;body.dataset.d=1;
+  const swap=()=>{body.innerHTML=(jrLetterEl&&jrStep===-1)?jrLetterHTML(jrLetterEl):jrStepHTML(jrStep);
+    $('#jprog').innerHTML=JR_STEPS.map((_,i)=>`<i class="${i<jrStep?'d':i===jrStep?'a':''}" data-i="${i}"></i>`).join('');
+    const last=jrStep===JR_STEPS.length-1,nx=$('#jnext');nx.classList.toggle('last',last);nx.innerHTML=last?'✓':'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+    $('#jback').style.visibility=jrStep>0||jrLetterEl&&jrStep===0?'visible':'hidden';
+    const k=jrStep>=0?JR_STEPS[jrStep][0]:'letter';jrMood(k==='letter'?'dreamy':k==='unsaid'?'shh':k==='feel'?(JR.feel.length?(JR_MOOD[JR.feel[JR.feel.length-1]]||'joy'):'neutral'):'neutral',false);
+    if(window.Motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches&&!first)Motion.animate(body,{opacity:[0,1],x:[dir*36,0]},{type:'spring',stiffness:420,damping:32});
+    jrLook(0,0);
   };
+  swap();
+}
+let jrLetterEl=null;
+function jrMount(){
+  const p=$('#jpane');if(!p||p.dataset.m)return;p.dataset.m='1';JR=jrFresh();jrStep=0;
+  {const pk=jrBanPick([]);jrBan=pk.b;jrCp=pk.c}
+  jrLetterEl=jrLetterPick();
+  p.innerHTML=`<div class="jscr jpane jfun"><div class="jtop"><div class="jprog" id="jprog"></div><button class="jtb" id="jspark" aria-label="Ideas">💡</button><button class="jtb" id="jcopy" aria-label="Copy entry">⧉</button></div>
+    <div class="jmas">${jrMascot()}</div><div class="jbody" id="jbody"></div>
+    <div class="jnav"><button class="jbk" id="jback" aria-label="Back">‹</button><button class="jnext" id="jnext" aria-label="Next"></button></div></div>`;
+  if(jrLetterEl){jrStep=-1}
+  jrDraw(1);if(jrStep===-1){jrStep=-1}
+  /* the eyes follow your finger; the friend nods as you type and blinks now and then */
+  const mas=$('#mas');
+  const follow=e=>{const r=mas.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height*.45,x=(e.clientX-cx)/Math.max(60,Math.hypot(e.clientX-cx,e.clientY-cy))*5,y=(e.clientY-cy)/Math.max(60,Math.hypot(e.clientX-cx,e.clientY-cy))*5;if(jrMoodNow!=='dreamy')jrLook(x,y)};
+  p.addEventListener('pointermove',follow,{passive:true});p.addEventListener('pointerdown',follow,{passive:true});
+  const blink=()=>{if(!document.contains(mas))return;if(window.Motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches&&!JR_FACE[jrMoodNow].closed){Motion.animate([$('#mlid1'),$('#mlid2')],{scaleY:[0,1,0]},{duration:.22})}setTimeout(blink,2200+Math.random()*3200)};setTimeout(blink,1800);
+  if(window.Motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches)Motion.animate('#mas',{y:[0,-4]},{duration:1.8,repeat:Infinity,repeatType:'mirror',ease:'easeInOut'});
+  const sync=()=>{JR_STEPS.forEach(([k])=>{if(k!=='feel'){const t=p.querySelector('#j_'+k);if(t)JR[k]=t.value}});{const pk=jrBanPick(JR.feel);jrBan=pk.b;jrCp=pk.c}validate()};
+  const go=(d)=>{sync();const n=jrStep+d;if(jrLetterEl&&jrStep===-1&&d>0){jrStep=0;jrDraw(1);return}if(n<0){if(jrLetterEl){jrStep=-1;jrDraw(-1)}return}if(n>=JR_STEPS.length){jrFinish();return}jrStep=n;jrDraw(d);try{navigator.vibrate&&navigator.vibrate(6)}catch(e){}};
+  const jrFinish=()=>{sync();jrMood('cheer',true);jrConfetti();setTimeout(()=>{const k=$('#keep');if(k&&!k.disabled)k.click();else toast('Say one thing first')},700)};
   p.addEventListener('click',e=>{
-    const eb=e.target.closest('button[data-e]');if(eb){eb.classList.toggle('on');sync();buzzSafe&&buzzSafe();return}
-    const wb=e.target.closest('.jwc button');if(wb){const t=p.querySelector('#j_'+wb.dataset.k),v=t.value.trim(),w=jrLow(wb.textContent);if(!v)t.value=w;else if(!v.toLowerCase().includes(w.toLowerCase()))t.value=v+(/[,.]$/.test(v)?' ':', ')+w;wb.classList.add('on');sync();return}
-    const an=e.target.closest('.jans button');if(an){jrAnswer(+an.dataset.a);return}
+    const eb=e.target.closest('button[data-e]');
+    if(eb){const f=eb.dataset.e,on=!JR.feel.includes(f);JR.feel=on?JR.feel.concat(f):JR.feel.filter(x=>x!==f);eb.classList.toggle('on',on);
+      const r=eb.getBoundingClientRect();if(on){jrBurst(r.left+r.width/2,r.top,JR_EMOJI[f]);jrMood(JR_MOOD[f]||'joy',true)}else jrMood(JR.feel.length?JR_MOOD[JR.feel[JR.feel.length-1]]||'joy':'neutral',true);
+      const st=$('#jstr');if(st){const was=st.hidden;st.hidden=!JR.feel.length;if(was&&!st.hidden)setTimeout(()=>st.scrollIntoView({behavior:'smooth',block:'nearest'}),60)}sync();return}
+    if(e.target.closest('#jmore')){const x=$('#jx');x.hidden=!x.hidden;if(!x.hidden&&window.Motion)Motion.animate(x.children,{opacity:[0,1],y:[8,0]},{duration:.25,delay:Motion.stagger?Motion.stagger(.02):0});return}
+    const wb=e.target.closest('.jwr button');if(wb){const t=p.querySelector('#j_'+wb.dataset.k),v=t.value.trim(),w=jrLow(wb.textContent);if(!v)t.value=w;else if(!v.toLowerCase().includes(w.toLowerCase()))t.value=v+(/[,.]$/.test(v)?' ':', ')+w;wb.classList.add('on');jrMood('joy',true);sync();return}
+    const an=e.target.closest('.jans button');if(an){jrAnswer(+an.dataset.a);setTimeout(()=>{jrLetterEl=null;jrStep=0;jrDraw(1)},1300);return}
+    if(e.target.closest('#jnext')){go(1);return}if(e.target.closest('#jback')){go(-1);return}
+    const dot=e.target.closest('#jprog i');if(dot){sync();jrStep=+dot.dataset.i;jrDraw(1);return}
+    if(e.target.closest('#jspark')){thOpen();return}
     if(e.target.closest('#jcopy')){sync();jrCopy(jrCopyText(JR,fullDay(new Date(...(newM.day||dk(TODAY)).split('-').map((v,i)=>i===1?v-1:+v)))));}
   });
-  jrPh();
-  p.addEventListener('click',e=>{if(e.target.closest('#jbn')){thOpen();return}if(e.target.closest('#jbk')){jrKeepThought(jrCp&&jrCp.f||'',$('#jban').getBoundingClientRect())}});
   p.addEventListener('input',e=>{
-    if(e.target.id==='jsl'){JR.str=+e.target.value;$('#jsv').textContent=e.target.value+'/10';sync();return}
-    if(e.target.matches('textarea'))sync();
+    if(e.target.id==='jsl'){JR.str=+e.target.value;$('#jsv').textContent=e.target.value;const m=$('#mas');if(m)m.style.scale=(.82+JR.str*.045).toFixed(3);try{navigator.vibrate&&navigator.vibrate(3)}catch(x){}sync();return}
+    if(e.target.matches('textarea')){jrLook(0,4);if(window.Motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches)Motion.animate('#mbody',{y:[0,3,0]},{duration:.18});sync()}
   });
 }
 /* answering the letter keeps your reply with that old entry */
@@ -150,7 +218,7 @@ function jrAnswer(i){
   const l=$('#jlet');if(!l)return;const m=all().find(x=>String(x.id)===l.dataset.id);if(!m)return;
   m.j.reflect={v:i,ts:Date.now()};try{idb.put(m).catch(()=>{})}catch(e){}
   const line=['I am glad. Hold on to that.','That is okay. Not knowing yet is part of it.','Wanting different things is how we grow.','Seeing it differently means you have moved.'][i];
-  l.innerHTML=`<small>A LETTER FROM YOUR PAST</small><h3>${esc(JR_ANS[i])}</h3><p>${esc(line)}</p><p class="jend">Emotions tell us where we are, desires tell us what matters, and looking forward gives us something to hope for.</p>`;
+  l.innerHTML=`<h3>${esc(JR_ANS[i])}</h3><p>${esc(line)}</p>`;
   if(typeof ntBadge==='function')ntBadge();
 }
 window.jrGet=()=>{if(!JR)return jrFresh();const j=JSON.parse(JSON.stringify(JR));j.feel=j.feel||[];j.ban=jrBan?jrBan.id:'';j.bq=jrCp?jrCp.l:'';return j};
@@ -158,13 +226,13 @@ window.jrText=jrText;
 /* when you switch to the Journal tab the pane builds itself */
 {const os=setMode;window.setMode=function(m,first){os.apply(this,arguments);if(m==='journal'){jrMount();const k=$('#keep');if(k)validate()}}}
 /* how a journal entry looks in a day */
-const jrFeelChips=j=>(j.feel||[]).map(f=>`<span class="jfc">${esc(f)}</span>`).join('');
+const jrFeelChips=j=>(j.feel||[]).map(f=>`<span class="jfc">${JR_EMOJI[f]||''} ${esc(f)}</span>`).join('');
 window.jrCard=m=>{
   const j=m.j||{feel:[]},rows=JR_Q.filter(q=>q[0]!=='unsaid'&&(j[q[0]]||'').trim()).map(q=>`<div class="jq"><small>${esc(q[2])}</small><p>${esc(j[q[0]].trim())}</p></div>`).join('');
   const priv=(j.unsaid||'').trim()?`<div class="jq"><small>Something I haven’t said out loud</small><button class="jlock" data-jun="${m.id}">Tap to show</button></div>`:'';
   const rf=j.reflect?`<div class="jrf">You later said: ${esc(JR_ANS[j.reflect.v])}</div>`:'';
   const bn=j.ban&&JR_BAN.find(b=>b.id===j.ban);
-  return `<div class="jcard fb">${bn?`<div class="jcb" style="background-image:url(journal/${bn.id}.jpg)"><span>${esc(bn.t)}</span></div>`:''}${j.bq?`<div class="jqq">${esc(j.bq)}</div>`:''}<div class="jfe">${jrFeelChips(j)}</div>${j.feel&&j.feel.length?`<div class="jbar"><i style="width:${(j.str||0)*10}%"></i><span>${j.str||0}/10</span></div>`:''}${rows}${priv}${rf}</div>`;
+  return `<div class="jcard fb">${bn?`<div class="jcb" style="background-image:url(journal/${bn.id}.jpg)"><span>${esc(bn.t)}</span></div>`:''}<div class="jfe">${jrFeelChips(j)}</div>${j.feel&&j.feel.length?`<div class="jbar"><i style="width:${(j.str||0)*10}%"></i><span>${j.str||0}/10</span></div>`:''}${rows}${priv}${rf}</div>`;
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-jun]');if(!b)return;e.stopPropagation();const m=all().find(x=>String(x.id)===b.dataset.jun);if(!m)return;
   const p=document.createElement('p');p.textContent=m.j.unsaid;b.replaceWith(p)},true);
