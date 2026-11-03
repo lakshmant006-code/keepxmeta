@@ -64,6 +64,8 @@ function jrBanPick(feel){
 }
 /* the same pick for the banner on the home screen */
 window.kBanner=()=>{const p=jrBanPick([]);return{id:p.b.id,line:p.c.l,follow:p.c.f,key:dk(TODAY)}};
+/* a little reel: today's banner first, then three more, in an order that is the same all day */
+window.kBanners=n=>{const f=window.kBanner(),rest=JR_BAN.filter(b=>b.id!==f.id).map(b=>({b,k:jrHash(dk(TODAY)+b.id)})).sort((x,y)=>x.k-y.k).slice(0,Math.max(0,n-1)).map(x=>({id:x.b.id,line:x.b.c[0].l,follow:x.b.c[0].f,key:f.key}));return [f].concat(rest)};
 let JR=null,jrBan=null,jrCp=null;
 const jrFresh=()=>({feel:[],str:5,want:'',desire:'',need:'',unsaid:'',look:'',remember:'',ban:''});
 const jrLow=s=>String(s||'').trim().replace(/^To /,'to ');
@@ -249,15 +251,28 @@ window.jrKeepThought=jrKeepThought;
 /* ---- the banner on the home screen: one sentence, one follow-up, one gentle action ---- */
 (function(){
   const home=$('#home'),mom=$('#mom');if(!home)return;
-  const KEY='kept.hban',got=()=>{try{return localStorage.getItem(KEY)}catch(e){return ''}};
+  const KEY='kept.hban',got=()=>{try{return localStorage.getItem(KEY)}catch(e){return ''}},RM=matchMedia('(prefers-reduced-motion:reduce)');
   const strip=document.createElement('div');strip.className='hban';strip.id='hban';strip.hidden=true;
   home.insertBefore(strip,mom||$('#dowbar'));
+  let L=[],cur=0;
+  /* one slide at a time, each drifting slowly, the next one dissolving in on a small beat */
+  function show(i){
+    cur=(i+L.length)%L.length;
+    strip.querySelectorAll('.hbs').forEach((s,k)=>s.classList.toggle('on',k===cur));
+    strip.querySelectorAll('.hbp u').forEach((u,k)=>{u.classList.toggle('done',k<cur);const b=u.firstChild;b.style.animation='none';if(k===cur){void b.offsetWidth;b.style.animation=''}u.classList.toggle('act',k===cur)});
+    if(!RM.matches){strip.classList.remove('beat');void strip.offsetWidth;strip.classList.add('beat')}
+  }
   function draw(){
-    const b=window.kBanner();if(got()===b.key){strip.hidden=true;return}
+    L=window.kBanners(4);cur=0;if(got()===L[0].key){strip.hidden=true;return}
     strip.hidden=false;
-    strip.innerHTML=`<button class="hbg" id="hbnGo"><i style="background-image:url(journal/${b.id}.jpg)"></i><span><b>${esc(b.line)}</b><small>${esc(b.follow)}</small></span></button><button class="momx" id="hbnX" aria-label="Hide for today">×</button>`;
+    strip.innerHTML=`<button class="hbg" id="hbnGo">${L.map((b,i)=>`<div class="hbs ${i?'':'on'}"><i style="background-image:url(journal/${b.id}.jpg)"></i><span><b>${esc(b.line)}</b><small>${esc(b.follow)}</small></span></div>`).join('')}${RM.matches?'':`<div class="hbp">${L.map((_,i)=>`<u class="${i?'':'act'}"><i></i></u>`).join('')}</div>`}</button><button class="momx" id="hbnX" aria-label="Hide for today">×</button>`;
     $('#hbnGo').onclick=()=>{openAdd();setTimeout(()=>setMode('journal'),200)};
-    $('#hbnX').onclick=()=>{try{localStorage.setItem(KEY,b.key)}catch(e){}strip.hidden=true};
+    $('#hbnX').onclick=()=>{try{localStorage.setItem(KEY,L[0].key)}catch(e){}strip.hidden=true};
+    const g=$('#hbnGo');
+    /* hold to pause, like a story */
+    g.addEventListener('pointerdown',()=>strip.classList.add('hold'));['pointerup','pointercancel','pointerleave'].forEach(k=>g.addEventListener(k,()=>strip.classList.remove('hold')));
+    /* each progress bar fills, then the next slide begins */
+    strip.querySelectorAll('.hbp u i').forEach(b=>b.addEventListener('animationend',()=>{if(document.hidden)return;show(cur+1)}));
   }
   draw();document.addEventListener('visibilitychange',()=>{if(!document.hidden)draw()});
 })();

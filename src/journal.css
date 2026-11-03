@@ -41,6 +41,27 @@
 /* home banner */
 .hban{position:relative;flex:none;margin:2px 16px 0}.hban[hidden]{display:none}.hban:not([hidden])+.mom{display:none}
 .hbg{display:block;position:relative;width:100%;height:96px;border-radius:24px;overflow:hidden;text-align:left;background:var(--fill2)}
-.hbg i{position:absolute;inset:0;background:center/cover no-repeat}.hbg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.6),rgba(0,0,0,.05) 85%)}
-.hbg span{position:absolute;left:16px;right:60px;top:50%;transform:translateY(-50%);z-index:1;color:#fff}.hbg b{display:block;font-size:17px;line-height:1.2;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.35)}.hbg small{display:block;font-size:12.5px;margin-top:3px;opacity:.92}
 .hban .momx{color:#fff;background:rgba(0,0,0,.25)}
+
+/* the reel: slow drift, dissolve and a small beat */
+.hbg{background:#1c1f26}
+.hbs{position:absolute;inset:0;opacity:0;transition:opacity .9s ease}.hbs.on{opacity:1}
+.hbs>i{position:absolute;inset:-5%;background:center/cover no-repeat;transform:scale(1.02);transform-origin:50% 50%}
+.hbs.on>i{animation:hbkb 7s ease-out forwards}.hbs:nth-child(even).on>i{animation-name:hbkb2}
+.hbs::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.62),rgba(0,0,0,.05) 85%)}
+.hbs span{position:absolute;left:16px;right:60px;top:50%;transform:translateY(-50%);z-index:1;color:#fff}.hbs b{display:block;font-size:17px;line-height:1.2;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.35)}.hbs small{display:block;font-size:12.5px;margin-top:3px;opacity:.92}
+.hbs.on span{animation:hbt .8s .2s both}
+@keyframes hbkb{from{transform:scale(1.02) translate(0,0)}to{transform:scale(1.13) translate(-2.5%,-1.5%)}}
+@keyframes hbkb2{from{transform:scale(1.13) translate(2%,1%)}to{transform:scale(1.03) translate(0,0)}}
+@keyframes hbt{from{opacity:0;transform:translateY(-38%)}to{opacity:1;transform:translateY(-50%)}}
+@keyframes hbbeat{0%{transform:scale(1)}30%{transform:scale(1.017)}100%{transform:scale(1)}}
+.hban.beat{animation:hbbeat .55s cubic-bezier(.2,.8,.3,1)}
+.hbp{position:absolute;left:14px;right:14px;bottom:7px;z-index:2;display:flex;gap:4px;pointer-events:none}
+.hbp u{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.3);overflow:hidden;text-decoration:none;display:block}.hbp u i{display:block;height:100%;width:0;background:#fff;border-radius:2px}
+.hbp u.done i{width:100%}.hbp u.act i{animation:hbfill 5.2s linear forwards}
+@keyframes hbfill{from{width:0}to{width:100%}}
+.hban.hold .hbs>i,.hban.hold .hbp u.act i{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.hbs>i,.hbs.on span,.hban.beat{animation:none!important}.hbs{transition:none}}
+/* the journal banner drifts too */
+.jbi{animation:hbkb 18s ease-in-out infinite alternate;transform-origin:50% 50%}
+@media (prefers-reduced-motion:reduce){.jbi{animation:none}}
