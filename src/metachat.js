@@ -53,9 +53,4 @@ window.chWork=(q,pre)=>{
     const c=document.createElement('button');c.className='mcc';c.setAttribute('aria-label','Show all');c.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
     b.appendChild(c);b.onclick=()=>b.classList.toggle('cl');
   })).observe($('#cb'),{childList:true,subtree:true});
-  /* once per visit, say plainly where the answers come from */
-  let told=false;new MutationObserver(()=>{if(told||!$('#chat').classList.contains('on'))return;told=true;
-    setTimeout(()=>{const t=document.createElement('div');t.className='mctoast';t.innerHTML='<span><b>Replies are made on this phone</b>From what you kept. Not a cloud AI, and not professional advice.</span><button id="mcLearn">Learn more</button>';$('#chat').appendChild(t);
-      $('#mcLearn').onclick=()=>{t.remove();openSheet(`<div class="dh"><h1>How Keep answers</h1><p>On this phone, from what you kept</p></div><div class="pb" style="padding-top:12px"><p class="tr" style="font-size:15px;color:var(--ink)">Keep reads your notes, captions and voice transcripts and answers with simple rules. It does not send them to a server or to an AI model, so it can miss things or get tone wrong. It is not a therapist or a doctor.</p><p class="tr" style="font-size:15px;color:var(--ink)">If you are in danger or thinking of hurting yourself, call or text 988 (US and Canada) or your local emergency number.</p></div>`)};
-      setTimeout(()=>t.remove(),7000)},900)}).observe($('#chat'),{attributes:true,attributeFilter:['class']});
 })();

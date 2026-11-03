@@ -19,5 +19,3 @@
 .mcm{height:32px;padding:0 12px;border-radius:16px;font-size:14px;font-weight:600;color:var(--ink)}
 #bar2.mcomp #sendB{width:38px;height:38px;border-radius:12px;position:relative}
 #bar2 #sendB.busy{opacity:1;transform:none;background:var(--blue)}#bar2 #sendB.busy svg{display:none}#bar2 #sendB.busy::after{content:"";position:absolute;left:50%;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:2px;background:#fff}
-.mctoast{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 150px);z-index:30;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;background:#1c1e21;color:#fff;font-size:13px;line-height:1.35;box-shadow:0 12px 30px rgba(0,0,0,.3);animation:cmA .45s var(--spring) both}
-.mctoast b{display:block;font-size:14px}.mctoast span{flex:1;opacity:.92}.mctoast button{flex:none;font-size:14px;font-weight:600;color:#fff}
