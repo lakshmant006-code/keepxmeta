@@ -108,7 +108,7 @@ function jrBanSet(pk){
   if(!pk)return;const img=$('#jbi'),t=$('#jbt'),q=$('#jbq');if(!img)return;
   if(jrBan&&pk.b.id===jrBan.id)return;
   jrBan=pk.b;jrCp=pk.c;
-  const apply=()=>{img.src='journal/'+pk.b.id+'.jpg';img.style.display='';t.textContent=pk.c.l;q.textContent=pk.c.f};
+  const apply=()=>{const f=$('#jbf');if(f)f.style.backgroundImage='url(journal/'+pk.b.id+'.jpg)';img.src='journal/'+pk.b.id+'.jpg';img.style.display='';t.textContent=pk.c.l;q.textContent=pk.c.f};
   if(window.Motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches){Motion.animate('#jban .jbi,#jban .jbs',{opacity:[1,0]},{duration:.18}).finished.then(()=>{apply();Motion.animate('#jban .jbi,#jban .jbs',{opacity:[0,1]},{duration:.35})},apply)}else apply();
   jrPh();
 }
@@ -119,7 +119,7 @@ function jrMount(){
   const letter=jrLetterPick();
   const words=(k,t)=>`<details class="jw"><summary>Need words?</summary><div class="jwc">${JR_WORDS[k].map(w=>`<button data-k="${k}">${esc(w)}</button>`).join('')}</div></details>`;
   {const pk=jrBanPick([]);jrBan=pk.b;jrCp=pk.c}
-  p.innerHTML=`<div class="jscr jpane"><div class="jban" id="jban"><img class="jbi" id="jbi" alt="" src="journal/${jrBan.id}.jpg" onerror="this.style.display='none'"><div class="jbs"><b id="jbt">${esc(jrCp.l)}</b><span id="jbq">${esc(jrCp.f)}</span><div class="jbb"><button id="jbk">Keep this thought</button><button id="jbn" class="jbl">More thoughts</button></div></div></div><small class="jey">YOUR DAILY CHECK-IN</small><h2 class="jh">What’s going on inside your world?</h2><p class="jsub">You can be feeling more than one thing at once.</p>
+  p.innerHTML=`<div class="jscr jpane"><div class="jban" id="jban"><img class="jbi" id="jbi" alt="" src="journal/${jrBan.id}.jpg" onerror="this.style.display='none'"><div class="jbf" id="jbf" style="background-image:url(journal/${jrBan.id}.jpg)"></div><div class="jbs"><b id="jbt">${esc(jrCp.l)}</b><span id="jbq">${esc(jrCp.f)}</span><div class="jbb"><button id="jbk">Keep this thought</button><button id="jbn" class="jbl">More thoughts</button></div></div></div><small class="jey">YOUR DAILY CHECK-IN</small><h2 class="jh">What’s going on inside your world?</h2><p class="jsub">You can be feeling more than one thing at once.</p>
     ${letter?jrLetterHTML(letter):''}
     <div class="jsec"><label>01 — Today, I feel…</label><div class="jch" id="jch">${JR_EMO.map(e=>`<button data-e="${e}">${e}</button>`).join('')}</div>
       <details class="jw"><summary>More feelings</summary><div class="jch">${JR_EMO2.map(e=>`<button data-e="${e}">${e}</button>`).join('')}</div></details>
@@ -139,7 +139,7 @@ function jrMount(){
     if(e.target.closest('#jcopy')){sync();jrCopy(jrCopyText(JR,fullDay(new Date(...(newM.day||dk(TODAY)).split('-').map((v,i)=>i===1?v-1:+v)))));}
   });
   jrPh();
-  p.addEventListener('click',e=>{if(e.target.closest('#jbn')){thOpen();return}if(e.target.closest('#jbk')){jrKeepThought(jrCp&&jrCp.f||'')}});
+  p.addEventListener('click',e=>{if(e.target.closest('#jbn')){thOpen();return}if(e.target.closest('#jbk')){jrKeepThought(jrCp&&jrCp.f||'',$('#jban').getBoundingClientRect())}});
   p.addEventListener('input',e=>{
     if(e.target.id==='jsl'){JR.str=+e.target.value;$('#jsv').textContent=e.target.value+'/10';sync();return}
     if(e.target.matches('textarea'))sync();
@@ -235,7 +235,7 @@ function thOpen(cat){
     const c=e.target.closest('.thp button');if(c){thCat=c.dataset.c;thI=0;thDraw();return}
     if(e.target.closest('#thNext')){thI++;thDraw();return}
     if(e.target.closest('#thCopy')){const t=thList()[thI].t;jrCopy(t);return}
-    if(e.target.closest('#thKeep')){const t=thList()[thI].t;thClose();jrKeepThought(t);return}
+    if(e.target.closest('#thKeep')){const t=thList()[thI].t,r=m.querySelector('.thc').getBoundingClientRect();thClose();jrKeepThought(t,r);return}
     if(e.target.closest('#thMem')){try{localStorage.setItem('kept.thm',thOn()?'0':'1')}catch(x){}thI=0;thDraw();return}
     const see=e.target.closest('#thSee');if(see){const d=thList()[thI].d;thClose();try{closeAdd()}catch(x){}setTimeout(()=>openDay(d),250)}
   });
@@ -265,7 +265,7 @@ window.jrKeepThought=jrKeepThought;
   function draw(){
     L=window.kBanners(4);cur=0;if(got()===L[0].key){strip.hidden=true;return}
     strip.hidden=false;
-    strip.innerHTML=`<button class="hbg" id="hbnGo">${L.map((b,i)=>`<div class="hbs ${i?'':'on'}"><i style="background-image:url(journal/${b.id}.jpg)"></i><span><b>${esc(b.line)}</b><small>${esc(b.follow)}</small></span></div>`).join('')}${RM.matches?'':`<div class="hbp">${L.map((_,i)=>`<u class="${i?'':'act'}"><i></i></u>`).join('')}</div>`}</button><button class="momx" id="hbnX" aria-label="Hide for today">×</button>`;
+    strip.innerHTML=`<button class="hbg" id="hbnGo">${L.map((b,i)=>`<div class="hbs ${i?'':'on'}"><i style="background-image:url(journal/${b.id}.jpg)"></i><em class="hbf" style="background-image:url(journal/${b.id}.jpg)"></em><span><b>${esc(b.line)}</b><small>${esc(b.follow)}</small></span></div>`).join('')}${RM.matches?'':`<div class="hbp">${L.map((_,i)=>`<u class="${i?'':'act'}"><i></i></u>`).join('')}</div>`}</button><button class="momx" id="hbnX" aria-label="Hide for today">×</button>`;
     $('#hbnGo').onclick=()=>{openAdd();setTimeout(()=>setMode('journal'),200)};
     $('#hbnX').onclick=()=>{try{localStorage.setItem(KEY,L[0].key)}catch(e){}strip.hidden=true};
     const g=$('#hbnGo');

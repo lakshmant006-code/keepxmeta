@@ -1,0 +1,17 @@
+/* Magic touch */
+.fohint{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 48px);transform:translateX(-50%);z-index:5;padding:7px 14px;border-radius:16px;background:rgba(0,0,0,.45);color:#fff;font-size:13px;font-weight:600;pointer-events:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+#lb .lbs img{will-change:filter}
+.txp{flex:none;margin:2px 4px 8px;padding:14px 16px;border-radius:16px;background:linear-gradient(160deg,#EEF3FF,#F7ECFF);font-size:19px;line-height:1.3;font-weight:600;color:#1d2340}
+.bhalo{position:fixed;z-index:30;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,150,40,.55),rgba(255,150,40,.18) 62%,transparent 72%);will-change:transform,opacity}
+.mtile{position:fixed;z-index:96;width:26px;height:26px;border-radius:8px;background:var(--blue);display:grid;place-items:center;pointer-events:none;box-shadow:0 4px 12px rgba(8,102,255,.4)}
+.mgf{overflow:hidden}
+/* tilt: the far layer moves little, the near layer more (translate is separate from the slow drift transform) */
+.hbs>i,.jbi{translate:calc(var(--tx,0px)*.35) calc(var(--ty,0px)*.35)}
+.hbf,.jbf{position:absolute;inset:-6%;background:center/cover no-repeat;pointer-events:none;-webkit-mask-image:linear-gradient(to top,#000 0,#000 34%,transparent 58%);mask-image:linear-gradient(to top,#000 0,#000 34%,transparent 58%);translate:calc(var(--tx,0px)*-1) calc(var(--ty,0px)*-.7);scale:1.04}
+/* scrub */
+.scrub{position:absolute;right:0;top:0;bottom:0;width:44px;z-index:4;pointer-events:none;opacity:0;transition:opacity .25s}.scrub.on{opacity:1}
+.scrh{position:absolute;right:3px;width:8px;height:52px;margin-top:-26px;border-radius:4px;background:rgba(0,0,0,.28);pointer-events:auto;touch-action:none;transition:width .15s,background .15s}.scrub.drag .scrh{width:12px;background:var(--blue)}
+.scrh::before{content:"";position:absolute;left:-16px;right:-8px;top:-12px;bottom:-12px}
+.scrp{position:absolute;right:26px;display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:16px;background:var(--bg);border:1px solid var(--bd);box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;transform:translateX(10px) scale(.92);transition:opacity .15s,transform .2s;margin-top:-18px;white-space:nowrap}.scrub.drag .scrp{opacity:1;transform:none}
+.scri{width:40px;height:40px;border-radius:10px;background:var(--fill2) center/cover no-repeat}.scrp b{font-size:14px;font-weight:600}
+@media (prefers-reduced-motion:reduce){.hbs>i,.jbi,.hbf,.jbf{translate:none}.bhalo{display:none}}

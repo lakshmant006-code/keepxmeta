@@ -365,6 +365,7 @@ __MM_CSS__
 __MC_CSS__
 __TR_CSS__
 __JR_CSS__
+__MAGIC_CSS__
 __FLOW_CSS__
 __SEL_CSS__
 __SHARE_CSS__
@@ -975,6 +976,7 @@ function frame(){
   return CFG.demo?(IMG.bike||IMG.cup||''):'';
 }
 function openAdd(dayKey){
+  window.TXP='';
   newM={day:dayKey||dk(TODAY)};mode='photo';moreT='quote';cap={photo:null,video:null,voice:null};
   $('#ov').innerHTML=`<div class="ot"><button class="ib" id="ox" aria-label="Close">${ic.x}</button><div class="title" id="otitle">Photo</div><button class="keepb" id="keep" disabled>Keep</button></div>
   <div class="canvas">
@@ -1120,7 +1122,7 @@ function save(){
     if(newM.geo)o.geo=newM.geo;const w=val('whoIn');if(w){o.who=w;o.pose=newM.pose||'stand';o.at=newM.at||[.5,.74]}}
   if(mode==='video'){o.type='video';o.src=cap.video.src;o.dur=cap.video.dur;o.text=val('capIn');if(cap.video.blob)o.vid=cap.video.blob}
   if(mode==='voice'){o.type='voice';o.dur=cap.voice;o.text=val('vtx')}
-  if(mode==='text'){o.type='text';o.text=val('tx')}
+  if(mode==='text'){o.type='text';o.text=(window.TXP?window.TXP+'\n':'')+val('tx')}
   if(mode==='journal'){const j=jrGet();o.type='journal';o.j=j;o.text=jrText(j)}
   if(mode==='more'){o.type=moreT;if(moreT==='quote'){o.text=val('f2');o.who=val('f1')}else{o.name=val('f1');o.text=val('f2')}}
   user.push(o);
@@ -1584,6 +1586,7 @@ __JR_JS__
 __COMP_JS__
 __MC_JS__
 __SP_JS__
+__MAGIC_JS__
 </script>
 <script type="text/plain" id="three-src">__THREE__</script>
 <script type="text/plain" id="gltf-src">__GLTF__</script>
