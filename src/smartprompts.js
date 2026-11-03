@@ -23,6 +23,7 @@ function spPrompts(){
   if(typeof jrLetterPick==='function'&&jrLetterPick())add('quote','What did past me want?');
   if(J.some(m=>(m.j.feel||[]).includes('Lonely')||(m.j.feel||[]).includes('Anxious')))add('chart','When do I feel most anxious or lonely?');
   add('user','Who makes me smile?');
+  out.splice(Math.min(1,out.length),0,{i:'quote',t:'A thought for you',q:'__thought'});
   return out;
 }
 {const orig=chatSmart;window.chatSmart=function(){
@@ -98,5 +99,7 @@ function spAnswer(q){
   }
   return null;
 }
-{const o=window.cpRespond;window.cpRespond=function(q){const t=String(q||'').trim();if(t&&t.length>3&&!/^__/.test(t)){try{const A=spAnswer(t);if(A)return A}catch(e){}}return o?o.apply(this,arguments):null}}
+{const o=window.cpRespond;window.cpRespond=function(q){const t=String(q||'').trim();if(t==='__thought'){const p=window.thPrompt?thPrompt():{t:'What happened today that deserved a photo but did not get one?'};window.__thLast=p.t;return spA(p.t,[],[],[{t:'Another thought',s:'__thought'},{t:'Keep this thought',act:'kt'}].concat(p.d?[{t:'See that day',d:p.d}]:[]))}if(t&&t.length>3&&!/^__/.test(t)){try{const A=spAnswer(t);if(A)return A}catch(e){}}return o?o.apply(this,arguments):null}}
 document.addEventListener('click',e=>{const b=e.target.closest('#cb [data-act="jr"]');if(!b)return;e.stopPropagation();closeChat();setTimeout(()=>{openAdd();setTimeout(()=>setMode('journal'),150)},250)},true);
+
+document.addEventListener('click',e=>{const b=e.target.closest('#cb [data-act="kt"]');if(!b)return;e.stopPropagation();const t=window.__thLast;closeChat();setTimeout(()=>jrKeepThought(t),250)},true);
