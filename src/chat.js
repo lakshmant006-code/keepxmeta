@@ -76,11 +76,11 @@ function chatCard(items){
   ph.slice(0,2).forEach(p=>tiles.push(`<span class="mt" style="background-image:url(${src(p)})"></span>`));
   const place=day.find(x=>x.type==='place');
   if(place&&tiles.length<3)tiles.push(`<span class="mt map"><i>${chIcon('pin')}</i><small>${esc(place.name)}</small></span>`);
-  if(!tiles.length)tiles.push(`<span class="mt ic t-${m.type}">${m.type==='person'?avatar(m.name):chIcon(({voice:'mic',quote:'quote',file:'doc',place:'pin',video:'vid'})[m.type]||'txt')}</span>`);
+  if(!tiles.length)tiles.push(`<span class="mt ic t-${m.type}">${m.type==='person'?avatar(m.name):chIcon(({voice:'mic',quote:'quote',file:'doc',place:'pin',video:'vid',journal:'jrn'})[m.type]||'txt')}</span>`);
   if(ph.length>2&&tiles.length<3)tiles.push(`<span class="mt more">+${ph.length-2}</span>`);
   return`<button class="mc" data-d="${k}"><div class="mts">${tiles.join('')}</div><div class="mtm">${chRel(new Date(m.ts))} · ${tstr(m.ts)}</div><div class="mti">${esc(title)}</div>${desc?`<div class="mtd">${esc(desc)}</div>`:''}</button>`;
 }
-const chBreak=list=>{const c={};list.forEach(m=>c[m.type]=(c[m.type]||0)+1);const nm={photo:['photo','photos'],video:['video','videos'],voice:['voice note','voice notes'],text:['note','notes'],quote:['quote','quotes'],person:['person','people'],place:['place','places'],file:['file','files']};
+const chBreak=list=>{const c={};list.forEach(m=>c[m.type]=(c[m.type]||0)+1);const nm={photo:['photo','photos'],video:['video','videos'],voice:['voice note','voice notes'],text:['note','notes'],quote:['quote','quotes'],person:['person','people'],place:['place','places'],file:['file','files'],journal:['journal entry','journal entries']};
   return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([t,n])=>n+' '+nm[t][n===1?0:1]).join(', ')};
 /* ---- talking: tell what was kept in plain sentences, using the notes, voice transcripts, quotes and captions as well as the photos ---- */
 const chSnip=(t,n)=>{t=String(t||'').replace(/\s+/g,' ').trim();n=n||150;return t.length>n?t.slice(0,n-1).replace(/\s+\S*$/,'')+'…':t};

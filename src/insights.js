@@ -2,7 +2,7 @@
 /* Everything here is counted on this phone from the memories you kept. One range filter scopes every number and chart below it (streaks are all time). */
 ic.chart=st('<path d="M5 20V11M12 20V4M19 20v-6"/>',1.8);
 const INS_RANGES=[['30','30 days'],['90','90 days'],['365','12 months'],['all','All time']];
-const INS_PLURAL={photo:'Photos',video:'Videos',text:'Notes',quote:'Quotes',voice:'Voice notes',person:'People',file:'Files',place:'Places'};
+const INS_PLURAL={photo:'Photos',video:'Videos',text:'Notes',quote:'Quotes',voice:'Voice notes',person:'People',file:'Files',place:'Places',journal:'Journal entries'};
 const INS_STOP=new Set('the and for that this with have from your you are was were but not they them then than there their what when where which would could should about into just like been being also its our out can had has did does done get got him her his she our all any one two too very more most some much many how why who whom will let off over under again here only own same such both each few other because while after before during again further once those these myself yourself itself ourselves theirs mine really still even ever back going gonna want made make came come take took said say says saw see look looked day today time thing things lot way well new old good first last never always another'.split(' '));
 let insRange='90';try{insRange=localStorage.getItem('kept.insr')||'90'}catch(e){}
 const insFmt=n=>n>=1e4?(n/1e3).toFixed(n>=1e5?0:1).replace(/\.0$/,'')+'K':String(n);

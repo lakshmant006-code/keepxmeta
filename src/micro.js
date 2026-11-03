@@ -71,7 +71,7 @@ if(cal&&$('#home')){
 const ov=$('#ov');
 if(ov){
   let x0=0,y0=0,go=false;
-  ov.addEventListener('pointerdown',e=>{go=!e.target.closest('input,textarea,.vfb,.shutter,.modes,.mseg,.poses,select');x0=e.clientX;y0=e.clientY},{passive:true});
+  ov.addEventListener('pointerdown',e=>{go=!e.target.closest('input,textarea,.vfb,.shutter,.modes,.mseg,.poses,select,.jpane');x0=e.clientX;y0=e.clientY},{passive:true});
   ov.addEventListener('pointerup',e=>{
     if(!go||!ov.classList.contains('on'))return;go=false;const dx=e.clientX-x0,dy=e.clientY-y0;
     if(Math.abs(dx)<70||Math.abs(dy)>45||rec)return;

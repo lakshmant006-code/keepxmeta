@@ -364,6 +364,7 @@ __COMP_CSS__
 __MM_CSS__
 __MC_CSS__
 __TR_CSS__
+__JR_CSS__
 __FLOW_CSS__
 __SEL_CSS__
 __SHARE_CSS__
@@ -458,7 +459,7 @@ function avatar(name){
 <circle cx="42" cy="44.5" r="1.1" fill="#fff"/><circle cx="60" cy="44.5" r="1.1" fill="#fff"/>
 <path d="M43 56q7 6 14 0" stroke="#7A3B2B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
 ${specs}<ellipse cx="38" cy="36" rx="8" ry="5" fill="#fff" opacity=".22" transform="rotate(-25 38 36)"/></svg>`}
-const TL={photo:'Photo',video:'Video',text:'Note',quote:'Quote',voice:'Voice',person:'Person',file:'File',place:'Place'};
+const TL={photo:'Photo',video:'Video',text:'Note',quote:'Quote',voice:'Voice',person:'Person',file:'File',place:'Place',journal:'Journal'};
 const st=(p,w)=>`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w||1.7}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const ic={
  plus:st('<path d="M12 5v14M5 12h14"/>',2),
@@ -556,7 +557,7 @@ let byDay={};
 function index(){byDay={};all().forEach(m=>{const k=dk(new Date(m.ts));(byDay[k]=byDay[k]||[]).push(m)});Object.values(byDay).forEach(a=>a.sort((x,y)=>x.ts-y.ts))}
 const src=m=>m.src||IMG[m.img]||'';
 /* ---------- day marker: one ring, one cover ---------- */
-const PRI={photo:0,video:0,person:1,voice:2,quote:3,text:4,file:5,place:6};
+const PRI={photo:0,video:0,person:1,voice:2,journal:3,quote:3,text:4,file:5,place:6};
 function cover(m){
   if((m.type==='photo'||m.type==='video')&&src(m))return `<div class="cv ${m.type==='video'?'vd':''}" style="background-image:url(${src(m)})"></div>`;
   const hr=`--hr:${((m.id*17)%50)-25}deg`,ico=p=>st(p,1.7).replace('width="22" height="22"','width="16" height="16"');
@@ -564,6 +565,7 @@ function cover(m){
   if(m.type==='person')return g('person',`<div class="avs">${avatar(m.name)}</div>`);
   if(m.type==='voice')return g('voice','<div class="bars">'+[7,13,9,15,6].map(h=>`<i style="height:${h}px"></i>`).join('')+'</div>');
   if(m.type==='quote')return g('quote','<span class="q">“</span>');
+  if(m.type==='journal')return g('journal',ico('<path d="M12 20s-7-4.4-7-9.6A4 4 0 0 1 12 8a4 4 0 0 1 7 2.4C19 15.6 12 20 12 20z"/>'));
   if(m.type==='text')return g('text','<div class="ln"><i></i><i></i><i></i></div>');
   if(m.type==='file')return g('file',ico('<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/>'));
   if(m.type==='photo'||m.type==='video')return g('text',ico('<rect x="3.5" y="5" width="17" height="14" rx="3"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l5-4 4 3 3-2 4 3"/>'));
@@ -786,6 +788,7 @@ function item(m,withTime){
   else if(m.type==='text')b=`<div class="tx">${esc(m.text)}</div>`;
   else if(m.type==='quote')b=`<div class="qcard fb"><q>${esc(m.text)}</q>${m.who?`<small>${esc(m.who)}</small>`:''}</div>`;
   else if(m.type==='voice')b=`<div class="vp fb"><span class="pl">${ic.play}</span>${wave(18,m.id)}<small>${esc(m.dur||'0:10')}</small></div>${m.text?`<div class="tr">${esc(m.text)}</div>`:''}${m.turns?`<button class="tagch trlnk" data-tr="${m.id}">Open transcript${m.facts&&m.facts.length?' · ✦ '+m.facts.length:''}</button>`:''}`;
+  else if(m.type==='journal')b=jrCard(m);
   else if(m.type==='person')b=`<div class="pcard fb"><div class="av">${avatar(m.name)}</div><div><b>${esc(m.name)}</b><p>${esc(m.text)}</p></div></div>`;
   else if(m.type==='file')b=`<div class="fcard fb"><div class="fi">${ic.doc}</div><div><b>${esc(m.name)}</b><p>${esc(m.text||'File')}</p></div></div>`;
   else b=`<div class="plcard fb"><span style="color:var(--mute)">${ic.pin}</span><b style="font-size:16px;font-weight:600">${esc(m.name)}</b></div>`;
@@ -885,7 +888,7 @@ function search(q){
 }
 function closeChat(){$('#chat').classList.remove('on');$('#q').value='';$('#q2').value='';blurAll()}
 /* ---------- add: full overlay, camera first ---------- */
-const MODES=[['photo','Photo','cam'],['video','Video','vid'],['voice','Voice','mic'],['text','Note','txt'],['more','More','dots']];
+const MODES=[['photo','Photo','cam'],['video','Video','vid'],['voice','Voice','mic'],['text','Note','txt'],['journal','Journal','jrn'],['more','More','dots']];
 const MORE=[['quote','Quote'],['person','Person'],['place','Place'],['file','File']];
 const PH={text:'What do you want to keep?',quote:'The words, exactly as said',person:'Where you met, what they do, what to remember',place:'A line about it (optional)',file:'A line about it (optional)'};
 const P1={quote:'Said by',person:'Name',place:'Place name',file:'File name'};
@@ -984,6 +987,7 @@ function openAdd(dayKey){
      <div class="whoRow" id="whoRow"><input id="whoIn" placeholder="Who’s in it? (optional)" autocomplete="off"><div class="poses" id="poseSel">${POSES.map(p=>`<button data-p="${p[0]}" class="${p[0]==='stand'?'on':''}">${p[1]}</button>`).join('')}</div></div></section>
    <section class="pane" data-p="voice"><div class="vc"><button class="orb3d" id="bigrec" aria-label="Hold to talk"><span class="mesh"></span><span class="shade"></span></button><div class="lw js" id="lw">${'<i></i>'.repeat(31)}</div><div class="tm2" id="vt">&nbsp;</div><div class="vtr" id="vtrBox"><small id="vtrS">${typeof asrHas==='function'&&!asrHas()?'Want your words written down? ':'Hold the circle and talk. Your words appear here.'}${typeof asrHas==='function'&&!asrHas()?'<button class="tagch" id="vtrGet">Turn on</button>':''}</small><textarea id="vtx" rows="3" placeholder="Your words" autocomplete="off"></textarea></div><button class="tagch" id="trGo">Record a conversation</button></div></section>
    <section class="pane" data-p="text"><textarea class="big-in" id="tx" style="flex:1;min-height:0" placeholder="${PH.text}"></textarea></section>
+   <section class="pane" data-p="journal" id="jpane"></section>
    <section class="pane" data-p="more"><div class="mseg" id="mseg">${MORE.map(m=>`<button data-m="${m[0]}" class="${m[0]==='quote'?'on':''}">${m[1]}</button>`).join('')}</div><div class="in-wrap" id="mbody"></div></section>
   </div>
   <div class="modes" id="modes">${MODES.map(m=>`<button class="mb ${m[0]==='photo'?'on':''}" data-m="${m[0]}" aria-label="${m[1]}">${ic[m[2]]}</button>`).join('')}</div>`;
@@ -1104,6 +1108,7 @@ function validate(){
   if(mode==='video')ok=!!(cap.video&&cap.video.src&&!cap.video.pending);
   if(mode==='voice')ok=!!cap.voice;
   if(mode==='text')ok=!!val('tx');
+  if(mode==='journal')ok=typeof jrAnswered==='function'&&jrAnswered()>0;
   if(mode==='more')ok=moreT==='quote'?!!val('f2'):!!val('f1');
   const k=$('#keep');if(k)k.disabled=!ok;
 }
@@ -1116,6 +1121,7 @@ function save(){
   if(mode==='video'){o.type='video';o.src=cap.video.src;o.dur=cap.video.dur;o.text=val('capIn');if(cap.video.blob)o.vid=cap.video.blob}
   if(mode==='voice'){o.type='voice';o.dur=cap.voice;o.text=val('vtx')}
   if(mode==='text'){o.type='text';o.text=val('tx')}
+  if(mode==='journal'){const j=jrGet();o.type='journal';o.j=j;o.text=jrText(j)}
   if(mode==='more'){o.type=moreT;if(moreT==='quote'){o.text=val('f2');o.who=val('f1')}else{o.name=val('f1');o.text=val('f2')}}
   user.push(o);
   persistUser();
@@ -1574,6 +1580,7 @@ __MICRO_JS__
 __MM_JS__
 __TR_JS__
 __ASR_JS__
+__JR_JS__
 __COMP_JS__
 __MC_JS__
 </script>

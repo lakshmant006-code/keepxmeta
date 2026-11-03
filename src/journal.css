@@ -1,0 +1,22 @@
+/* Journal */
+.modes{gap:10px}
+.g-journal{background:radial-gradient(75% 75% at 20% 15%,#FFD0B8 0,transparent 70%),radial-gradient(80% 80% at 90% 90%,#F6A9CF 0,transparent 70%),#F5B7B1}
+.jpane{overflow-y:auto;padding:4px 4px 28px;scrollbar-width:none;height:100%}.jpane::-webkit-scrollbar{display:none}
+#jpane.pane{padding-left:12px;padding-right:12px}
+.jscr{flex:1;min-height:0}
+.jey{display:block;font-size:11.5px;font-weight:700;letter-spacing:.09em;color:var(--blue);margin-top:4px}.jh{font-size:26px;line-height:1.15;font-weight:700;letter-spacing:-.02em;margin:6px 0 4px}.jsub{font-size:15px;color:var(--mute);margin-bottom:18px}
+.jsec{margin-bottom:22px}.jsec>label{display:block;font-size:17px;font-weight:600;line-height:1.3;margin-bottom:4px}.jhint{font-size:13.5px;color:var(--mute);line-height:1.4;margin-bottom:8px}
+.jlk{font-style:normal;font-size:11px;font-weight:600;color:var(--mute);background:var(--fill);border-radius:8px;padding:2px 7px;margin-left:6px;vertical-align:2px}
+.jsec textarea{width:100%;border-radius:16px;background:var(--fill);border:1px solid transparent;padding:12px 14px;font-size:16px;line-height:1.4;color:var(--ink);resize:none;outline:0;font-family:inherit;min-height:64px;transition:border-color .2s,background .2s}.jsec textarea:focus{background:var(--bg);border-color:var(--blue)}
+.jch{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.jch button,.jwc button{height:36px;padding:0 14px;border-radius:18px;background:var(--fill);font-size:14.5px;font-weight:500;color:var(--ink);transition:background .2s,color .2s}.jch button.on,.jwc button.on{background:var(--blue);color:#fff}
+.jw{margin-top:8px}.jw summary{font-size:13.5px;font-weight:600;color:var(--blue);cursor:pointer;list-style:none;display:inline-block;padding:4px 0}.jw summary::-webkit-details-marker{display:none}.jwc{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.jwc button{height:30px;padding:0 11px;font-size:13px}
+.jstr{display:flex;align-items:baseline;justify-content:space-between;margin:14px 2px 6px}.jstr span{font-size:15px;color:var(--mute)}.jstr b{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+#jsl{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:var(--fill2);outline:0}#jsl::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid var(--blue);box-shadow:0 2px 8px rgba(0,0,0,.18)}#jsl::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--blue)}
+.jfoot{font-size:14px;color:var(--mute);text-align:center;margin:6px 0 12px}.jfoot b{color:var(--ink)}.jcopy{width:100%;justify-content:center}.jnote{font-size:12.5px;color:var(--faint);text-align:center;margin-top:8px}
+.jlet{margin:0 0 22px;padding:18px 18px 16px;border-radius:24px;background:linear-gradient(160deg,#EEF3FF,#F7ECFF)}.jlet small{font-size:11px;font-weight:700;letter-spacing:.09em;color:#6b5bd6}.jlet h3{font-size:22px;font-weight:700;margin:6px 0 2px;color:#1d2340}.jlet em{display:block;font-style:normal;font-size:11.5px;font-weight:600;letter-spacing:.07em;color:#7d84a3;margin-bottom:8px}
+.jlet q{display:block;quotes:"“" "”";font-size:17px;line-height:1.45;color:#2a3150;margin-bottom:12px}.jlet b{display:block;font-size:15px;margin-bottom:8px;color:#1d2340}.jlet p{font-size:15px;line-height:1.45;color:#2a3150;margin-top:4px}.jlet .jend{font-size:13.5px;color:#5c6485;margin-top:10px}
+.jans{display:flex;flex-direction:column;gap:8px}.jans button{text-align:left;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.8);font-size:15px;font-weight:500;color:#1d2340}.jans button:active{background:#fff}
+.jcard{padding:12px 14px;border-radius:18px;background:var(--fill)}.jfe{display:flex;flex-wrap:wrap;gap:6px}.jfc{font-size:13px;font-weight:600;padding:4px 10px;border-radius:12px;background:var(--blue);color:#fff}
+.jbar{position:relative;height:22px;margin:10px 0 4px;border-radius:11px;background:var(--fill2);overflow:hidden}.jbar i{position:absolute;left:0;top:0;bottom:0;background:#8FBCFF;border-radius:11px}.jbar span{position:relative;display:block;font-size:12px;font-weight:600;line-height:22px;padding-left:10px;color:var(--ink)}
+.jq{margin-top:10px}.jq small{display:block;font-size:12px;font-weight:600;color:var(--mute);margin-bottom:2px}.jq p{font-size:15px;line-height:1.4}
+.jlock{font-size:13px;font-weight:600;color:var(--blue);padding:4px 0}.jrf{margin-top:10px;font-size:13px;color:var(--mute);font-style:italic}
