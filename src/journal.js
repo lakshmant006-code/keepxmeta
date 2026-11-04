@@ -119,30 +119,18 @@ const JR_FACE={
   dreamy:{m:'M68 100 Q80 108 92 100',f:'none',look:[-4,-5]},
   shh:{m:'M70 104 L90 104',f:'none',hand:1}};
 function jrMascot(){
-  return `<svg class="mas" id="mas" viewBox="0 0 160 150" aria-hidden="true"><defs><radialGradient id="mg" cx="38%" cy="28%" r="80%"><stop offset="0" stop-color="#FFB071"/><stop offset=".55" stop-color="#FF8A3D"/><stop offset="1" stop-color="#F2631B"/></radialGradient></defs>
-   <g id="mbody"><path d="M80 14c-6-8-2-12 6-12-2 6 0 8 4 12" fill="#7BC043" id="mleaf"/><path d="M80 14c38 0 62 26 62 62 0 38-26 62-62 62S18 114 18 76C18 40 42 14 80 14z" fill="url(#mg)"/><ellipse cx="56" cy="36" rx="14" ry="7" fill="#fff" opacity=".28" transform="rotate(-24 56 36)"/>
-   <circle cx="42" cy="92" r="8" fill="#FF6F61" opacity=".45"/><circle cx="118" cy="92" r="8" fill="#FF6F61" opacity=".45"/>
-   <g id="meyes"><ellipse cx="58" cy="68" rx="17" ry="19" fill="#fff"/><ellipse cx="102" cy="68" rx="17" ry="19" fill="#fff"/><circle id="mpl" cx="58" cy="70" r="9" fill="#1b1b22"/><circle id="mpr" cx="102" cy="70" r="9" fill="#1b1b22"/><circle id="mgl" cx="55" cy="66" r="3" fill="#fff"/><circle id="mgr" cx="99" cy="66" r="3" fill="#fff"/>
-   <path id="mcl" d="M41 68 Q58 82 75 68" stroke="#7a2d0a" stroke-width="4" fill="none" stroke-linecap="round" opacity="0"/><path id="mcr" d="M85 68 Q102 82 119 68" stroke="#7a2d0a" stroke-width="4" fill="none" stroke-linecap="round" opacity="0"/>
-   <rect id="mlid1" x="40" y="48" width="36" height="40" rx="18" fill="#FF8A3D" transform-origin="58 48" style="transform:scaleY(0)"/><rect id="mlid2" x="84" y="48" width="36" height="40" rx="18" fill="#FF8A3D" transform-origin="102 48" style="transform:scaleY(0)"/></g>
-   <path id="mbr" d="M42 46 L72 54 M118 46 L88 54" stroke="#7a2d0a" stroke-width="5" stroke-linecap="round" opacity="0"/>
-   <path id="mmo" d="M66 100 Q80 108 94 100" stroke="#7a2d0a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-   <path id="mtr" d="M44 84 q-4 8 0 12 q4-4 0-12z" fill="#7cc8ff" opacity="0"/>
-   <g id="mhand" opacity="0"><rect x="74" y="90" width="12" height="30" rx="6" fill="#FFC9A0" stroke="#e8955a" stroke-width="2"/></g></g></svg>`;
+  const lg=(document.querySelector('#chat .logo')||{outerHTML:''}).outerHTML.replace(/width="\d+" height="\d+"/,'width="62" height="62"');
+  return `<div class="mas" id="mas" data-mood="neutral" aria-hidden="true"><span class="mlogo" id="mbody">${lg}</span></div>`;
 }
 let jrStep=0,jrMoodNow='neutral',jrMasA=null;
 function jrMood(name,pop){
-  const f=JR_FACE[name]||JR_FACE.neutral,g=id=>$('#'+id);if(!g('mas'))return;jrMoodNow=name;
-  const mo=g('mmo');mo.setAttribute('d',f.m);mo.setAttribute('fill',f.f);
-  g('mcl').style.opacity=g('mcr').style.opacity=f.closed?1:0;g('mpl').style.opacity=g('mpr').style.opacity=g('mgl').style.opacity=g('mgr').style.opacity=f.closed?0:1;
-  g('mbr').style.opacity=f.brow?1:0;g('mtr').style.opacity=f.tear?1:0;g('mhand').style.opacity=f.hand?1:0;g('mmo').style.opacity=f.hand?0:1;
-  if(f.look)jrLook(f.look[0],f.look[1]);
+  const m=$('#mas');if(!m)return;jrMoodNow=name;m.dataset.mood=name;
   if(pop&&window.Motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
-    const sq=name==='cheer'?{y:[0,-22,0],scale:[1,1.1,1]}:name==='sad'?{y:[0,4,0],scaleY:[1,.94,1]}:name==='worried'?{x:[0,-4,4,-3,3,0]}:{scale:[1,1.1,.97,1]};
-    Motion.animate('#mbody',sq,{duration:name==='cheer'?.6:.45,ease:'easeOut'});
+    const sq=name==='cheer'?{y:[0,-22,0],rotate:[0,360],scale:[1,1.12,1]}:name==='sad'?{y:[0,5,0],scaleY:[1,.92,1]}:name==='worried'?{x:[0,-5,5,-4,4,0]}:{scale:[1,1.14,.97,1]};
+    Motion.animate('#mbody',sq,{duration:name==='cheer'?.7:.45,ease:'easeOut'});
   }
 }
-function jrLook(dx,dy){const m=Math.max(-5,Math.min(5,dx)),n=Math.max(-5,Math.min(5,dy));[['mpl',58],['mpr',102]].forEach(([id,cx])=>{const e=$('#'+id);if(e){e.setAttribute('cx',cx+m);e.setAttribute('cy',70+n)}});[['mgl',55],['mgr',99]].forEach(([id,cx])=>{const e=$('#'+id);if(e){e.setAttribute('cx',cx+m);e.setAttribute('cy',66+n)}})}
+function jrLook(){}
 function jrBurst(x,y,txt){
   if(!window.Motion||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
   for(let i=0;i<3;i++){const e=document.createElement('span');e.className='jpf';e.textContent=txt;Object.assign(e.style,{left:x-12+'px',top:y-12+'px'});document.body.appendChild(e);
@@ -170,7 +158,7 @@ function jrDraw(dir){
     $('#jprog').innerHTML=JR_STEPS.map((_,i)=>`<i class="${i<jrStep?'d':i===jrStep?'a':''}" data-i="${i}"></i>`).join('');
     const last=jrStep===JR_STEPS.length-1,nx=$('#jnext');nx.classList.toggle('last',last);nx.innerHTML=last?'✓':'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
     $('#jback').style.visibility=jrStep>0||jrLetterEl&&jrStep===0?'visible':'hidden';
-    const k=jrStep>=0?JR_STEPS[jrStep][0]:'letter';jrMood(k==='letter'?'dreamy':k==='unsaid'?'shh':k==='feel'?(JR.feel.length?(JR_MOOD[JR.feel[JR.feel.length-1]]||'joy'):'neutral'):'neutral',false);
+    const k=jrStep>=0?JR_STEPS[jrStep][0]:'letter';jrMood(k==='letter'?'dreamy':k==='unsaid'?'calm':k==='feel'?(JR.feel.length?(JR_MOOD[JR.feel[JR.feel.length-1]]||'joy'):'neutral'):'neutral',false);
     if(window.Motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches&&!first)Motion.animate(body,{opacity:[0,1],x:[dir*36,0]},{type:'spring',stiffness:420,damping:32});
     jrLook(0,0);
   };
@@ -186,12 +174,7 @@ function jrMount(){
     <div class="jnav"><button class="jbk" id="jback" aria-label="Back">‹</button><button class="jnext" id="jnext" aria-label="Next"></button></div></div>`;
   if(jrLetterEl){jrStep=-1}
   jrDraw(1);if(jrStep===-1){jrStep=-1}
-  /* the eyes follow your finger; the friend nods as you type and blinks now and then */
-  const mas=$('#mas');
-  const follow=e=>{const r=mas.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height*.45,x=(e.clientX-cx)/Math.max(60,Math.hypot(e.clientX-cx,e.clientY-cy))*5,y=(e.clientY-cy)/Math.max(60,Math.hypot(e.clientX-cx,e.clientY-cy))*5;if(jrMoodNow!=='dreamy')jrLook(x,y)};
-  p.addEventListener('pointermove',follow,{passive:true});p.addEventListener('pointerdown',follow,{passive:true});
-  const blink=()=>{if(!document.contains(mas))return;if(window.Motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches&&!JR_FACE[jrMoodNow].closed){Motion.animate([$('#mlid1'),$('#mlid2')],{scaleY:[0,1,0]},{duration:.22})}setTimeout(blink,2200+Math.random()*3200)};setTimeout(blink,1800);
-  if(window.Motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches)Motion.animate('#mas',{y:[0,-4]},{duration:1.8,repeat:Infinity,repeatType:'mirror',ease:'easeInOut'});
+  if(window.Motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches)Motion.animate('#mas',{y:[0,-5]},{duration:1.8,repeat:Infinity,repeatType:'mirror',ease:'easeInOut'});
   const sync=()=>{JR_STEPS.forEach(([k])=>{if(k!=='feel'){const t=p.querySelector('#j_'+k);if(t)JR[k]=t.value}});{const pk=jrBanPick(JR.feel);jrBan=pk.b;jrCp=pk.c}validate()};
   const go=(d)=>{sync();const n=jrStep+d;if(jrLetterEl&&jrStep===-1&&d>0){jrStep=0;jrDraw(1);return}if(n<0){if(jrLetterEl){jrStep=-1;jrDraw(-1)}return}if(n>=JR_STEPS.length){jrFinish();return}jrStep=n;jrDraw(d);try{navigator.vibrate&&navigator.vibrate(6)}catch(e){}};
   const jrFinish=()=>{sync();jrMood('cheer',true);jrConfetti();setTimeout(()=>{const k=$('#keep');if(k&&!k.disabled)k.click();else toast('Say one thing first')},700)};
