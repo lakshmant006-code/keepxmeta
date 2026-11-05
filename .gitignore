@@ -1,3 +1,10 @@
 dist/
 .env
 node_modules/
+
+# iPhone app build output
+ios/App/Pods/
+ios/App/build/
+ios/DerivedData/
+ios/App/App/public/
+ios/App/App/capacitor.config.json

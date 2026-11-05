@@ -1,0 +1,9 @@
+{
+  "appId": "com.keepxmeta.keep",
+  "appName": "Keep",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#ffffff"
+  }
+}
