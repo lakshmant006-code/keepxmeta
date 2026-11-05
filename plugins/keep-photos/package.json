@@ -1,0 +1,15 @@
+{
+  "name": "keep-photos",
+  "version": "1.0.0",
+  "description": "Reads recent photos from the Android photo library for Keep: newest first, in pages, as small copies with their date and place.",
+  "license": "MIT",
+  "files": ["android/src/main/", "android/build.gradle"],
+  "capacitor": {
+    "android": {
+      "src": "android"
+    }
+  },
+  "peerDependencies": {
+    "@capacitor/core": ">=8.0.0"
+  }
+}

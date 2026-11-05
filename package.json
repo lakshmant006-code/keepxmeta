@@ -2,16 +2,19 @@
   "name": "keep-ios",
   "private": true,
   "version": "1.0.0",
-  "description": "The Keep iPhone app: the same pages as the web app, wrapped so it can read your photo library.",
+  "description": "The Keep phone apps (iPhone and Android): the same pages as the web app, wrapped so they can read your photo library.",
   "scripts": {
     "web": "python3 build.py",
-    "sync": "python3 build.py && cap sync ios",
-    "open": "cap open ios"
+    "sync": "python3 build.py && cap sync",
+    "open:ios": "cap open ios",
+    "open:android": "cap open android"
   },
   "dependencies": {
     "@capacitor/core": "^8.0.0",
     "@capacitor/ios": "^8.0.0",
-    "@capacitor-community/media": "^9.1.0"
+    "@capacitor/android": "^8.0.0",
+    "@capacitor-community/media": "^9.1.0",
+    "keep-photos": "file:plugins/keep-photos"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.0.0",
