@@ -1397,20 +1397,7 @@ function onbOpen(again){
   onbPick(again);
 }
 function onbClose(){const d=$('#onb');if(d)d.remove();onbFlag();refresh()}
-function onbPick(again){
-  const L=new Date(TODAY.getFullYear(),TODAY.getMonth()-1,TODAY.getDate());
-  $('#onbIn').innerHTML=`<div class="onbic">${ic.img.replace('width="22" height="22"','width="34" height="34"')}</div>
-   <h1>${again?'Add photos':'Welcome to Keep'}</h1>
-   <p class="onbp">Start with one month of memories. Pick the photos you took from <b>${MS[L.getMonth()]} ${L.getDate()}</b> to today, from your phone's photos app.</p>
-   <ul class="onbl"><li>Each photo lands on the day it was taken.</li><li>Photos that carry a location show up on the map.</li><li>Everything stays on this phone.</li></ul>
-   <label class="pill d onbgo">Choose photos<input type="file" id="onbIn2" accept="image/*" multiple hidden></label>
-   <button class="onbsk" id="onbSkip">${again?'Cancel':'Skip for now'}</button>
-   <small class="onbn">Tip: in the picker, tap <b>Select</b>, then choose a whole month at once. Up to ${ONB_MAX} at a time.</small>
-   <button class="onbsk" id="onbAll" style="margin-top:6px">Import my whole library instead</button>`;
-  $('#onbAll').onclick=()=>{const d=$('#onb');if(d)d.remove();bulkOpen()};
-  $('#onbSkip').onclick=onbClose;
-  $('#onbIn2').onchange=e=>{const f=[...e.target.files].filter(x=>/^image\//.test(x.type)||/\.(jpe?g|png|heic|heif|webp)$/i.test(x.name));e.target.value='';if(f.length)onbRun(f)};
-}
+function onbPick(again){bulkPick(!again)}
 /* the first-run picker uses the same fast pipeline as "Import all my photos": several photos at once, decoded straight to size, saved in batches */
 async function onbRun(files){onbFlag();return bulkRun(files)}
 /* ---------- long press a memory: delete ---------- */
