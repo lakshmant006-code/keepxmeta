@@ -16,7 +16,8 @@ if(!RM.matches)PAGES.forEach(([c,o,sel,axis])=>{
     el._leaving=true;el._cancel=false;
     const to=axis==='x'?{opacity:0,x:34,scale:.97}:{opacity:0,y:28,scale:.985};
     const done=()=>{el._leaving=false;el.style.opacity='';el.style.transform='';el.style.scale='';if(!el._cancel)oc.apply(self,args)};
-    animate(el,to,{...SOFT,stiffness:420,damping:34}).finished.then(done,done);
+    if(window.kHomeBack)window.kHomeBack(el);
+    animate(el,to,{duration:.22,ease:[.32,.72,0,1]}).finished.then(done,done);
   };
   if(typeof oo==='function')window[o]=function(){const el=$(sel);if(el&&el._leaving){el._cancel=true;el._leaving=false;el.style.opacity='';el.style.transform='';el.style.scale=''}return oo.apply(this,arguments)};
 });
