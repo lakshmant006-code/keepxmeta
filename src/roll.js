@@ -29,6 +29,8 @@ function place(sc){
   for(const r of rows){const base=r.offsetTop+r.offsetHeight/2,c=base-v-H/2,u=c/(H*.34),n=Math.exp(-u*u),au=Math.min(Math.abs(u),2.2);
     const s=.84+.28*n,x=au*au*9+au*8,y=lag-c*.035,z=-70*(1-n),ry=-7*n;
     r.style.transform=`translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,${z.toFixed(1)}px) rotateY(${ry.toFixed(2)}deg) scale(${s.toFixed(4)})`;
+    const ns=.58+.5*n,wx=au*au*5+au*9-6;
+    r.style.setProperty('--nx',(wx-x).toFixed(2)+'px');r.style.setProperty('--ns',(ns/s).toFixed(4));
     r.style.opacity=(.42+.58*n).toFixed(3);r.style.zIndex=Math.round(n*10)}
 }
 function fx(sc){

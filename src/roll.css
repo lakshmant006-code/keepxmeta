@@ -5,9 +5,9 @@
 .rlsc{position:relative;flex:1;min-height:0;overflow-y:auto;perspective:1200px;perspective-origin:30% 50%;scrollbar-width:none;overscroll-behavior:contain;background:radial-gradient(70% 50% at 20% 30%,#e6ebff,transparent 70%),radial-gradient(60% 50% at 90% 80%,#ffe6ee,transparent 70%)}
 .rlsc::-webkit-scrollbar{display:none}
 .rlr{position:relative;height:124px;display:flex;align-items:center;padding-left:max(64px,19%);transform-style:preserve-3d;will-change:transform,opacity;text-align:left;width:100%}
-.rlf{position:relative;width:96px;height:84px;flex:none}
+.rlf{position:relative;width:96px;height:84px;flex:none;margin-left:max(40px,10%)}
 .rlf i{position:absolute;left:50%;top:50%;width:54px;height:72px;margin:-36px 0 0 -27px;border-radius:9px;background:var(--fill2) center/cover no-repeat;border:2px solid #fff;box-shadow:0 6px 16px rgba(20,24,40,.22);transform:translateX(var(--x)) rotate(var(--r))}
-.rln{margin-left:14px;display:flex;flex-direction:column;gap:1px}
+.rln{margin-left:auto;margin-right:max(64px,17%);display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:1px;transform:translateX(var(--nx,0)) scale(var(--ns,1));transform-origin:right center}
 .rln b{font-size:26px;font-weight:700;letter-spacing:-.02em}
 .rln small{font-size:13px;color:var(--mute);font-weight:500}
 .rlp{position:absolute;inset:0;z-index:2;background:var(--bg);display:none;flex-direction:column}
