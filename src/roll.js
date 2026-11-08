@@ -33,7 +33,9 @@ function place(sc){
     const ax=80*(1-Math.exp(-arc/80)),s=.56+.54*n,x=ax*.35,y=lag+wy,z=-50*(1-n),ry=-6*n;
     r.style.transform=`translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,${z.toFixed(1)}px) rotateY(${ry.toFixed(2)}deg) scale(${s.toFixed(4)})`;
     const ns=.62+.4*n,wx=ax*.75-8;
-    r.style.setProperty('--nx',(wx-x).toFixed(2)+'px');r.style.setProperty('--ns',(ns/s).toFixed(4));
+    /* numbers sit ON the drawn arc: a circle of radius .36 H, bulging left at the middle (x ~ 73% of the width) */
+    const W=r.offsetWidth,Rn=H*.36,yy=Math.max(-Rn*.98,Math.min(Rn*.98,c+wy)),P=Math.min(W-22,W*.73+Rn-Math.sqrt(Rn*Rn-yy*yy));
+    r.style.setProperty('--nx',(W/2+(P-W/2-x)/s).toFixed(2)+'px');r.style.setProperty('--ns',(ns/s).toFixed(4));
     r.style.opacity=((.4+.6*n)*Math.max(0,Math.min(1,1-(Math.abs(c/R)-.85)/.4))).toFixed(3);r.style.zIndex=Math.round(n*10)}
 }
 function fx(sc){
