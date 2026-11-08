@@ -26,12 +26,15 @@ function open(){v=0;loop=0;
 let v=0,loop=0,last=0,idle=0;
 function place(sc){
   const H=sc.clientHeight,real=sc.scrollTop,lag=real-v;
-  for(const r of rows){const base=r.offsetTop+r.offsetHeight/2,c=base-v-H/2,u=c/(H*.34),n=Math.exp(-u*u),au=Math.min(Math.abs(u),2.2);
-    const s=.84+.28*n,x=au*au*9+au*8,y=lag-c*.035,z=-70*(1-n),ry=-7*n;
+  const R=H*.6;
+  for(const r of rows){const base=r.offsetTop+r.offsetHeight/2,c=base-v-H/2,u=c/(H*.34),n=Math.exp(-u*u);
+    /* the rows ride a wheel whose centre is off to the left: angle from how far the row is from the middle */
+    const th=Math.max(-.85,Math.min(.85,c/R)),arc=R*(1-Math.cos(th)),wy=R*Math.sin(th)-c;
+    const s=.86+.22*n,x=arc*.3,y=lag,z=-50*(1-n),ry=-6*n;
     r.style.transform=`translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,${z.toFixed(1)}px) rotateY(${ry.toFixed(2)}deg) scale(${s.toFixed(4)})`;
-    const ns=.58+.5*n,wx=au*au*5+au*9-6;
+    const ns=.74+.3*n,wx=arc*.45-8;
     r.style.setProperty('--nx',(wx-x).toFixed(2)+'px');r.style.setProperty('--ns',(ns/s).toFixed(4));
-    r.style.opacity=(.42+.58*n).toFixed(3);r.style.zIndex=Math.round(n*10)}
+    r.style.opacity=(.4+.6*n).toFixed(3);r.style.zIndex=Math.round(n*10)}
 }
 function fx(sc){
   idle=performance.now();if(loop)return;last=performance.now();
