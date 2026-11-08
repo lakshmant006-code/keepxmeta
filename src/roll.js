@@ -9,34 +9,42 @@ const dayDate=k=>{const p=k.split('-').map(Number);return new Date(p[0],p[1]-1,p
 const fmt=d=>d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
 let rows=[];
 function groups(){return Object.keys(byDay).map(k=>({k,ph:byDay[k].filter(m=>m.type==='photo'&&src(m))})).filter(g=>g.ph.length).sort((a,c)=>dayDate(c.k)-dayDate(a.k))}
-function open(){v=0;loop=0;
-  const gs=groups();
+let v=0,loop=0,last=0,idle=0,gs=[],focus=-1,sc=null,pv=null;
+const ROW=60;
+function open(){
+  v=0;loop=0;focus=-1;gs=groups();
   el.innerHTML=`<div class="mh2"><button class="ib" id="rlX" aria-label="Close">${ic.x}</button><div class="t">Roll</div><span style="width:40px"></span></div>`+
-   (gs.length?`<div class="rlsc" id="rlsc"><div style="height:36vh"></div>${gs.map((g,i)=>`<button class="rlr" data-i="${i}"><span class="rlf">${g.ph.slice(0,4).map((m,j,a)=>`<i style="background-image:url(${src(m)});--x:${(j-(a.length-1)/2)*13}px;--r:${(j-(a.length-1)/2)*7}deg;z-index:${j}"></i>`).join('')}</span><span class="rln"><b>${g.ph.length>1?"+"+g.ph.length:"1"}</b><small>${fmt(dayDate(g.k))}</small></span></button>`).join('')}<div style="height:36vh"></div></div>`:`<div class="rlempty">No photos yet. Keep a few and they will fan out here.</div>`)+`<div class="rlp" id="rlp"></div>`;
+   (gs.length?`<div class="rlsc" id="rlsc"><div class="rlsp"></div>${gs.map((g,i)=>`<button class="rlr" data-i="${i}"><span class="rln"><b>${g.ph.length>1?'+'+g.ph.length:'1'}</b><small>${fmt(dayDate(g.k))}</small></span></button>`).join('')}<div class="rlsp"></div></div><button class="rlpv" id="rlpv" aria-label="Open this day"></button>`:`<div class="rlempty">No photos yet. Keep a few and they will fan out here.</div>`)+`<div class="rlp" id="rlp"></div>`;
   el.classList.add('on');el.querySelector('#rlX').onclick=close;
-  const sc=el.querySelector('#rlsc');if(!sc)return;
+  sc=el.querySelector('#rlsc');if(!sc)return;pv=el.querySelector('#rlpv');
+  const H=sc.clientHeight;el.querySelectorAll('.rlsp').forEach(x=>x.style.height=(H/2-ROW/2)+'px');
   rows=[...sc.querySelectorAll('.rlr')];
   sc.addEventListener('scroll',()=>{idle=performance.now();fx(sc);snapSoon(sc)},{passive:true});
-  rows.forEach(r=>r.onclick=()=>openDay(gs[+r.dataset.i],r));
+  rows.forEach(r=>r.onclick=()=>{if(+r.dataset.i===focus)openDay(gs[focus],r);else sc.scrollTo({top:r.offsetTop+ROW/2-H/2,behavior:RM.matches?'auto':'smooth'})});
+  sc.addEventListener('click',e=>{if(!e.target.closest('.rlr')&&focus>=0&&e.clientX<innerWidth*.55)openDay(gs[focus],rows[focus])});
   v=sc.scrollTop;place(sc);fx(sc);snapSoon(sc);
 }
-/* Magnify the row nearest the middle. Native scrolling gives the finger and the flick; the picture follows it through one
-   critically damped "virtual scroll" (frame-rate independent), and every stack is placed from that single value, so all of
-   them glide together. Rows sit at their real position, so a transform of (real - virtual) makes up the lag. */
-let v=0,loop=0,last=0,idle=0;
+/* The track is a fixed arc: a circle whose centre sits on the right edge, level with the middle of the screen. Only the
+   numbers travel round it (up and down the curve, bulging left at the middle); the photo stack stays put, on the left, and
+   shows whichever day is under the arc's apex. Native scrolling gives the finger and the flick; the numbers follow it
+   through one critically damped "virtual scroll", so they all glide together. */
 function place(sc){
-  const H=sc.clientHeight,real=sc.scrollTop,lag=real-v;
-  const R=H*.5;
-  for(const r of rows){const base=r.offsetTop+r.offsetHeight/2,c=base-v-H/2,u=c/(H*.34),n=Math.exp(-u*u);
-    /* the rows ride a wheel whose centre is off to the left: angle from how far the row is from the middle */
-    const th=Math.max(-1.45,Math.min(1.45,c/R)),arc=R*(1-Math.cos(th)),wy=R*Math.sin(th)-c;
-    const ax=80*(1-Math.exp(-arc/80)),s=.56+.54*n,x=ax*.35,y=lag+wy,z=-50*(1-n),ry=-6*n;
-    r.style.transform=`translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,${z.toFixed(1)}px) rotateY(${ry.toFixed(2)}deg) scale(${s.toFixed(4)})`;
-    const ns=.62+.4*n,wx=ax*.75-8;
-    /* numbers sit ON the drawn arc: a circle of radius .36 H, bulging left at the middle (x ~ 73% of the width) */
-    const W=r.offsetWidth,Rn=H*.36,yy=Math.max(-Rn*.98,Math.min(Rn*.98,c+wy)),P=Math.min(W-22,W*.73+Rn-Math.sqrt(Rn*Rn-yy*yy));
-    r.style.setProperty('--nx',(W/2+(P-W/2-x)/s).toFixed(2)+'px');r.style.setProperty('--ns',(ns/s).toFixed(4));
-    r.style.opacity=((.4+.6*n)*Math.max(0,Math.min(1,1-(Math.abs(c/R)-.85)/.4))).toFixed(3);r.style.zIndex=Math.round(n*10)}
+  const H=sc.clientHeight,W=sc.clientWidth,real=sc.scrollTop,lag=real-v,Rn=H*.36,X0=W*.7;
+  let best=0,bd=1e9;
+  rows.forEach((r,i)=>{const c=r.offsetTop+ROW/2-v-H/2,ay=Math.abs(c);if(ay<bd){bd=ay;best=i}
+    /* position along the arc by arc length, so the numbers bunch together toward the ends */
+    const th=Math.max(-1.15,Math.min(1.15,c/Rn)),yy=Rn*Math.sin(th),P=Math.min(W-54,X0+Rn-Rn*Math.cos(th)),n=Math.exp(-(c*c)/((H*.3)*(H*.3)));
+    r.style.transform=`translate3d(0,${(lag+yy-c).toFixed(2)}px,0)`;
+    r.style.setProperty('--nx',P.toFixed(2)+'px');r.style.setProperty('--ns',(.62+.5*n).toFixed(3));
+    r.style.opacity=((.35+.65*n)*Math.max(0,Math.min(1,1-(Math.abs(c/Rn)-.78)/.3))).toFixed(3);r.style.zIndex=Math.round(n*10)});
+  if(best!==focus)setFocus(best);
+}
+function setFocus(i){
+  const first=focus<0,dir=i>focus?1:-1;focus=i;const g=gs[i];if(!g||!pv)return;
+  const html=`<span class="rlf">${g.ph.slice(0,4).map((m,j,a)=>`<i style="background-image:url(${src(m)});--x:${(j-(a.length-1)/2)*17}px;--r:${(j-(a.length-1)/2)*8}deg;z-index:${j}"></i>`).join('')}</span>`;
+  pv.innerHTML=html;
+  if(first||RM.matches)return;
+  pv.querySelectorAll('i').forEach((q,j)=>q.animate([{opacity:0,transform:`translateX(var(--x)) translateY(${dir*26}px) rotate(var(--r)) scale(.86)`},{opacity:1,transform:'translateX(var(--x)) translateY(0) rotate(var(--r)) scale(1)'}],{duration:380,easing:'cubic-bezier(.22,.9,.3,1)',delay:j*28,fill:'backwards'}));
 }
 function fx(sc){
   idle=performance.now();if(loop)return;last=performance.now();
@@ -45,10 +53,10 @@ function fx(sc){
     place(sc);loop=(v!==real||t-idle<160)?requestAnimationFrame(step):0};
   loop=requestAnimationFrame(step);
 }
-/* once the finger and the flick are done, glide the nearest stack to the middle (the picture follows through the same easing) */
+/* once the finger and the flick are done, glide the nearest number to the apex */
 let snapT=0;
-function snapSoon(sc){clearTimeout(snapT);snapT=setTimeout(()=>{const H=sc.clientHeight;let best=null,bd=1e9;for(const r of rows){const d=Math.abs(r.offsetTop+r.offsetHeight/2-sc.scrollTop-H/2);if(d<bd){bd=d;best=r}}
-  if(best&&bd>1.5){const top=best.offsetTop+best.offsetHeight/2-H/2;if(RM.matches)sc.scrollTop=top;else{const from=sc.scrollTop,t0=performance.now(),dur=320;const e=x=>1-Math.pow(1-x,3);const go=t=>{const k=Math.min((t-t0)/dur,1);sc.scrollTop=from+(top-from)*e(k);if(k<1)requestAnimationFrame(go)};requestAnimationFrame(go)}}},110)}
+function snapSoon(sc){clearTimeout(snapT);snapT=setTimeout(()=>{const H=sc.clientHeight;let best=null,bd=1e9;for(const r of rows){const d=Math.abs(r.offsetTop+ROW/2-sc.scrollTop-H/2);if(d<bd){bd=d;best=r}}
+  if(best&&bd>1.5){const top=best.offsetTop+ROW/2-H/2;if(RM.matches)sc.scrollTop=top;else{const from=sc.scrollTop,t0=performance.now(),dur=320;const e=x=>1-Math.pow(1-x,3);const go=t=>{const k=Math.min((t-t0)/dur,1);sc.scrollTop=from+(top-from)*e(k);if(k<1)requestAnimationFrame(go)};requestAnimationFrame(go)}}},110)}
 function openDay(g,row){
   const p=el.querySelector('#rlp');g.ph.forEach(m=>{lbReg[m.id]=m});
   p.innerHTML=`<div class="mh2"><button class="ib" id="rlB" aria-label="Back">${ic.x}</button><div class="t"></div><span style="width:40px"></span></div><div class="rlh"><b>${fmt(dayDate(g.k))}</b><small>${g.ph.length} photo${g.ph.length>1?'s':''}</small></div><div class="rlg">${g.ph.map(m=>`<button data-id="${m.id}" style="background-image:url(${src(m)})"></button>`).join('')}</div>`;
