@@ -25,15 +25,22 @@ function frOpen(){
   frDraw();
 }
 function frClose(){const p=$('#fr');p.classList.remove('on');p.innerHTML='';const e=$('#frp');if(e)e.remove()}
+function frCloud(rows){
+  const top=[...rows].sort((a,c)=>frCount(c.name)-frCount(a.name)).slice(0,8),mx=Math.max(1,...top.map(f=>frCount(f.name)));
+  const pos=[[50,15],[82,28],[86,58],[70,74],[30,74],[14,58],[18,28],[50,84]];
+  return `<div class="frcl" id="frCl"><span class="frme">You</span>${top.map((f,i)=>{const s=62+Math.round(24*frCount(f.name)/mx);return `<button class="frbb" data-i="${f.id}" style="left:${pos[i][0]}%;top:${pos[i][1]}%;width:${s}px;height:${s}px;animation-delay:${i*-.7}s" aria-label="${esc(f.name)}"><em>${esc(f.name.split(' ')[0])}</em></button>`}).join('')}</div>`;
+}
 function frDraw(){
   const b=$('#frBody');if(!b)return;
   const rows=[...FR].sort((a,c)=>a.name.localeCompare(c.name));
   b.innerHTML=`<div class="fract"><button class="pill d" id="frNew" style="flex:1;justify-content:center">${ic.plus.replace('width="22" height="22"','width="18" height="18"')} Add a friend</button><button class="pill g" id="frImp" style="flex:1;justify-content:center">${ic.ig.replace('width="22" height="22"','width="18" height="18"')} From Instagram</button></div>
+   ${rows.length?frCloud(rows):''}
    ${rows.length?`<div class="frl">${rows.map(f=>`<div class="frr" data-i="${f.id}">${frAv(f)}<div class="frt"><b>${esc(f.name)}</b><small>${f.ig?'@'+esc(f.ig)+' · ':''}${frCount(f.name)} photo${frCount(f.name)===1?'':'s'}</small></div>${f.ig?`<a class="frig" href="${igLink(f.ig)}" target="_blank" rel="noopener" aria-label="Open ${esc(f.name)} on Instagram">${ic.ig}</a>`:''}</div>`).join('')}</div>`
    :`<div class="empty" style="margin:30px 8px 0;line-height:1.5">No friends yet.<br>Add a friend with their name and Instagram handle, or bring in your followers and following from Instagram's data export.</div>`}
    <p class="note" style="padding:14px 4px 30px">Instagram does not allow apps to read your friends, so Keep cannot sync with it. Friends here stay on this phone. Their names also show up as suggestions when you tag a photo.</p>`;
   $('#frNew').onclick=()=>frEdit();$('#frImp').onclick=frImportStart;
   b.querySelectorAll('.frr').forEach(r=>r.onclick=e=>{if(e.target.closest('.frig'))return;frEdit(FR.find(f=>f.id===+r.dataset.i))});
+  b.querySelectorAll('.frbb').forEach(r=>r.onclick=()=>frEdit(FR.find(f=>f.id===+r.dataset.i)));
 }
 
 /* ---- add or edit one friend ---- */

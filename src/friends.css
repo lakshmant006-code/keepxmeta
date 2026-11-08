@@ -13,3 +13,14 @@
 .frpi .ck{width:22px;height:22px;border-radius:11px;border:2px solid var(--ring);flex:none;display:grid;place-items:center;color:transparent;font-size:12px}.frpi.on .ck{background:var(--blue);border-color:var(--blue);color:#fff}
 .frpi b{font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}.frpi em{font-style:normal;font-size:11px;font-weight:600;padding:2px 8px;border-radius:9px;background:var(--fill2);color:var(--mute)}
 #frp button:disabled{opacity:.5}
+
+/* bubble cloud */
+.frcl{position:relative;height:290px;margin:14px 0 26px;border-radius:28px;background:radial-gradient(circle at 30% 20%,#dfe4ff,transparent 55%),radial-gradient(circle at 80% 80%,#ffe3ec,transparent 55%),var(--fill)}
+.frme{position:absolute;left:50%;top:50%;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;display:grid;place-items:center;box-shadow:0 10px 26px rgba(8,102,255,.35)}
+.frbb{display:grid;place-items:center;position:absolute;translate:-50% -50%;border-radius:50%;padding:0;background:var(--bg);box-shadow:0 6px 18px rgba(20,24,40,.15);animation:frfl 5s ease-in-out infinite;transition:scale .25s cubic-bezier(.34,1.56,.64,1)}
+.frbb:active{scale:.88}
+.frbb .fav{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background-size:cover;background-position:center;font-size:15px}
+.frbb em{display:block;max-width:88%;margin:auto;font-style:normal;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+@keyframes frfl{50%{margin-top:-7px}}
+@media (prefers-reduced-motion:reduce){.frbb{animation:none}}
+.frr .fav{display:none}.frr .frt b{font-size:17px}

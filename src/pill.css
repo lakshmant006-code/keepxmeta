@@ -1,0 +1,16 @@
+/* floating pill tab bar: places / people / add / insights / re-live */
+.hdr .hl:first-child #mapBtn,.hdr .hl:first-child #frBtn,.hdr #insBtn,.hdr #arBtn{display:none}
+.dock{gap:10px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 14px)}
+.dock .addp{display:none}
+.kpill{width:100%;max-width:420px;height:64px;border-radius:32px;display:flex;align-items:center;justify-content:space-between;padding:0 8px;background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:saturate(1.6) blur(22px);backdrop-filter:saturate(1.6) blur(22px);border:1px solid var(--bd);box-shadow:0 10px 34px rgba(20,24,40,.14),0 2px 6px rgba(20,24,40,.06);transform:translateY(0);transition:transform .45s cubic-bezier(.32,.72,0,1),opacity .3s}
+.kpill.hide{transform:translateY(90px);opacity:0}
+.kpill .pt{flex:1;height:52px;border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--mute);font-size:10.5px;font-weight:600;letter-spacing:.01em;transition:transform .25s cubic-bezier(.34,1.56,.64,1),background .2s,color .2s}
+.kpill .pt:active{transform:scale(.88);background:var(--fill);color:var(--ink)}
+.kpill .pt svg{width:22px;height:22px}
+.kpill .pa{flex:none;width:52px;height:52px;border-radius:26px;margin:0 4px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 8px 20px rgba(8,102,255,.4);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.kpill .pa:active{transform:scale(.88) rotate(90deg)}
+.kpill .pa svg{width:24px;height:24px;color:#fff}
+.kpl{position:absolute;left:0;top:0;border-radius:26px;background:color-mix(in srgb,var(--ink) 9%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 6%,transparent);opacity:0;pointer-events:none;will-change:left,top,width,height}
+.kpill{position:relative}.kpill .pt,.kpill .pa{position:relative;z-index:1}
+.kpill .pt:active{background:none}
+.kpill{touch-action:none;user-select:none;-webkit-user-select:none}
