@@ -2,9 +2,9 @@
 .roll{position:absolute;inset:0;z-index:35;background:var(--bg);display:none;flex-direction:column;overflow:hidden}
 .roll.on{display:flex}
 .roll .mh2{flex:none}
-.rlsc{position:relative;flex:1;min-height:0;overflow-y:auto;scroll-snap-type:y mandatory;perspective:900px;perspective-origin:30% 50%;scrollbar-width:none;overscroll-behavior:contain;background:radial-gradient(70% 50% at 20% 30%,#e6ebff,transparent 70%),radial-gradient(60% 50% at 90% 80%,#ffe6ee,transparent 70%)}
+.rlsc{position:relative;flex:1;min-height:0;overflow-y:auto;perspective:1200px;perspective-origin:30% 50%;scrollbar-width:none;overscroll-behavior:contain;background:radial-gradient(70% 50% at 20% 30%,#e6ebff,transparent 70%),radial-gradient(60% 50% at 90% 80%,#ffe6ee,transparent 70%)}
 .rlsc::-webkit-scrollbar{display:none}
-.rlr{position:relative;height:124px;scroll-snap-align:center;display:flex;align-items:center;padding-left:24px;transform-style:preserve-3d;will-change:transform,opacity;text-align:left;width:100%}
+.rlr{position:relative;height:124px;display:flex;align-items:center;padding-left:24px;transform-style:preserve-3d;will-change:transform,opacity;text-align:left;width:100%}
 .rlf{position:relative;width:96px;height:84px;flex:none}
 .rlf i{position:absolute;left:50%;top:50%;width:54px;height:72px;margin:-36px 0 0 -27px;border-radius:9px;background:var(--fill2) center/cover no-repeat;border:2px solid #fff;box-shadow:0 6px 16px rgba(20,24,40,.22);transform:translateX(var(--x)) rotate(var(--r))}
 .rln{margin-left:14px;display:flex;flex-direction:column;gap:1px}
@@ -20,3 +20,4 @@
 .rlempty{padding:60px 30px;text-align:center;color:var(--mute);line-height:1.45}
 .roll .mh2{display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px 6px}
 .roll .mh2 .t{font-size:17px;font-weight:600}
+.rlr{-webkit-font-smoothing:antialiased;backface-visibility:hidden}.rlsc{-webkit-overflow-scrolling:touch}
