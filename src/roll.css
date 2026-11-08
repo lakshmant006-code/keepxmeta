@@ -23,7 +23,10 @@
 .rlr{-webkit-font-smoothing:antialiased;backface-visibility:hidden}.rlsc{-webkit-overflow-scrolling:touch}
 
 .rlsp{flex:none}
-.rlr{display:block}.rlr .rln{pointer-events:none}
-.rlpv{position:absolute;left:max(24px,7%);top:calc(50% + 29px);width:150px;height:170px;margin-top:-85px;z-index:3;display:grid;place-items:center;pointer-events:none}
-.rlpv .rlf{width:150px;height:170px;margin:0}
-.rlpv .rlf i{width:96px;height:128px;margin:-64px 0 0 -48px;border-radius:14px;border-width:3px}
+.rlsc{perspective:760px;perspective-origin:85% 50%}
+.rlr{position:relative;height:78px;width:100%;transform-style:preserve-3d}
+.rli{position:absolute;left:0;top:50%;margin-top:-39px;height:78px;display:flex;align-items:center;gap:14px;transform-origin:0% 50%;will-change:transform,opacity;text-align:left;backface-visibility:hidden}
+.rlf{position:relative;width:78px;height:70px;flex:none}
+.rlf i{position:absolute;left:50%;top:50%;width:50px;height:66px;margin:-33px 0 0 -25px;border-radius:9px;background:var(--fill2) center/cover no-repeat;border:2px solid #fff;box-shadow:0 6px 16px rgba(20,24,40,.22);transform:translateX(var(--x)) rotate(var(--r))}
+.rln{display:flex;flex-direction:column;gap:1px;position:static;transform:none;align-items:flex-start;text-align:left;white-space:nowrap}
+.rln b{font-size:20px}.rln small{font-size:12px}

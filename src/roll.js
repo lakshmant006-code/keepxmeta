@@ -9,42 +9,36 @@ const dayDate=k=>{const p=k.split('-').map(Number);return new Date(p[0],p[1]-1,p
 const fmt=d=>d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
 let rows=[];
 function groups(){return Object.keys(byDay).map(k=>({k,ph:byDay[k].filter(m=>m.type==='photo'&&src(m))})).filter(g=>g.ph.length).sort((a,c)=>dayDate(c.k)-dayDate(a.k))}
-let v=0,loop=0,last=0,idle=0,gs=[],focus=-1,sc=null,pv=null;
-const ROW=60;
+let v=0,loop=0,last=0,idle=0,gs=[],focus=-1,sc=null;
+const ROW=78,SPACING=.3,R=ROW/SPACING,FOCAL=520;
 function open(){
   v=0;loop=0;focus=-1;gs=groups();
   el.innerHTML=`<div class="mh2"><button class="ib" id="rlX" aria-label="Close">${ic.x}</button><div class="t">Roll</div><span style="width:40px"></span></div>`+
-   (gs.length?`<div class="rlsc" id="rlsc"><div class="rlsp"></div>${gs.map((g,i)=>`<button class="rlr" data-i="${i}"><span class="rln"><b>${g.ph.length>1?'+'+g.ph.length:'1'}</b><small>${fmt(dayDate(g.k))}</small></span></button>`).join('')}<div class="rlsp"></div></div><button class="rlpv" id="rlpv" aria-label="Open this day"></button>`:`<div class="rlempty">No photos yet. Keep a few and they will fan out here.</div>`)+`<div class="rlp" id="rlp"></div>`;
+   (gs.length?`<div class="rlsc" id="rlsc"><div class="rlsp"></div>${gs.map((g,i)=>`<div class="rlr" data-i="${i}"><button class="rli" aria-label="${fmt(dayDate(g.k))}"><span class="rlf">${g.ph.slice(0,3).map((m,j,a)=>`<i style="background-image:url(${src(m)});--x:${(j-(a.length-1)/2)*11}px;--r:${(j-(a.length-1)/2)*7}deg;z-index:${j}"></i>`).join('')}</span><span class="rln"><b>${g.ph.length>1?'+'+g.ph.length:'1'}</b><small>${fmt(dayDate(g.k))}</small></span></button></div>`).join('')}<div class="rlsp"></div></div>`:`<div class="rlempty">No photos yet. Keep a few and they will fan out here.</div>`)+`<div class="rlp" id="rlp"></div>`;
   el.classList.add('on');el.querySelector('#rlX').onclick=close;
-  sc=el.querySelector('#rlsc');if(!sc)return;pv=el.querySelector('#rlpv');
+  sc=el.querySelector('#rlsc');if(!sc)return;
   const H=sc.clientHeight;el.querySelectorAll('.rlsp').forEach(x=>x.style.height=(H/2-ROW/2)+'px');
   rows=[...sc.querySelectorAll('.rlr')];
   sc.addEventListener('scroll',()=>{idle=performance.now();fx(sc);snapSoon(sc)},{passive:true});
-  rows.forEach(r=>r.onclick=()=>{if(+r.dataset.i===focus)openDay(gs[focus],r);else sc.scrollTo({top:r.offsetTop+ROW/2-H/2,behavior:RM.matches?'auto':'smooth'})});
-  sc.addEventListener('click',e=>{if(!e.target.closest('.rlr')&&focus>=0&&e.clientX<innerWidth*.55)openDay(gs[focus],rows[focus])});
+  rows.forEach((r,i)=>r.querySelector('.rli').onclick=()=>{if(i===focus)openDay(gs[i],r.querySelector('.rli'));else sc.scrollTo({top:r.offsetTop+ROW/2-H/2,behavior:RM.matches?'auto':'smooth'})});
   v=sc.scrollTop;place(sc);fx(sc);snapSoon(sc);
 }
-/* The track is a fixed arc: a circle whose centre sits on the right edge, level with the middle of the screen. Only the
-   numbers travel round it (up and down the curve, bulging left at the middle); the photo stack stays put, on the left, and
-   shows whichever day is under the arc's apex. Native scrolling gives the finger and the flick; the numbers follow it
-   through one critically damped "virtual scroll", so they all glide together. */
-function place(sc){
-  const H=sc.clientHeight,W=sc.clientWidth,real=sc.scrollTop,lag=real-v,Rn=H*.36,X0=W*.7;
-  let best=0,bd=1e9;
-  rows.forEach((r,i)=>{const c=r.offsetTop+ROW/2-v-H/2,ay=Math.abs(c);if(ay<bd){bd=ay;best=i}
-    /* position along the arc by arc length, so the numbers bunch together toward the ends */
-    const th=Math.max(-1.15,Math.min(1.15,c/Rn)),yy=Rn*Math.sin(th),P=Math.min(W-54,X0+Rn-Rn*Math.cos(th)),n=Math.exp(-(c*c)/((H*.3)*(H*.3)));
-    r.style.transform=`translate3d(0,${(lag+yy-c).toFixed(2)}px,0)`;
-    r.style.setProperty('--nx',P.toFixed(2)+'px');r.style.setProperty('--ns',(.62+.5*n).toFixed(3));
-    r.style.opacity=((.35+.65*n)*Math.max(0,Math.min(1,1-(Math.abs(c/Rn)-.78)/.3))).toFixed(3);r.style.zIndex=Math.round(n*10)});
-  if(best!==focus)setFocus(best);
+/* Orbital gallery. Every day sits on one invisible curved rail whose axis is off to the right, at the level of the middle of
+   the screen. A row's angle is theta = (its distance from the middle) / R, and the pose comes from a single pose function:
+   x = X0 + k z, z = R (1 - cos theta), y = R sin theta, perspective scale s = f / (f + z), yaw -theta. The shared parameter is
+   the "virtual scroll" v: native scrolling gives the finger and the flick, and v follows it on a critically damped spring,
+   so all cards move together as one structure. */
+function pose(c){
+  const raw=c/R,th=Math.max(-1.25,Math.min(1.25,raw)),z=R*(1-Math.cos(th)),s=FOCAL/(FOCAL+z);
+  return {th,z,s,x:z*1.15,y:R*Math.sin(th),sc:1.16*s,ry:-th*38,o:Math.abs(raw)>1.2?0:Math.max(0,Math.min(1,1.15-z/(R*.78)))*(.35+.65*s)}
 }
-function setFocus(i){
-  const first=focus<0,dir=i>focus?1:-1;focus=i;const g=gs[i];if(!g||!pv)return;
-  const html=`<span class="rlf">${g.ph.slice(0,4).map((m,j,a)=>`<i style="background-image:url(${src(m)});--x:${(j-(a.length-1)/2)*17}px;--r:${(j-(a.length-1)/2)*8}deg;z-index:${j}"></i>`).join('')}</span>`;
-  pv.innerHTML=html;
-  if(first||RM.matches)return;
-  pv.querySelectorAll('i').forEach((q,j)=>q.animate([{opacity:0,transform:`translateX(var(--x)) translateY(${dir*26}px) rotate(var(--r)) scale(.86)`},{opacity:1,transform:'translateX(var(--x)) translateY(0) rotate(var(--r)) scale(1)'}],{duration:380,easing:'cubic-bezier(.22,.9,.3,1)',delay:j*28,fill:'backwards'}));
+function place(sc){
+  const H=sc.clientHeight,lag=sc.scrollTop-v;let best=0,bd=1e9;
+  rows.forEach((r,i)=>{const c=r.offsetTop+ROW/2-v-H/2;if(Math.abs(c)<bd){bd=Math.abs(c);best=i}
+    const p=pose(c),it=r.firstChild;
+    it.style.transform=`translate3d(${(30+p.x).toFixed(2)}px,${(lag+p.y-c).toFixed(2)}px,0) rotateY(${p.ry.toFixed(2)}deg) scale(${p.sc.toFixed(4)})`;
+    it.style.opacity=p.o.toFixed(3);it.style.visibility=p.o<.01?'hidden':'';it.style.zIndex=1000-Math.round(p.z)});
+  focus=best;
 }
 function fx(sc){
   idle=performance.now();if(loop)return;last=performance.now();
@@ -53,7 +47,7 @@ function fx(sc){
     place(sc);loop=(v!==real||t-idle<160)?requestAnimationFrame(step):0};
   loop=requestAnimationFrame(step);
 }
-/* once the finger and the flick are done, glide the nearest number to the apex */
+/* once the finger and the flick are done, glide the nearest day to the middle */
 let snapT=0;
 function snapSoon(sc){clearTimeout(snapT);snapT=setTimeout(()=>{const H=sc.clientHeight;let best=null,bd=1e9;for(const r of rows){const d=Math.abs(r.offsetTop+ROW/2-sc.scrollTop-H/2);if(d<bd){bd=d;best=r}}
   if(best&&bd>1.5){const top=best.offsetTop+ROW/2-H/2;if(RM.matches)sc.scrollTop=top;else{const from=sc.scrollTop,t0=performance.now(),dur=320;const e=x=>1-Math.pow(1-x,3);const go=t=>{const k=Math.min((t-t0)/dur,1);sc.scrollTop=from+(top-from)*e(k);if(k<1)requestAnimationFrame(go)};requestAnimationFrame(go)}}},110)}
