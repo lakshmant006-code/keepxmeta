@@ -28,7 +28,7 @@ function frClose(){const p=$('#fr');p.classList.remove('on');p.innerHTML='';cons
 function frCloud(rows){
   const top=[...rows].sort((a,c)=>frCount(c.name)-frCount(a.name)).slice(0,8),mx=Math.max(1,...top.map(f=>frCount(f.name)));
   const pos=[[50,15],[82,28],[86,58],[70,74],[30,74],[14,58],[18,28],[50,84]];
-  return `<div class="frcl" id="frCl"><span class="frme">You</span>${top.map((f,i)=>{const s=44+Math.round(26*frCount(f.name)/mx);return `<button class="frbb" data-i="${f.id}" style="left:${pos[i][0]}%;top:${pos[i][1]}%;width:${s}px;height:${s}px;animation-delay:${i*-.7}s" aria-label="${esc(f.name)}">${frAv(f)}<em>${esc(f.name.split(' ')[0])}</em></button>`}).join('')}</div>`;
+  return `<div class="frcl" id="frCl"><span class="frme">You</span>${top.map((f,i)=>{const s=62+Math.round(24*frCount(f.name)/mx);return `<button class="frbb" data-i="${f.id}" style="left:${pos[i][0]}%;top:${pos[i][1]}%;width:${s}px;height:${s}px;animation-delay:${i*-.7}s" aria-label="${esc(f.name)}"><em>${esc(f.name.split(' ')[0])}</em></button>`}).join('')}</div>`;
 }
 function frDraw(){
   const b=$('#frBody');if(!b)return;
