@@ -1,81 +1,94 @@
-/* Photo roll (see roll.css). Reads days from byDay; the lightbox is the app's own. */
+/* Photo roll (see roll.css). Reads days from byDay; the lightbox is the app's own.
+   Two shared values drive everything, each on a damped spring: pos (which day is under the middle, fractional while moving)
+   and u (0 = grid, 1 = wheel). Every day's pose is a pure function of (its index - pos, u), so the whole wheel moves as one
+   structure; nothing is animated on its own. */
 (()=>{
-const RM=matchMedia('(prefers-reduced-motion:reduce)'),M=window.Motion;
+const RM=matchMedia('(prefers-reduced-motion:reduce)');
 const hdr=document.querySelector('.hdr .hl:last-child');if(!hdr||document.getElementById('rollBtn'))return;
 const b=document.createElement('button');b.className='ib';b.id='rollBtn';b.setAttribute('aria-label','Photo roll');b.innerHTML=ic.img||'';
 hdr.insertBefore(b,hdr.firstChild);
 const el=document.createElement('div');el.className='roll';el.id='roll';document.querySelector('.app').appendChild(el);
 const dayDate=k=>{const p=k.split('-').map(Number);return new Date(p[0],p[1]-1,p[2])};
 const fmt=d=>d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
-let rows=[];
-function groups(){return Object.keys(byDay).map(k=>({k,ph:byDay[k].filter(m=>m.type==='photo'&&src(m))})).filter(g=>g.ph.length).sort((a,c)=>dayDate(c.k)-dayDate(a.k))}
-let v=0,loop=0,last=0,idle=0,gs=[],focus=-1,sc=null;
-const ROW=78,SPACING=.3,R=ROW/SPACING,FOCAL=520;
+const groups=()=>Object.keys(byDay).map(k=>({k,ph:byDay[k].filter(m=>m.type==='photo'&&src(m))})).filter(g=>g.ph.length).sort((a,c)=>dayDate(c.k)-dayDate(a.k));
+const SENS=64,VIS=6;                       /* px of finger travel per day; days drawn either side of the middle */
+let gs=[],items=[],st=null,grid=null,W=0,H=0,raf=0,last=0,shown=-1;
+const S={pos:0,vp:0,tp:0,u:0,vu:0,tu:0,drag:false};
+const spring=(x,v,t,k,c,dt)=>{const a=-k*(x-t)-c*v;v+=a*dt;return [x+v*dt,v]};
+
 function open(){
-  v=0;loop=0;focus=-1;gs=groups();
+  gs=groups();Object.assign(S,{pos:0,vp:0,tp:0,u:0,vu:0,tu:0,drag:false});shown=-1;
   el.innerHTML=`<div class="mh2"><button class="ib" id="rlX" aria-label="Close">${ic.x}</button><div class="t">Roll</div><span style="width:40px"></span></div>`+
-   (gs.length?`<div class="rlsc" id="rlsc"><div class="rlsp"></div>${gs.map((g,i)=>`<div class="rlr" data-i="${i}"><button class="rli" aria-label="${fmt(dayDate(g.k))}"><span class="rlf">${g.ph.slice(0,3).map((m,j,a)=>`<i style="background-image:url(${src(m)});--x:${(j-(a.length-1)/2)*11}px;--r:${(j-(a.length-1)/2)*7}deg;z-index:${j}"></i>`).join('')}</span></button></div>`).join('')}<div class="rlsp"></div></div><div class="rldial" id="rldial">${[-4,-3,-2,-1,0,1,2,3,4].map(k=>`<span class="rln" data-k="${k}"><b></b><small></small></span>`).join('')}</div>`:`<div class="rlempty">No photos yet. Keep a few and they will fan out here.</div>`)+`<div class="rlp" id="rlp"></div>`;
+    (gs.length?`<div class="rwst" id="rwst"><div class="rwg" id="rwg"></div><div class="rww" id="rww"></div><div class="rwsc" id="rwsc" aria-label="Slide to move through days"></div><div class="rwhint" id="rwhint">Slide here ›</div></div>`:`<div class="rlempty">No photos yet. Keep a few and they will fan out here.</div>`);
   el.classList.add('on');el.querySelector('#rlX').onclick=close;
-  sc=el.querySelector('#rlsc');if(!sc)return;
-  const H=sc.clientHeight;el.querySelectorAll('.rlsp').forEach(x=>x.style.height=(H/2-ROW/2)+'px');
-  rows=[...sc.querySelectorAll('.rlr')];
-  sc.addEventListener('scroll',()=>{idle=performance.now();fx(sc);snapSoon(sc)},{passive:true});
-  rows.forEach((r,i)=>r.querySelector('.rli').onclick=()=>{if(i===focus)openDay(gs[i],r.querySelector('.rli'));else sc.scrollTo({top:r.offsetTop+ROW/2-H/2,behavior:RM.matches?'auto':'smooth'})});
-  dialLayout(sc);v=sc.scrollTop;place(sc);fx(sc);snapSoon(sc);
+  st=el.querySelector('#rwst');if(!st)return;grid=st.querySelector('#rwg');W=st.clientWidth;H=st.clientHeight;
+  const ww=st.querySelector('#rww');
+  items=gs.map(g=>{const d=document.createElement('div');d.className='rwi';const ph=g.ph.slice(0,5),m=(ph.length-1)/2;
+    d.innerHTML=`<span class="rwf" style="width:${58+26*(ph.length-1)}px;--m:${m}">${ph.map((p,j)=>`<i style="--j:${j};z-index:${j};background-image:url(${src(p)})"></i>`).join('')}</span><span class="rwn"><b>${g.ph.length>1?'+'+g.ph.length:'1'}</b><small>${fmt(dayDate(g.k))}</small></span>`;
+    d.style.display='none';ww.appendChild(d);return {d,f:d.firstChild,n:d.lastChild,on:false}});
+  showGrid(0);draw();scrub(st.querySelector('#rwsc'));
 }
-/* Orbital gallery. Every day sits on one invisible curved rail whose axis is off to the right, at the level of the middle of
-   the screen. A row's angle is theta = (its distance from the middle) / R, and the pose comes from a single pose function:
-   x = X0 + k z, z = R (1 - cos theta), y = R sin theta, perspective scale s = f / (f + z), yaw -theta. The shared parameter is
-   the "virtual scroll" v: native scrolling gives the finger and the flick, and v follows it on a critically damped spring,
-   so all cards move together as one structure. */
-function pose(c){
-  const raw=c/R,th=Math.max(-1.25,Math.min(1.25,raw)),z=R*(1-Math.cos(th)),s=FOCAL/(FOCAL+z);
-  return {th,z,s,x:z*1.15,y:R*Math.sin(th),sc:1.16*s,ry:-th*38,o:Math.abs(raw)>1.2?0:Math.max(0,Math.min(1,1.15-z/(R*.78)))*(.35+.65*s)}
+function showGrid(i){
+  if(i===shown||!gs[i])return;shown=i;const g=gs[i];g.ph.forEach(m=>{lbReg[m.id]=m});
+  grid.scrollTop=0;
+  grid.innerHTML=`<div class="rwh"><b>${fmt(dayDate(g.k))}</b><small>${g.ph.length} photo${g.ph.length>1?'s':''}</small></div><div class="rwgg">${g.ph.map(m=>`<button data-id="${m.id}" style="background-image:url(${src(m)})"></button>`).join('')}</div>`;
+  const ids=g.ph.map(m=>m.id);
+  grid.querySelectorAll('.rwgg button').forEach((x,j)=>x.onclick=()=>openLb(ids.slice(j).concat(ids.slice(0,j))));
 }
-/* The dates are a fixed dial: nine slots pinned to an arc on the right (it bulges left at the middle). The slots never move;
-   only their text changes as days pass under the middle. The photographs are the only thing that travels. */
-function dialLayout(sc){
-  const d=el.querySelector('#rldial');if(!d)return;const H=sc.clientHeight,W=sc.clientWidth,Rn=H*.36;
-  d.style.top=sc.offsetTop+'px';d.style.height=H+'px';
-  d.querySelectorAll('.rln').forEach(n=>{const k=+n.dataset.k,th=k*.27,y=H/2+Rn*Math.sin(th),x=Math.min(W-56,W*.68+Rn*(1-Math.cos(th))),g=Math.exp(-(k*k)/3.2);
-    n.style.left=x.toFixed(1)+'px';n.style.top=y.toFixed(1)+'px';n.style.setProperty('--ns',(.6+.5*g).toFixed(3));n.style.opacity=(.18+.82*g).toFixed(2)});
+/* pose of the day that is d places from the middle, blended between the resting index (u=0) and the wheel (u=1) */
+function pose(d,u){
+  const a=Math.abs(d),sg=d<0?-1:1,e=Math.exp(-a*1.05);
+  const ws=.2+.8*e,                                   /* wheel: size falls away fast, like the reference */
+        wy=sg*H*.27*(1-Math.exp(-a*.72)),             /* rows bunch together toward the ends of the arc */
+        wr=W-18-26*Math.exp(-a*.9),                   /* right edge of the number: the middle one sits furthest left */
+        wo=a>VIS-1?Math.max(0,VIS-a):1;
+  const is=.46,iy=d*24,ir=W-12,io=Math.max(0,1-a/4.5)*.75;  /* resting index: small numbers down the right edge */
+  const L=(p,q)=>p+(q-p)*u;
+  return {s:L(is,ws),y:L(iy,wy),r:L(ir,wr),o:L(io,wo),rot:u*sg*-5*(1-Math.exp(-a)),stack:u,date:u*Math.exp(-a*a*3)}
 }
-function dialText(){
-  const d=el.querySelector('#rldial');if(!d)return;
-  d.querySelectorAll('.rln').forEach(n=>{const g=gs[focus+(+n.dataset.k)];n.firstChild.textContent=g?(g.ph.length>1?'+'+g.ph.length:'1'):'';n.lastChild.textContent=g?fmt(dayDate(g.k)):'';
-    if(!RM.matches&&g)n.animate([{filter:'blur(3px)'},{filter:'blur(0)'}],{duration:180,easing:'ease-out'})});
+function draw(){
+  const {pos,u}=S,cy=H*.5,lo=Math.max(0,Math.floor(pos-VIS)),hi=Math.min(gs.length-1,Math.ceil(pos+VIS));
+  for(let i=0;i<items.length;i++){const it=items[i];
+    if(i<lo||i>hi){if(it.on){it.on=false;it.d.style.display='none'}continue}
+    if(!it.on){it.on=true;it.d.style.display=''}
+    const p=pose(i-pos,u);
+    it.d.style.transform=`translate3d(${(p.r-W).toFixed(2)}px,${(cy+p.y).toFixed(2)}px,0) translateY(-50%) rotate(${p.rot.toFixed(2)}deg) scale(${p.s.toFixed(4)})`;
+    it.d.style.opacity=p.o.toFixed(3);it.d.style.zIndex=100-Math.round(Math.abs(i-pos)*10);
+    it.f.style.opacity=p.stack.toFixed(3);it.n.lastChild.style.opacity=p.date.toFixed(3)}
+  /* the grid folds toward the stack as the wheel comes in */
+  const g=1-u;grid.style.opacity=Math.max(0,g*1.25-.25).toFixed(3);
+  grid.style.transform=u>.001?`scale(${(.3+.7*g).toFixed(4)},${(.72+.28*g).toFixed(4)})`:'';
+  grid.style.filter=u>.02&&u<.98?`blur(${(u*9).toFixed(1)}px)`:'';
+  grid.style.pointerEvents=u>.05?'none':'';
 }
-function place(sc){
-  const H=sc.clientHeight,W=sc.clientWidth,lag=sc.scrollTop-v;let best=0,bd=1e9;
-  rows.forEach((r,i)=>{const c=r.offsetTop+ROW/2-v-H/2;if(Math.abs(c)<bd){bd=Math.abs(c);best=i}
-    const p=pose(c),it=r.firstChild;
-    it.style.transform=`translate3d(${(W*.16+p.x*.4).toFixed(2)}px,${(lag+p.y-c).toFixed(2)}px,0) rotateY(${(p.ry*.5).toFixed(2)}deg) scale(${(p.sc*.98).toFixed(4)})`;
-    it.style.opacity=p.o.toFixed(3);it.style.visibility=p.o<.01?'hidden':'';it.style.zIndex=1000-Math.round(p.z)});
-  if(best!==focus){focus=best;dialText()}
+function tick(t){
+  const dt=Math.min((t-last)/1000,.05);last=t;const n=Math.max(1,Math.round(dt*240)),h=dt/n;
+  const kp=S.drag?520:190,cp=S.drag?44:25;          /* tight while under the finger, softer with a hint of overshoot on release */
+  for(let i=0;i<n;i++){[S.pos,S.vp]=spring(S.pos,S.vp,S.tp,kp,cp,h);[S.u,S.vu]=spring(S.u,S.vu,S.tu,230,29,h)}
+  S.u=Math.max(0,Math.min(1.02,S.u));
+  /* once released and nearly home, open the day under the middle */
+  if(!S.drag&&S.tu===1&&Math.abs(S.pos-S.tp)<.12&&Math.abs(S.vp)<1.2){showGrid(Math.round(S.tp));S.tu=0}
+  const still=!S.drag&&Math.abs(S.pos-S.tp)<.001&&Math.abs(S.vp)<.01&&Math.abs(S.u-S.tu)<.001&&Math.abs(S.vu)<.01;
+  if(still){S.pos=S.tp;S.u=S.tu;S.vp=S.vu=0}
+  draw();raf=still?0:requestAnimationFrame(tick);
 }
-function fx(sc){
-  idle=performance.now();if(loop)return;last=performance.now();
-  const step=t=>{const dt=Math.min((t-last)/1000,.05);last=t;const real=sc.scrollTop;
-    v+=(real-v)*(1-Math.exp(-dt*16));if(Math.abs(real-v)<.02)v=real;
-    place(sc);loop=(v!==real||t-idle<160)?requestAnimationFrame(step):0};
-  loop=requestAnimationFrame(step);
+const run=()=>{if(!raf){last=performance.now();raf=requestAnimationFrame(tick)}};
+const band=x=>{const mx=gs.length-1;return x<0?x*.3:x>mx?mx+(x-mx)*.3:x};  /* rubber band past either end */
+function scrub(z){
+  let y0=0,p0=0,hist=[],lastI=0;
+  z.addEventListener('pointerdown',e=>{z.setPointerCapture(e.pointerId);S.drag=true;y0=e.clientY;p0=S.tp=Math.round(S.pos);hist=[[e.timeStamp,e.clientY]];lastI=p0;S.tu=1;
+    const hnt=el.querySelector('#rwhint');if(hnt)hnt.style.opacity='0';
+    if(RM.matches){S.u=1}run()});
+  z.addEventListener('pointermove',e=>{if(!S.drag)return;S.tp=band(p0-(e.clientY-y0)/SENS);hist.push([e.timeStamp,e.clientY]);if(hist.length>6)hist.shift();
+    const i=Math.round(Math.max(0,Math.min(gs.length-1,S.tp)));if(i!==lastI){lastI=i;if(navigator.vibrate)try{navigator.vibrate(4)}catch(_){}}
+    if(RM.matches){S.pos=S.tp}run()});
+  const up=e=>{if(!S.drag)return;S.drag=false;
+    /* carry the flick: project where the release speed would take it, then settle on a whole day */
+    const a=hist[0],c=hist[hist.length-1],vy=c[0]>a[0]?(c[1]-a[1])/((c[0]-a[0])/1000):0;
+    S.tp=Math.max(0,Math.min(gs.length-1,Math.round(S.tp-vy/SENS*.16)));
+    if(RM.matches){S.pos=S.tp;S.u=0;S.tu=0;showGrid(S.tp)}run()};
+  z.addEventListener('pointerup',up);z.addEventListener('pointercancel',up);
 }
-/* once the finger and the flick are done, glide the nearest day to the middle */
-let snapT=0;
-function snapSoon(sc){clearTimeout(snapT);snapT=setTimeout(()=>{const H=sc.clientHeight;let best=null,bd=1e9;for(const r of rows){const d=Math.abs(r.offsetTop+ROW/2-sc.scrollTop-H/2);if(d<bd){bd=d;best=r}}
-  if(best&&bd>1.5){const top=best.offsetTop+ROW/2-H/2;if(RM.matches)sc.scrollTop=top;else{const from=sc.scrollTop,t0=performance.now(),dur=320;const e=x=>1-Math.pow(1-x,3);const go=t=>{const k=Math.min((t-t0)/dur,1);sc.scrollTop=from+(top-from)*e(k);if(k<1)requestAnimationFrame(go)};requestAnimationFrame(go)}}},110)}
-function openDay(g,row){
-  const p=el.querySelector('#rlp');g.ph.forEach(m=>{lbReg[m.id]=m});
-  p.innerHTML=`<div class="mh2"><button class="ib" id="rlB" aria-label="Back">${ic.x}</button><div class="t"></div><span style="width:40px"></span></div><div class="rlh"><b>${fmt(dayDate(g.k))}</b><small>${g.ph.length} photo${g.ph.length>1?'s':''}</small></div><div class="rlg">${g.ph.map(m=>`<button data-id="${m.id}" style="background-image:url(${src(m)})"></button>`).join('')}</div>`;
-  const rb=row.getBoundingClientRect(),ox=rb.left+60,oy=rb.top+rb.height/2,R=Math.hypot(innerWidth,innerHeight);
-  p.classList.add('on');
-  if(!RM.matches){p.animate([{clipPath:`circle(30px at ${ox}px ${oy}px)`,filter:'blur(8px)'},{clipPath:`circle(${R}px at ${ox}px ${oy}px)`,filter:'blur(0)'}],{duration:620,easing:'cubic-bezier(.32,.72,0,1)'});
-    if(M)M.animate(p.querySelectorAll('.rlg button'),{opacity:[0,1],y:[26,0],scale:[.92,1]},{delay:M.stagger(.045,{start:.15}),type:'spring',stiffness:340,damping:28})}
-  p.querySelector('#rlB').onclick=()=>{
-    if(RM.matches){p.classList.remove('on');return}
-    p.animate([{clipPath:`circle(${R}px at ${ox}px ${oy}px)`},{clipPath:`circle(30px at ${ox}px ${oy}px)`}],{duration:420,easing:'cubic-bezier(.32,.72,0,1)'}).onfinish=()=>p.classList.remove('on')};
-  p.querySelectorAll('.rlg button').forEach(x=>x.onclick=()=>openLb(g.ph.map(m=>m.id).slice(g.ph.findIndex(m=>m.id==x.dataset.id)).concat(g.ph.map(m=>m.id).slice(0,g.ph.findIndex(m=>m.id==x.dataset.id)))));
-}
-function close(){el.classList.remove('on');el.innerHTML=''}
+function close(){if(raf)cancelAnimationFrame(raf);raf=0;items=[];el.classList.remove('on');el.innerHTML=''}
 b.onclick=open;
 })();
