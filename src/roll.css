@@ -30,3 +30,5 @@
 .rlf i{position:absolute;left:50%;top:50%;width:50px;height:66px;margin:-33px 0 0 -25px;border-radius:9px;background:var(--fill2) center/cover no-repeat;border:2px solid #fff;box-shadow:0 6px 16px rgba(20,24,40,.22);transform:translateX(var(--x)) rotate(var(--r))}
 .rln{display:flex;flex-direction:column;gap:1px;position:static;transform:none;align-items:flex-start;text-align:left;white-space:nowrap}
 .rln b{font-size:20px}.rln small{font-size:12px}
+.rldial{position:absolute;left:0;right:0;pointer-events:none;z-index:3}
+.rldial .rln{position:absolute;display:flex;flex-direction:column;align-items:center;text-align:center;white-space:nowrap;transform:translate(-50%,-50%) scale(var(--ns,1));transform-origin:center}
