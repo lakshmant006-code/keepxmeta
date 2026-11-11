@@ -1,0 +1,23 @@
+/* Photo roll. At rest: the focused day's photos as a grid, with a tiny index down the right edge. Slide on that edge and the
+   grid folds into a fanned stack on a wheel of days; let go and the stack under the middle opens into its grid. */
+.roll{position:absolute;inset:0;z-index:35;background:var(--bg);display:none;flex-direction:column;overflow:hidden}
+.roll.on{display:flex}
+.roll .mh2{flex:none;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px 6px}
+.roll .mh2 .t{font-size:17px;font-weight:600}
+.rwst{position:relative;flex:1;min-height:0;overflow:hidden;background:radial-gradient(70% 50% at 20% 30%,#e6ebff,transparent 70%),radial-gradient(60% 50% at 90% 80%,#ffe6ee,transparent 70%)}
+.rwg{position:absolute;inset:0;overflow-y:auto;padding:6px 64px 40px 18px;scrollbar-width:none;transform-origin:78% 50%;will-change:transform,opacity}
+.rwg::-webkit-scrollbar{display:none}
+.rwh{padding:4px 2px 12px}.rwh b{display:block;font-size:24px;font-weight:700;letter-spacing:-.02em}.rwh small{color:var(--mute);font-size:14px}
+.rwgg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rwgg button{aspect-ratio:3/4;border-radius:18px;background:var(--fill2) center/cover no-repeat;display:block}
+.rwgg button:only-child{grid-column:span 2;aspect-ratio:4/5}
+.rww{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.rwi{position:absolute;right:0;top:0;display:flex;align-items:center;gap:14px;transform-origin:100% 50%;will-change:transform,opacity;white-space:nowrap;backface-visibility:hidden}
+.rwf{position:relative;height:84px;flex:none}
+.rwf i{position:absolute;top:2px;width:58px;height:80px;border-radius:11px;background:var(--fill2) center/cover no-repeat;border:2.5px solid #fff;box-shadow:0 6px 16px rgba(20,24,40,.24);left:calc(var(--j)*26px);transform:rotate(calc((var(--j) - var(--m))*4deg)) translateY(calc((var(--j) - var(--m))*(var(--j) - var(--m))*1.5px))}
+.rwn{display:flex;flex-direction:column;align-items:flex-start;min-width:54px}
+.rwn b{font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.rwn small{font-size:12px;color:var(--mute);font-weight:500;margin-top:3px}
+.rwsc{position:absolute;right:0;top:0;bottom:0;width:64px;touch-action:none;z-index:4;cursor:grab}
+.rwhint{position:absolute;right:66px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);font-size:12.5px;color:var(--faint);pointer-events:none;transition:opacity .3s}
+.rlempty{padding:60px 30px;text-align:center;color:var(--mute);line-height:1.45}
