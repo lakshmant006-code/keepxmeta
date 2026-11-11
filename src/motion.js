@@ -60,10 +60,12 @@ scan();
 
 /* depth: the home screen steps back a few pixels while anything is open on top, and the new layer rises in */
 const home=$('#home'),tops=['#sh','#ov','#mp','#fr','#ins','#nt','#sel','#chat'].map($).filter(Boolean);
-let deep=false,dc=null;
+let deep=false,dc=null;const HOME_BACK={duration:.26,ease:[.22,.8,.3,1]};
+/* called the moment a screen starts to leave, so Home comes back together with it instead of after it */
+window.kHomeBack=el=>{if(!home||!deep||RM.matches)return;if(tops.some(e=>e!==el&&e.classList.contains('on')))return;deep=false;if(dc)dc.stop();dc=animate(home,{scale:1,opacity:1,x:0},HOME_BACK);dc.finished.then(()=>{if(!deep){home.style.transform='';home.style.opacity=''}}).catch(()=>{})};
 const depth=()=>{
   const d=tops.some(e=>e.classList.contains('on'));if(d===deep||!home)return;deep=d;
-  if(dc)dc.stop();const side=['#fr','#ins','#mp'].some(q=>$(q)&&$(q).classList.contains('on'));dc=animate(home,{scale:d?.965:1,opacity:d?.9:1,x:d&&side?-16:0},RM.matches?{duration:0}:SOFT);
+  if(dc)dc.stop();const side=['#fr','#ins','#mp'].some(q=>$(q)&&$(q).classList.contains('on'));dc=animate(home,{scale:d?.965:1,opacity:d?.9:1,x:d&&side?-16:0},RM.matches?{duration:0}:d?SOFT:HOME_BACK);
   if(!d)dc.finished.then(()=>{if(!deep){home.style.transform='';home.style.opacity=''}}).catch(()=>{});
 };
 const seenOn=new Map();
