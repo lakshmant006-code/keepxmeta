@@ -1,4 +1,4 @@
-/* Insights page: Meta's light insights look (light gray page, white cards, pastel tints, light-blue bars with the peak in Meta blue). Scoped to #ins. */
+/* Insights page: light insights look (light gray page, white cards, pastel tints, light-blue bars with the peak in Meta blue). Scoped to #ins. */
 #ins{--g-bg:#F0F2F5;--g-card:#FFFFFF;--g-ink:#050505;--g-sub:#65676B;--g-faint:#8A8D91;--g-line:#E4E6EB;--g-blue:#0866FF;--g-tint:#E7F3FF;--g-tint2:#EEF0FF;--g-tint3:#EAF6F1;--g-bar:#8FBCFF;--g-chip:#F0F2F5;--g-shadow:0 1px 2px rgba(0,0,0,.10);--g-hero:linear-gradient(135deg,#E7F3FF 0%,#EDF0FF 55%,#F6EEFF 100%);background:var(--g-bg);color:var(--g-ink)}
 :root[data-theme="dark"] #ins{--g-bg:#18191A;--g-card:#242526;--g-ink:#E4E6EB;--g-sub:#B0B3B8;--g-faint:#8A8D91;--g-line:#3A3B3C;--g-blue:#2D88FF;--g-tint:#263951;--g-tint2:#2A2F4D;--g-tint3:#25403A;--g-bar:#3F6FB4;--g-chip:#3A3B3C;--g-shadow:0 1px 2px rgba(0,0,0,.4);--g-hero:linear-gradient(135deg,#263951 0%,#2A2F4D 55%,#36294D 100%)}
 #ins .mh2{background:var(--g-bg)}

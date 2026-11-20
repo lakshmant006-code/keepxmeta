@@ -1,4 +1,4 @@
-/* ---------- Meta AI style chat: a collapsed question card, visible working steps with sources, and a calmer composer ---------- */
+/* ---------- Conversation style chat: a collapsed question card, visible working steps with sources, and a calmer composer ---------- */
 const MC_STAR='<svg class="mcs" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><defs><linearGradient id="mcg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0866FF"/><stop offset="1" stop-color="#B14DFF"/></linearGradient></defs><path d="M12 2.5l1.9 5.4 5.4 1.9-5.4 1.9L12 17.1l-1.9-5.4-5.4-1.9 5.4-1.9z" fill="url(#mcg)"/><path d="M18.5 15l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9z" fill="url(#mcg)" opacity=".8"/></svg>';
 let mcMode='auto';
 const MCN={auto:'Auto',search:'Search',talk:'Talk'};
