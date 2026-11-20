@@ -11,6 +11,8 @@ function faceLoad(){
     try{await f.tf.setBackend('webgl');await f.tf.ready()}catch(e){await f.tf.setBackend('cpu');await f.tf.ready()}
     const M=FACE_DIR+'models';
     await Promise.all([f.nets.tinyFaceDetector.loadFromUri(M),f.nets.faceLandmark68Net.loadFromUri(M),f.nets.faceRecognitionNet.loadFromUri(M)]);
+    /* the stronger detector finds smaller, turned and partly hidden faces; if it will not load, the small one still works */
+    try{await f.nets.ssdMobilenetv1.loadFromUri(M)}catch(e){console.warn('stronger face detector unavailable',e)}
     return f;
   })().catch(e=>{faceLib=null;throw e}));
 }
@@ -22,13 +24,31 @@ const faceDB=(()=>{
 })();
 const namesOf=m=>[...new Set([m.who,...(m.people||[])].filter(Boolean))];
 const fdist=(a,b)=>{let s=0;for(let i=0;i<128;i++){const d=a[i]-b[i];s+=d*d}return Math.sqrt(s)};
+/* Faces in a canvas: box, 128 numbers (the face and its mirror image averaged, which settles the numbers against lighting and a slight turn) and a score. */
+const FACE_SSD=window.FACE_OLD!==1;
+async function faceFind(f,cv,deep){
+  const tiny=new f.TinyFaceDetectorOptions({inputSize:416,scoreThreshold:.5}),can=FACE_SSD&&f.nets.ssdMobilenetv1&&f.nets.ssdMobilenetv1.isLoaded;
+  /* the small detector is quick; the stronger one looks again when the quick one finds nobody, or when asked to look hard (naming someone) */
+  let res=await f.detectAllFaces(cv,(deep&&can)||window.FACE_ONLYSSD?new f.SsdMobilenetv1Options({minConfidence:.55,maxResults:24}):tiny).withFaceLandmarks().withFaceDescriptors();
+  if(!res.length&&can&&!deep&&!window.FACE_ONLYSSD)res=await f.detectAllFaces(cv,new f.SsdMobilenetv1Options({minConfidence:.55,maxResults:24})).withFaceLandmarks().withFaceDescriptors();
+  if(!FACE_SSD||window.FACE_NOTTA)return res;
+  for(const r of res){
+    try{
+      const [crop]=await f.extractFaces(cv,[r.landmarks.align()]),fl=document.createElement('canvas');fl.width=crop.width;fl.height=crop.height;
+      const c=fl.getContext('2d');c.translate(fl.width,0);c.scale(-1,1);c.drawImage(crop,0,0);
+      const d2=await f.nets.faceRecognitionNet.computeFaceDescriptor(fl),a=r.descriptor,d=new Float32Array(128);
+      for(let i=0;i<128;i++)d[i]=(a[i]+d2[i])/2;r.descriptor=d;
+    }catch(e){}
+  }
+  return res;
+}
 /* the faces in one photo, found once and remembered */
-async function facesOf(m){
+async function facesOf(m,deep){
   const c=await faceDB.get('photos',m.id);if(c)return c;
   const f=await faceLoad(),img=await loadImg(src(m)),k=Math.min(1,800/Math.max(img.naturalWidth,img.naturalHeight)),cv=document.createElement('canvas');
   cv.width=Math.round(img.naturalWidth*k);cv.height=Math.round(img.naturalHeight*k);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-  const res=await f.detectAllFaces(cv,new f.TinyFaceDetectorOptions({inputSize:416,scoreThreshold:.5})).withFaceLandmarks().withFaceDescriptors();
-  const out={ar:cv.height/cv.width,faces:res.filter(r=>r.detection.box.width>=40).sort((a,b)=>b.detection.box.width-a.detection.box.width).map(r=>{const b=r.detection.box;return{b:[b.x/cv.width,b.y/cv.height,b.width/cv.width,b.height/cv.height],d:Array.from(r.descriptor)}})};
+  const res=await faceFind(f,cv,deep);
+  const out={ar:cv.height/cv.width,faces:res.filter(r=>r.detection.box.width>=40).sort((a,b)=>b.detection.box.width-a.detection.box.width).map(r=>{const b=r.detection.box;return{b:[b.x/cv.width,b.y/cv.height,b.width/cv.width,b.height/cv.height],d:Array.from(r.descriptor),s:+(r.detection.score||0).toFixed(2)}})};
   await faceDB.put('photos',m.id,out);return out;
 }
 const pkey=n=>(n||'').trim().toLowerCase();
@@ -68,8 +88,8 @@ async function faceAfterTag(m,name){
   if(!window.indexedDB||!name)return;
   fcCancel=false;
   try{
-    fcBusy('Loading face recognition…<small>One time, about 8 MB. It stays on this phone.</small>');
-    const {faces,ar}=await facesOf(m);if(fcCancel)return;
+    fcBusy('Loading face recognition…<small>One time, about 14 MB. It stays on this phone.</small>');
+    const {faces,ar}=await facesOf(m,true);if(fcCancel)return;
     if(!faces.length){fcMsg(['No face found','That photo is tagged '+esc(name)+', but no face could be found in it, so Keep cannot look for them in other photos from it. A clear, front-facing photo works best.']);return}
     let pick=0;
     if(faces.length>1){
@@ -257,6 +277,7 @@ async function faceClusters(){
     rec.faces.forEach((fc,i)=>{
       if(faceWho(fc.d,people))return;                         /* someone you already named */
       if(rec.faces.length===1&&namesOf(m).length)return;       /* a named photo of one face */
+      if(fc.s&&fc.s<.6)return;                                 /* a weak detection: too unsure to group by */
       items.push({m,fc,ar:rec.ar,w:fc.b[2]});
     });
   }

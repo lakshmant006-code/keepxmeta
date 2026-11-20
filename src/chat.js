@@ -214,6 +214,7 @@ function ask(q){
   chAsked.add(q);if(!/^__/.test(q))chatUser(q);
   if(chPend&&!/\?\s*$/.test(q)&&!/^(who|what|where|when|how|why|show|my|photos?|open)\b/i.test(q)){const k=chPend;chPend='';const A=chatSaveNote(q,k);chQ=chQ.then(()=>chatReply(q,A)).catch(()=>{});return}
   chPend='';
+  if(window.sceneIs&&sceneIs(q)&&!(window.lookIs&&lookIs(q))){chQ=chQ.then(async()=>{await chatReply(q,{text:'Let me look through your photos for that…',more:[],cards:[],chips:[]});const A=await sceneAnswer(q).catch(()=>({text:'I could not read your photos just now. Try again in a bit.',more:[],cards:[],chips:[]}));await chatReply(q,A)}).catch(()=>{});return}
   if(window.lookIs&&lookIs(q)){chQ=chQ.then(async()=>{await chatReply(q,{text:'Let me look through your photos for that…',more:[],cards:[],chips:[]});const A=await lookAnswer(q).catch(()=>({text:'I could not look through your photos just now. Try again in a bit.',more:[],cards:[],chips:[]}));await chatReply(q,A)}).catch(()=>{});return}
   {const C=window.cpRespond&&cpRespond(q);if(C){chQ=chQ.then(()=>chatReply(q,C)).catch(()=>{});return}}
   chQ=chQ.then(()=>chatReply(q)).catch(()=>{});
@@ -228,5 +229,6 @@ function sugg(){
 }
 function openChat(keep){const c=$('#chat');c.classList.add('on');if(!keep)sugg();$('#q2').focus({preventScroll:true})}
 (function(){const cb=$('#cb');cb.addEventListener('click',e=>{const a=e.target.closest('[data-act="add"]');if(a){closeChat();openAdd()}
+    const sc=e.target.closest('[data-act="scenes"]');if(sc&&window.scTurnOn){scTurnOn().then(ok=>{if(ok)chQ=chQ.then(()=>chatReply('',{text:'Done. I am reading your photos in the background, newest first. Ask me again in a minute, for example “show my mountain photos”.',more:[],cards:[],chips:[]})).catch(()=>{})})}
     const r=e.target.closest('[data-act="remember"]');if(r){chPend=r.dataset.k;const [y,mo,d]=chPend.split('-').map(Number);chQ=chQ.then(()=>chatReply('',{text:`Go ahead, I am listening. I will keep it with <b>${longDay(new Date(y,mo-1,d))}</b>.`,more:[],cards:[],chips:[]})).catch(()=>{});$('#q2').focus({preventScroll:true})}});
   const q2=$('#q2'),sb=$('#sendB'),sync=()=>sb.classList.toggle('on',!!q2.value.trim());q2.addEventListener('input',sync);sb.addEventListener('click',()=>setTimeout(sync,0));q2.addEventListener('keydown',()=>setTimeout(sync,0));sync()})();
